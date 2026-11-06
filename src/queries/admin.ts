@@ -173,3 +173,84 @@ export async function getIncome(params: {
   if (error) throw new Error(`No se pudieron calcular los ingresos: ${error.message}`);
   return (data ?? []).map((r) => ({ bucket: r.bucket, total: Number(r.total), payments: Number(r.payments) }));
 }
+
+export type VenueSettingsForm = {
+  venueName: string;
+  address: string;
+  contactPhone: string;
+  contactEmail: string;
+  contactWhatsapp: string;
+  notificationWhatsapp: string;
+  priceTurn: number;
+  maxPlayers: number;
+  slotDurationMinutes: number;
+  slotGapMinutes: number;
+  bookingWindowDays: number;
+  maxActiveBookingsPerPhone: number;
+  requireConfirmation: boolean;
+  hours: { weekday: number; isOpen: boolean; open: string; close: string }[];
+};
+
+/** Configuración completa del predio para el formulario del administrador. */
+export async function getVenueSettingsForm(): Promise<VenueSettingsForm> {
+  const supabase = await createClient();
+  const [settings, hours] = await Promise.all([
+    supabase.from("venue_settings").select("*").eq("id", 1).single(),
+    supabase.from("operating_hours").select("weekday, is_open, open_time, close_time").order("weekday"),
+  ]);
+  if (settings.error || !settings.data) throw new Error(`No se pudo leer la configuración: ${settings.error?.message}`);
+  if (hours.error) throw new Error(`No se pudieron leer los horarios: ${hours.error.message}`);
+  const s = settings.data;
+  return {
+    venueName: s.venue_name,
+    address: s.address ?? "",
+    contactPhone: s.contact_phone ?? "",
+    contactEmail: s.contact_email ?? "",
+    contactWhatsapp: s.contact_whatsapp ?? "",
+    notificationWhatsapp: s.notification_whatsapp_number ?? "",
+    priceTurn: Number(s.price_group),
+    maxPlayers: s.max_players,
+    slotDurationMinutes: s.slot_duration_minutes,
+    slotGapMinutes: s.slot_gap_minutes,
+    bookingWindowDays: s.booking_window_days,
+    maxActiveBookingsPerPhone: s.max_active_bookings_per_phone,
+    requireConfirmation: s.require_confirmation,
+    hours: (hours.data ?? []).map((h) => ({
+      weekday: h.weekday,
+      isOpen: h.is_open,
+      open: h.open_time.slice(0, 5),
+      close: h.close_time.slice(0, 5),
+    })),
+  };
+}
+
+export type NotificationItem = Tables<"notification_logs"> & { bookingCode: string | null; customerName: string | null };
+
+export async function listNotifications(limit = 50): Promise<NotificationItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("notification_logs").select("*").order("created_at", { ascending: false }).limit(limit);
+  if (error) throw new Error(`No se pudieron leer los avisos: ${error.message}`);
+  const ids = [...new Set((data ?? []).map((n) => n.booking_id).filter((x): x is string => !!x))];
+  const bookings = ids.length
+    ? (await supabase.from("bookings").select("id, code, customer_name").in("id", ids)).data ?? []
+    : [];
+  const byId = new Map(bookings.map((b) => [b.id, b]));
+  return (data ?? []).map((n) => ({
+    ...n,
+    bookingCode: n.booking_id ? byId.get(n.booking_id)?.code ?? null : null,
+    customerName: n.booking_id ? byId.get(n.booking_id)?.customer_name ?? null : null,
+  }));
+}
+
+/** Avisos que fallaron en los últimos días (para avisar en la agenda). */
+export async function getFailedNotificationCount(days = 3): Promise<number> {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const { count, error } = await supabase
+    .from("notification_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "failed")
+    .gte("created_at", since);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}

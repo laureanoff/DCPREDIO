@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ArrowLeft } from "lucide-react";
 import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
+import { TurnAlerts } from "@/components/admin/TurnAlerts";
+import { TurnTimer } from "@/components/admin/TurnTimer";
 import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
 import { getBooking, getPayments } from "@/queries/admin";
@@ -39,6 +41,15 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           {b.status !== "cancelled" && <PaymentBadge status={b.paymentStatus} />}
         </div>
       </header>
+
+      {b.status !== "cancelled" && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4">
+          <TurnTimer startAt={b.start_at} endAt={b.end_at} large />
+          <div>
+            <TurnAlerts bookings={[{ id: b.id, name: b.customer_name, startAt: b.start_at, endAt: b.end_at }]} />
+          </div>
+        </div>
+      )}
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Info label="Cancha" value="Completa" />

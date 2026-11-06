@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { createAnonClient } from "@/lib/supabase/anon";
 
 export type PublicVenue = {
@@ -29,6 +29,7 @@ const PUBLIC_COLUMNS =
 export async function getPublicVenue(): Promise<PublicVenue> {
   "use cache";
   cacheLife("minutes");
+  cacheTag("venue");
 
   const supabase = createAnonClient();
   const [settings, court, hours] = await Promise.all([

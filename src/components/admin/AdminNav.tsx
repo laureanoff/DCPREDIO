@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, ClipboardList } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, MessageCircle, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
   { href: "/admin", label: "Agenda", Icon: CalendarDays, match: (p: string) => p === "/admin" },
   { href: "/admin/reservas", label: "Reservas", Icon: ClipboardList, match: (p: string) => p.startsWith("/admin/reservas") },
+  { href: "/admin/avisos", label: "Avisos", Icon: MessageCircle, match: (p: string) => p.startsWith("/admin/avisos") },
   { href: "/admin/estadisticas", label: "Estadísticas", Icon: BarChart3, match: (p: string) => p.startsWith("/admin/estadisticas"), adminOnly: true },
+  { href: "/admin/configuracion", label: "Configuración", Icon: Settings, match: (p: string) => p.startsWith("/admin/configuracion"), adminOnly: true },
 ];
 
 export function AdminNav({ isAdmin }: { isAdmin: boolean }) {

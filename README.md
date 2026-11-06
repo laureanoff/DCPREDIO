@@ -147,3 +147,9 @@ Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección 
 ## Estadísticas (Fase 6, solo administradores)
 
 - `/admin/estadisticas`: ingresos por mes del año o por día de un mes, filtrables por medio de pago. Se calculan por **fecha de pago** (zona horaria del predio) y excluyen pagos anulados. Cada barra del gráfico mensual lleva al detalle diario; hay vista en tabla.
+
+## Configuración, cronómetro y avisos (Fase 7)
+
+- `/admin/configuracion` (solo administradores): precio del turno, jugadores, duración y descanso de turnos, ventana de reserva, confirmación manual, horarios por día, datos del predio y número de avisos. Al guardar se invalida el caché público (`updateTag("venue")`).
+- Cronómetro en la agenda del día y en el detalle de cada reserva: cuenta regresiva al comienzo y al final del turno, con aviso en pantalla (y sonido/notificación si se activan) al empezar, a 5 minutos del final y al terminar. Funciona mientras la pantalla esté abierta.
+- WhatsApp Cloud API: ver `docs/whatsapp.md`. Registro en `notification_logs`, reintentos y pantalla `/admin/avisos`.

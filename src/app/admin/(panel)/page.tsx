@@ -4,9 +4,11 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
+import { TurnAlerts } from "@/components/admin/TurnAlerts";
+import { TurnTimer } from "@/components/admin/TurnTimer";
 import { addDaysKey, formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
-import { getDayBookings, getPendingCount, getUpcomingCount } from "@/queries/admin";
+import { getDayBookings, getFailedNotificationCount, getPendingCount, getUpcomingCount } from "@/queries/admin";
 
 export const metadata: Metadata = { title: "Agenda" };
 
@@ -18,10 +20,11 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
   const today = todayKey();
   const date = fecha && DATE_RE.test(fecha) ? fecha : today;
 
-  const [bookings, pending, week] = await Promise.all([
+  const [bookings, pending, week, failedNotices] = await Promise.all([
     getDayBookings(date),
     getPendingCount(),
     getUpcomingCount(today, addDaysKey(today, 6)),
+    getFailedNotificationCount(),
   ]);
 
   const active = bookings.filter((b) => b.status !== "cancelled");
@@ -68,6 +71,12 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
         </div>
       </div>
 
+      {date === today && active.length > 0 && (
+        <div>
+          <TurnAlerts bookings={active.map((b) => ({ id: b.id, name: b.customer_name, startAt: b.start_at, endAt: b.end_at }))} />
+        </div>
+      )}
+
       <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Reservas del día" value={String(active.length)} />
         <Stat label="Jugadores que pagaron" value={`${playersPaid} de ${players}`} />
@@ -81,6 +90,12 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
           className="rounded-2xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning transition hover:bg-warning/20"
         >
           Hay <strong>{pending}</strong> {pending === 1 ? "reserva pendiente" : "reservas pendientes"} de confirmar. Ver →
+        </Link>
+      )}
+
+      {failedNotices > 0 && (
+        <Link href="/admin/avisos" className="rounded-2xl border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-danger transition hover:bg-danger/20">
+          {failedNotices} {failedNotices === 1 ? "aviso de WhatsApp no se envió" : "avisos de WhatsApp no se enviaron"}. Ver y reintentar →
         </Link>
       )}
 
@@ -108,6 +123,9 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
                   {b.playersPaid} de {b.players} jugadores pagaron · {b.customer_phone}
                 </span>
               </span>
+              {date === today && b.status !== "cancelled" && (
+                <span className="w-full sm:w-auto sm:min-w-56"><TurnTimer startAt={b.start_at} endAt={b.end_at} /></span>
+              )}
               <span className="flex items-center gap-2">
                 <StatusBadge status={b.status} />
                 {b.status !== "cancelled" && <PaymentBadge status={b.paymentStatus} />}

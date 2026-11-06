@@ -17,6 +17,7 @@ const serverSchema = z.object({
   WHATSAPP_API_VERSION: z.string().default("v21.0"),
   WHATSAPP_TEMPLATE_VENUE: z.string().optional(),
   WHATSAPP_TEMPLATE_CUSTOMER: z.string().optional(),
+  WHATSAPP_TEMPLATE_LANGUAGE: z.string().default("es_AR"),
 });
 
 export function getPublicEnv() {
