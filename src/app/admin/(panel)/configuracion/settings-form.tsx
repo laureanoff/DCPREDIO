@@ -111,8 +111,8 @@ export function SettingsForm({ initial }: { initial: VenueSettingsForm }) {
         <Field label="Nombre del predio" wide>
           <input className={field} value={f.venueName} onChange={(e) => set("venueName", e.target.value)} maxLength={80} required />
         </Field>
-        <Field label="Dirección" wide>
-          <input className={field} value={f.address} onChange={(e) => set("address", e.target.value)} maxLength={200} />
+        <Field label="Dirección (se muestra con mapa en la web)" wide>
+          <input className={field} value={f.address} onChange={(e) => set("address", e.target.value)} maxLength={200} placeholder="Calle y número, barrio, ciudad" />
         </Field>
         <Field label="Teléfono de contacto">
           <input className={field} inputMode="tel" value={f.contactPhone} onChange={(e) => set("contactPhone", e.target.value)} />

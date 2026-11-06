@@ -65,6 +65,18 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
                   <span>{venue.address}</span>
                 </li>
               )}
+              {venue.address && (
+                <li>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-10 items-center rounded-xl bg-lime px-4 text-sm font-semibold text-black transition hover:bg-lime-dark"
+                  >
+                    Cómo llegar
+                  </a>
+                </li>
+              )}
               {venue.contactPhone && (
                 <li className="flex items-center gap-2">
                   <Phone size={16} className="shrink-0 text-muted" />
@@ -94,6 +106,19 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
           </Card>
         )}
       </div>
+
+      {venue.address && (
+        <div className="mx-auto mt-4 max-w-5xl overflow-hidden rounded-3xl border border-border bg-surface">
+          <iframe
+            title={`Mapa: ${venue.address}`}
+            src={`https://www.google.com/maps?q=${encodeURIComponent(venue.address)}&z=16&output=embed`}
+            className="h-72 w-full border-0 sm:h-96"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        </div>
+      )}
     </section>
   );
 }
