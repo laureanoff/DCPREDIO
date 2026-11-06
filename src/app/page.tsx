@@ -15,7 +15,6 @@ export default async function Home() {
       <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
       <main className="flex-1">
         <Hero venueName={venue.name} />
-        <InfoSection venue={venue} />
         <section id="reservar" className="scroll-mt-20 px-5 py-10">
           <div className="mx-auto max-w-5xl">
             <h2 className="mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
@@ -26,6 +25,7 @@ export default async function Home() {
             </Suspense>
           </div>
         </section>
+        <InfoSection venue={venue} />
         <LocationSection venue={venue} />
       </main>
       <SiteFooter name={venue.name} />
