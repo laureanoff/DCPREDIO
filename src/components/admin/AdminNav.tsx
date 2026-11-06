@@ -14,7 +14,7 @@ const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: s
   { href: "/admin/configuracion", label: "Configuración", Icon: Settings, match: (p: string) => p.startsWith("/admin/configuracion"), adminOnly: true },
 ];
 
-export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
+export function AdminNav({ isAdmin, pendingCount = 0 }: { isAdmin: boolean; pendingCount?: number }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Secciones del panel" className="flex gap-1 overflow-x-auto border-b border-border bg-background px-3">
@@ -32,6 +32,11 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
           >
             <Icon size={16} aria-hidden />
             {label}
+            {href === "/admin/avisos" && pendingCount > 0 && (
+              <span className="rounded-full bg-warning px-1.5 text-xs font-bold text-black" aria-label={`${pendingCount} por confirmar`}>
+                {pendingCount}
+              </span>
+            )}
           </Link>
         );
       })}

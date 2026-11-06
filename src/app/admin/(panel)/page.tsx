@@ -8,7 +8,7 @@ import { TurnAlerts } from "@/components/admin/TurnAlerts";
 import { TurnTimer } from "@/components/admin/TurnTimer";
 import { addDaysKey, formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
-import { getDayBookings, getFailedNotificationCount, getPendingCount, getUpcomingCount } from "@/queries/admin";
+import { getDayBookings, getPendingCount, getUpcomingCount } from "@/queries/admin";
 
 export const metadata: Metadata = { title: "Agenda" };
 
@@ -20,11 +20,10 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
   const today = todayKey();
   const date = fecha && DATE_RE.test(fecha) ? fecha : today;
 
-  const [bookings, pending, week, failedNotices] = await Promise.all([
+  const [bookings, pending, week] = await Promise.all([
     getDayBookings(date),
     getPendingCount(),
     getUpcomingCount(today, addDaysKey(today, 6)),
-    getFailedNotificationCount(),
   ]);
 
   const active = bookings.filter((b) => b.status !== "cancelled");
@@ -86,16 +85,10 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
 
       {pending > 0 && (
         <Link
-          href="/admin/reservas?estado=pending&vista=all"
+          href="/admin/avisos"
           className="rounded-2xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning transition hover:bg-warning/20"
         >
-          Hay <strong>{pending}</strong> {pending === 1 ? "reserva pendiente" : "reservas pendientes"} de confirmar. Ver →
-        </Link>
-      )}
-
-      {failedNotices > 0 && (
-        <Link href="/admin/avisos" className="rounded-2xl border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-danger transition hover:bg-danger/20">
-          {failedNotices} {failedNotices === 1 ? "aviso de WhatsApp no se envió" : "avisos de WhatsApp no se enviaron"}. Ver y reintentar →
+          Hay <strong>{pending}</strong> {pending === 1 ? "reserva nueva" : "reservas nuevas"} por confirmar. Ver avisos →
         </Link>
       )}
 

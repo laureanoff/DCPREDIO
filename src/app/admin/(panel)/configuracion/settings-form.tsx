@@ -125,12 +125,6 @@ export function SettingsForm({ initial }: { initial: VenueSettingsForm }) {
         </Field>
       </Section>
 
-      <Section title="Avisos por WhatsApp" hint="Número que recibe el aviso de cada reserva nueva (formato internacional, ej. 5493511234567). No se muestra en la web.">
-        <Field label="WhatsApp del predio para avisos" wide>
-          <input className={field} inputMode="tel" value={f.notificationWhatsapp} onChange={(e) => set("notificationWhatsapp", e.target.value)} placeholder="5493511234567" />
-        </Field>
-      </Section>
-
       <div className="sticky bottom-3">
         <button type="submit" disabled={pending} className="h-12 w-full rounded-2xl bg-lime font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-lg disabled:opacity-60 sm:w-auto sm:px-10">
           {pending ? "Guardando…" : "Guardar configuración"}

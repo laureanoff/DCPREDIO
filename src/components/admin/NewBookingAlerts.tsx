@@ -69,7 +69,7 @@ export function NewBookingAlerts() {
       if ("Notification" in window && Notification.permission === "granted") {
         for (const b of data.bookings) {
           try {
-            new Notification("Nueva reserva", {
+            new Notification(b.status === "pending" ? "Nueva reserva: hay que confirmarla" : "Nueva reserva", {
               body: `${b.customer_name} · ${formatDateShort(b.start_at)} ${formatTime(b.start_at)}–${formatTime(b.end_at)} · ${b.code}`,
               tag: b.id,
             });
@@ -117,13 +117,13 @@ export function NewBookingAlerts() {
           <div key={b.id} role="alert" className="flex items-start gap-3 rounded-2xl border border-lime bg-surface p-3 shadow-xl">
             <Bell size={20} className="mt-0.5 shrink-0 text-lime-ink" />
             <Link
-              href={`/admin/reservas/${b.id}`}
+              href={b.status === "pending" ? "/admin/avisos" : `/admin/reservas/${b.id}`}
               onClick={() => setItems((p) => p.filter((x) => x.id !== b.id))}
               className="min-w-0 flex-1"
             >
-              <span className="block font-semibold">Nueva reserva · {b.customer_name}</span>
+              <span className="block font-semibold">Llegó una nueva reserva{b.status === "pending" ? " · hay que confirmarla" : ""}</span>
               <span className="block text-sm text-muted">
-                {formatDateShort(b.start_at)} · {formatTime(b.start_at)}–{formatTime(b.end_at)} · {b.code}
+                {b.customer_name} · {formatDateShort(b.start_at)} · {formatTime(b.start_at)}–{formatTime(b.end_at)} · {b.code}
               </span>
             </Link>
             <button type="button" aria-label="Cerrar aviso" onClick={() => setItems((p) => p.filter((x) => x.id !== b.id))} className="text-muted hover:text-foreground">

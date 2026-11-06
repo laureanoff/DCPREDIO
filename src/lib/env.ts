@@ -10,16 +10,6 @@ const publicSchema = z.object({
 /** Variables privadas: SOLO servidor. Nunca importar este módulo desde componentes cliente. */
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),
-  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
-  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
-  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().optional(),
-  WHATSAPP_VENUE_NUMBER: z.string().optional(),
-  WHATSAPP_API_VERSION: z.string().default("v21.0"),
-  WHATSAPP_TEMPLATE_VENUE: z.string().optional(),
-  WHATSAPP_TEMPLATE_CUSTOMER: z.string().optional(),
-  WHATSAPP_TEMPLATE_LANGUAGE: z.string().default("es_AR"),
-  TELEGRAM_BOT_TOKEN: z.string().optional(),
-  TELEGRAM_CHAT_ID: z.string().optional(),
 });
 
 export function getPublicEnv() {

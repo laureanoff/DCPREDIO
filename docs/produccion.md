@@ -7,8 +7,6 @@
 | NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Sí | Supabase → API Keys (publishable / anon) |
 | SUPABASE_SERVICE_ROLE_KEY | Sí | Supabase → API Keys (secret). **Nunca** en el código ni con prefijo NEXT_PUBLIC |
 | NEXT_PUBLIC_SITE_URL | Sí | URL pública (https://dcpredio.vercel.app o tu dominio) |
-| TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID | Opcional (gratis) | Ver docs/notificaciones.md |
-| WHATSAPP_* | Opcional (de pago) | Ver docs/whatsapp.md |
 
 Tras cambiar variables hay que **redeployar** (Deployments → ⋯ → Redeploy).
 
@@ -21,7 +19,7 @@ Si una clave se pegó en un chat o se subió a Git: Supabase → Project Setting
 3. **Estructura:** todas las migraciones están en `supabase/migrations/` y reconstruyen la base desde cero.
 
 ## Seguridad aplicada
-- RLS en todas las tablas; el personal solo opera con su sesión; la clave de servicio solo se usa en el servidor para reservas públicas y registro de avisos.
+- RLS en todas las tablas; el personal solo opera con su sesión; la clave de servicio solo se usa en el servidor para crear reservas públicas.
 - Cabeceras: X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy, Permissions-Policy.
 - Export de respaldos: requiere sesión de administrador (401/403 en otro caso), sin caché; los CSV neutralizan fórmulas.
 - Pendiente de tu lado: activar "Leaked password protection" en Supabase → Authentication → Providers → Email (puede requerir plan Pro).

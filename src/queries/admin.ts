@@ -180,7 +180,6 @@ export type VenueSettingsForm = {
   contactPhone: string;
   contactEmail: string;
   contactWhatsapp: string;
-  notificationWhatsapp: string;
   priceTurn: number;
   maxPlayers: number;
   slotDurationMinutes: number;
@@ -207,7 +206,6 @@ export async function getVenueSettingsForm(): Promise<VenueSettingsForm> {
     contactPhone: s.contact_phone ?? "",
     contactEmail: s.contact_email ?? "",
     contactWhatsapp: s.contact_whatsapp ?? "",
-    notificationWhatsapp: s.notification_whatsapp_number ?? "",
     priceTurn: Number(s.price_group),
     maxPlayers: s.max_players,
     slotDurationMinutes: s.slot_duration_minutes,
@@ -224,33 +222,30 @@ export async function getVenueSettingsForm(): Promise<VenueSettingsForm> {
   };
 }
 
-export type NotificationItem = Tables<"notification_logs"> & { bookingCode: string | null; customerName: string | null };
-
-export async function listNotifications(limit = 50): Promise<NotificationItem[]> {
+/** Bandeja de avisos: reservas nuevas esperando confirmación (las más recientes primero). */
+export async function listPendingInbox(): Promise<BookingRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("notification_logs").select("*").order("created_at", { ascending: false }).limit(limit);
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(100);
   if (error) throw new Error(`No se pudieron leer los avisos: ${error.message}`);
-  const ids = [...new Set((data ?? []).map((n) => n.booking_id).filter((x): x is string => !!x))];
-  const bookings = ids.length
-    ? (await supabase.from("bookings").select("id, code, customer_name").in("id", ids)).data ?? []
-    : [];
-  const byId = new Map(bookings.map((b) => [b.id, b]));
-  return (data ?? []).map((n) => ({
-    ...n,
-    bookingCode: n.booking_id ? byId.get(n.booking_id)?.code ?? null : null,
-    customerName: n.booking_id ? byId.get(n.booking_id)?.customer_name ?? null : null,
-  }));
+  return data ?? [];
 }
 
-/** Avisos que fallaron en los últimos días (para avisar en la agenda). */
-export async function getFailedNotificationCount(days = 3): Promise<number> {
+/** Reservas confirmadas en los últimos días (para enviarle la confirmación al cliente por WhatsApp). */
+export async function listRecentlyConfirmed(days = 3): Promise<BookingRow[]> {
   const supabase = await createClient();
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
-  const { count, error } = await supabase
-    .from("notification_logs")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "failed")
-    .gte("created_at", since);
-  if (error) throw new Error(error.message);
-  return count ?? 0;
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("status", "confirmed")
+    .gte("updated_at", since)
+    .order("updated_at", { ascending: false })
+    .limit(20);
+  if (error) throw new Error(`No se pudieron leer las confirmadas: ${error.message}`);
+  return data ?? [];
 }

@@ -5,10 +5,11 @@ import { AdminNav } from "@/components/admin/AdminNav";
 import { NewBookingAlerts } from "@/components/admin/NewBookingAlerts";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { requireStaff } from "@/lib/auth";
+import { getPendingCount } from "@/queries/admin";
 import { logout } from "../login/actions";
 
 async function PanelShell({ children }: { children: React.ReactNode }) {
-  const staff = await requireStaff();
+  const [staff, pendingCount] = await Promise.all([requireStaff(), getPendingCount()]);
   return (
     <div className="flex flex-1 flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
@@ -33,7 +34,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
           </form>
         </div>
       </header>
-      <AdminNav isAdmin={staff.role === "admin"} />
+      <AdminNav isAdmin={staff.role === "admin"} pendingCount={pendingCount} />
       <div className="flex-1 px-4 py-6">{children}</div>
       <NewBookingAlerts />
     </div>

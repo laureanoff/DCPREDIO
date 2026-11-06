@@ -2,7 +2,7 @@
 
 Aplicación web para gestionar las reservas de **DC Predio** (fútbol 5): página pública para clientes y panel privado para el administrador.
 
-**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + PostgreSQL) · Vercel · WhatsApp Business Cloud API (Meta).
+**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + PostgreSQL) · Vercel.
 
 > Estado: **Fase 8 — completa** (producción, respaldos, seguridad). Ver docs/produccion.md.
 
@@ -26,7 +26,6 @@ src/
   queries/             Consultas a Supabase
   business/            Reglas de negocio (disponibilidad, precios, pagos)
   validations/         Esquemas zod
-  integrations/whatsapp/  Cliente de WhatsApp Cloud API
   types/               Tipos TypeScript
 supabase/migrations/   Migraciones SQL versionadas
 docs/                  Documentación adicional
@@ -116,7 +115,7 @@ Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y 
 4. Panel de administración
 5. Pagos
 6. Ingresos y estadísticas
-7. WhatsApp (Meta Cloud API)
+7. Avisos de reservas dentro del panel
 8. Pruebas y producción
 
 
@@ -150,9 +149,9 @@ Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección 
 
 ## Configuración, cronómetro y avisos (Fase 7)
 
-- `/admin/configuracion` (solo administradores): precio del turno, jugadores, duración y descanso de turnos, ventana de reserva, confirmación manual, horarios por día, datos del predio y número de avisos. Al guardar se invalida el caché público (`updateTag("venue")`).
+- `/admin/configuracion` (solo administradores): precio del turno, jugadores, duración y descanso de turnos, ventana de reserva, confirmación manual, horarios por día, datos del predio (dirección con mapa). Al guardar se invalida el caché público (`updateTag("venue")`).
 - Cronómetro en la agenda del día y en el detalle de cada reserva: cuenta regresiva al comienzo y al final del turno, con aviso en pantalla (y sonido/notificación si se activan) al empezar, a 5 minutos del final y al terminar. Funciona mientras la pantalla esté abierta.
-- WhatsApp Cloud API: ver `docs/whatsapp.md`. Registro en `notification_logs`, reintentos y pantalla `/admin/avisos`.
+- Avisos (`/admin/avisos`): bandeja de reservas nuevas por confirmar (Confirmar / Rechazar). Con el panel abierto suena y muestra un cartel cuando entra una reserva. Tras confirmar, botón para enviarle la confirmación al cliente por WhatsApp (enlace `wa.me` con el mensaje armado, sin costo). No se usa Telegram ni la API de pago de WhatsApp.
 
 ## Respaldos y producción (Fase 8)
 Panel → **Respaldos** (admin): descarga JSON completo o CSV por tabla. Guía de producción, credenciales y seguridad en [docs/produccion.md](docs/produccion.md).
