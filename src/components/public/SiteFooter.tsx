@@ -6,7 +6,6 @@ export function SiteFooter({ name }: { name: string }) {
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
         <span>© {name}</span>
         <ThemeToggle showLabels />
-        <a href="/admin" className="transition hover:text-lime-ink">Acceso personal</a>
       </div>
     </footer>
   );
