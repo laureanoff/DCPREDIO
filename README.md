@@ -130,3 +130,9 @@ Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y 
 ## Tema
 
 Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección se guarda en el navegador (`localStorage: dc-theme`); sin elección sigue al sistema. Los colores viven en variables CSS en `src/app/globals.css`.
+
+## Pagos (Fase 5)
+
+- En el detalle de cada reserva: monto cobrado, saldo, historial y formulario para registrar pagos (efectivo, transferencia, otro), parciales o totales.
+- El total pagado nunca puede superar el total de la reserva (lo valida la base, código `DC011`).
+- Los pagos no se editan ni se borran: se anulan (queda quién y cuándo). Migración `payments_column_grants` restringe las columnas que el personal puede escribir.

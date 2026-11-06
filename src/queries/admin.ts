@@ -126,3 +126,18 @@ export async function getAdminVenue() {
     maxPlayers: Number(data.max_players),
   };
 }
+
+export type PaymentRow = Tables<"payments">;
+
+/** Historial de pagos de una reserva (incluye los anulados, marcados). Del más reciente al más antiguo. */
+export async function getPayments(bookingId: string): Promise<PaymentRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .order("paid_at", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`No se pudieron leer los pagos: ${error.message}`);
+  return data ?? [];
+}

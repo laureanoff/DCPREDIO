@@ -7,8 +7,9 @@ import { ArrowLeft } from "lucide-react";
 import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
-import { getAdminVenue, getBooking } from "@/queries/admin";
+import { getAdminVenue, getBooking, getPayments } from "@/queries/admin";
 import { BookingManager } from "./booking-manager";
+import { PaymentsPanel } from "./payments-panel";
 
 export const metadata: Metadata = { title: "Reserva" };
 
@@ -16,7 +17,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [b, venue] = await Promise.all([getBooking(id), getAdminVenue()]);
+  const [b, venue, payments] = await Promise.all([getBooking(id), getAdminVenue(), getPayments(id)]);
   if (!b) notFound();
 
   return (
@@ -49,6 +50,23 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
       {b.status === "cancelled" && b.cancel_reason && (
         <p className="rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">Motivo de cancelación: {b.cancel_reason}</p>
       )}
+
+      <PaymentsPanel
+        bookingId={b.id}
+        total={b.total_price}
+        totalPaid={b.totalPaid}
+        balance={b.balance}
+        cancelled={b.status === "cancelled"}
+        payments={payments.map((p) => ({
+          id: p.id,
+          amount: Number(p.amount),
+          method: p.method,
+          notes: p.notes,
+          paidAt: p.paid_at,
+          isVoided: p.is_voided,
+          voidReason: p.void_reason,
+        }))}
+      />
 
       <BookingManager
         booking={{
