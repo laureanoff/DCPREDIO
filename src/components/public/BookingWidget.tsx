@@ -201,6 +201,19 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
         </dl>
         <p className="mt-4 text-center text-sm text-muted">El pago se realiza en el predio, entre todos los jugadores.</p>
 
+        {venue.contactWhatsapp && /^\+?[0-9]{8,15}$/.test(venue.contactWhatsapp.replace(/\D/g, "")) && (
+          <a
+            href={`https://wa.me/${venue.contactWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
+              `Hola, reservé el turno ${done.code} a nombre de ${done.customerName} para el ${formatDateShort(done.startAt, tz)} de ${formatTime(done.startAt, tz)} a ${formatTime(done.endAt, tz)}.`,
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mx-auto mt-4 flex h-12 w-fit items-center rounded-xl bg-lime px-6 font-semibold text-black transition hover:bg-lime-dark"
+          >
+            Avisar al predio por WhatsApp
+          </a>
+        )}
+
         <button
           type="button"
           onClick={reset}

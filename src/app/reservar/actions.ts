@@ -2,7 +2,7 @@
 
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { notifyNewBooking } from "@/services/whatsapp";
+import { notifyNewBooking } from "@/services/notifications";
 import { bookingInputSchema } from "@/validations/booking";
 import { createPublicBooking, type CreateBookingResult } from "@/services/booking";
 

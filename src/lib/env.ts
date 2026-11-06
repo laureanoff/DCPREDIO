@@ -18,6 +18,8 @@ const serverSchema = z.object({
   WHATSAPP_TEMPLATE_VENUE: z.string().optional(),
   WHATSAPP_TEMPLATE_CUSTOMER: z.string().optional(),
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().default("es_AR"),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_CHAT_ID: z.string().optional(),
 });
 
 export function getPublicEnv() {

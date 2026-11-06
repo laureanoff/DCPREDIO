@@ -21,6 +21,46 @@ export function getWhatsAppStatus(): { configured: boolean; missing: string[]; c
   return { configured: missing.length === 0, missing, customerEnabled: Boolean(env.WHATSAPP_TEMPLATE_CUSTOMER) };
 }
 
+/** Telegram: canal gratuito. Solo nombres de variables que faltan, nunca valores. */
+export function getTelegramStatus(): { configured: boolean; missing: string[] } {
+  const missing: string[] = [];
+  if (!process.env.TELEGRAM_BOT_TOKEN) missing.push("TELEGRAM_BOT_TOKEN");
+  if (!process.env.TELEGRAM_CHAT_ID) missing.push("TELEGRAM_CHAT_ID");
+  return { configured: missing.length === 0, missing };
+}
+
+async function sendTelegram(chatId: string, text: string): Promise<SendResult> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return { ok: false, error: "Telegram no está configurado en el servidor.", retryable: false };
+  let res: Response;
+  try {
+    res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    return { ok: false, error: "No se pudo conectar con Telegram (red o tiempo agotado).", retryable: true };
+  }
+  const body = (await res.json().catch(() => null)) as { ok?: boolean; result?: { message_id: number }; description?: string } | null;
+  if (res.ok && body?.ok && body.result) return { ok: true, messageId: String(body.result.message_id) };
+  return {
+    ok: false,
+    error: `Telegram rechazó el mensaje: ${body?.description ?? `HTTP ${res.status}`}`.slice(0, 500),
+    retryable: res.status >= 500 || res.status === 429,
+  };
+}
+
+function telegramText(b: BookingRow): string {
+  return [
+    `Nueva reserva ${b.code}`,
+    `${b.customer_name} · ${b.customer_phone}`,
+    `${formatDateShort(b.start_at)} de ${formatTime(b.start_at)} a ${formatTime(b.end_at)}`,
+    `Total: ${formatMoney(Number(b.total_price))}`,
+  ].join("\n");
+}
+
 function readEnv() {
   // Los datos de WhatsApp son opcionales: no exigimos la service role acá.
   return {
@@ -93,18 +133,21 @@ export async function deliverNotification(db: Db, logId: string): Promise<{ ok: 
   const { data: log } = await db.from("notification_logs").select("*").eq("id", logId).maybeSingle();
   if (!log) return { ok: false, error: "El aviso no existe." };
   if (log.status === "sent") return { ok: true };
-  if (!log.booking_id || !log.recipient_number || !log.template_name) {
+  const isTelegram = log.channel === "telegram";
+  if (!log.booking_id || !log.recipient_number || (!isTelegram && !log.template_name)) {
     return { ok: false, error: "Al aviso le faltan datos para enviarse." };
   }
   const { data: booking } = await db.from("bookings").select("*").eq("id", log.booking_id).maybeSingle();
   if (!booking) return { ok: false, error: "La reserva del aviso no existe." };
 
-  const params = templateParams(log.recipient_type, booking);
+  const to = log.recipient_number;
+  const send = () =>
+    isTelegram ? sendTelegram(to, telegramText(booking)) : sendTemplate(to, log.template_name as string, templateParams(log.recipient_type, booking));
   let attempts = log.attempts;
   let last: SendResult = { ok: false, error: "Sin intentos.", retryable: false };
 
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    last = await sendTemplate(log.recipient_number, log.template_name, params);
+    last = await send();
     attempts += 1;
     const now = new Date().toISOString();
     if (last.ok) {
@@ -118,38 +161,59 @@ export async function deliverNotification(db: Db, logId: string): Promise<{ ok: 
     if (!last.retryable || i === MAX_ATTEMPTS - 1) break;
     await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[i] ?? 3000));
   }
-  console.error("[whatsapp] aviso no enviado:", logId, last.ok ? "" : last.error);
+  console.error("[avisos] aviso no enviado:", logId, last.ok ? "" : last.error);
   return { ok: false, error: last.ok ? undefined : last.error };
 }
 
 async function createLog(db: Db, row: Database["public"]["Tables"]["notification_logs"]["Insert"]): Promise<LogRow | null> {
   const { data, error } = await db.from("notification_logs").insert(row).select("*").single();
   if (error) {
-    console.error("[whatsapp] no se pudo registrar el aviso:", error.message);
+    console.error("[avisos] no se pudo registrar el aviso:", error.message);
     return null;
   }
   return data;
 }
 
-/** Avisa al predio (y al cliente, si hay plantilla configurada) de una reserva nueva. Nunca lanza: el aviso no puede romper la reserva. */
+type Target = { channel: "telegram" | "whatsapp"; type: "venue" | "customer"; number: string; template?: string };
+
+/**
+ * Avisa de una reserva nueva por los canales configurados: Telegram (gratis) y/o WhatsApp (plantillas de Meta, con costo).
+ * Si no hay ningún canal configurado queda un registro "No enviado" visible en el panel. Nunca lanza.
+ */
 export async function notifyNewBooking(db: Db, bookingId: string): Promise<void> {
   try {
     const env = readEnv();
     const { data: settings } = await db.from("venue_settings").select("notification_whatsapp_number").eq("id", 1).single();
     const { data: booking } = await db.from("bookings").select("customer_phone").eq("id", bookingId).single();
-    const status = getWhatsAppStatus();
+    const wa = getWhatsAppStatus();
+    const tg = getTelegramStatus();
+    const waRequested = Boolean(env.WHATSAPP_ACCESS_TOKEN || env.WHATSAPP_PHONE_NUMBER_ID || env.WHATSAPP_TEMPLATE_VENUE);
 
-    const venueNumber = digits(settings?.notification_whatsapp_number) || digits(env.WHATSAPP_VENUE_NUMBER);
-    const targets: { type: "venue" | "customer"; number: string; template: string | undefined }[] = [
-      { type: "venue", number: venueNumber, template: env.WHATSAPP_TEMPLATE_VENUE },
-    ];
-    if (env.WHATSAPP_TEMPLATE_CUSTOMER && booking) {
-      targets.push({ type: "customer", number: digits(booking.customer_phone), template: env.WHATSAPP_TEMPLATE_CUSTOMER });
+    const targets: Target[] = [];
+    if (tg.configured) targets.push({ channel: "telegram", type: "venue", number: process.env.TELEGRAM_CHAT_ID as string });
+    if (waRequested) {
+      const venueNumber = digits(settings?.notification_whatsapp_number) || digits(env.WHATSAPP_VENUE_NUMBER);
+      targets.push({ channel: "whatsapp", type: "venue", number: venueNumber, template: env.WHATSAPP_TEMPLATE_VENUE });
+      if (env.WHATSAPP_TEMPLATE_CUSTOMER && booking) {
+        targets.push({ channel: "whatsapp", type: "customer", number: digits(booking.customer_phone), template: env.WHATSAPP_TEMPLATE_CUSTOMER });
+      }
+    }
+
+    if (targets.length === 0) {
+      await createLog(db, {
+        booking_id: bookingId,
+        channel: "none",
+        recipient_type: "venue",
+        status: "failed",
+        error: "No hay ningún canal de avisos configurado (Telegram o WhatsApp). Ver docs/notificaciones.md.",
+      });
+      return;
     }
 
     for (const t of targets) {
       const log = await createLog(db, {
         booking_id: bookingId,
+        channel: t.channel,
         recipient_type: t.type,
         recipient_number: t.number || null,
         template_name: t.template ?? null,
@@ -157,8 +221,8 @@ export async function notifyNewBooking(db: Db, bookingId: string): Promise<void>
       });
       if (!log) continue;
 
-      if (!status.configured || !t.template) {
-        await db.from("notification_logs").update({ status: "failed", error: `WhatsApp no configurado: falta ${status.missing.join(", ") || "la plantilla"}.` }).eq("id", log.id);
+      if (t.channel === "whatsapp" && (!wa.configured || !t.template)) {
+        await db.from("notification_logs").update({ status: "failed", error: `WhatsApp no configurado: falta ${wa.missing.join(", ") || "la plantilla"}.` }).eq("id", log.id);
         continue;
       }
       if (!t.number) {
@@ -168,6 +232,6 @@ export async function notifyNewBooking(db: Db, bookingId: string): Promise<void>
       await deliverNotification(db, log.id);
     }
   } catch (e) {
-    console.error("[whatsapp] error inesperado al notificar:", e instanceof Error ? e.message : e);
+    console.error("[avisos] error inesperado al notificar:", e instanceof Error ? e.message : e);
   }
 }

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { deliverNotification } from "@/services/whatsapp";
+import { deliverNotification } from "@/services/notifications";
 import type { ActionResult } from "../reservas/actions";
 
 /** Reintenta un aviso que falló. Usa la sesión de quien lo pide; el envío usa las credenciales del servidor. */

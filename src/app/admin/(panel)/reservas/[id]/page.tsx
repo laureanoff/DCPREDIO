@@ -36,7 +36,17 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
             {formatDateLong(b.booking_date ?? todayKey())} · {formatTime(b.start_at)}–{formatTime(b.end_at)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/^\+?[0-9]{8,15}$/.test(b.customer_phone) && (
+            <a
+              href={`https://wa.me/${b.customer_phone.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-border px-3 py-1.5 text-sm hover:border-lime"
+            >
+              Escribirle por WhatsApp
+            </a>
+          )}
           <StatusBadge status={b.status} />
           {b.status !== "cancelled" && <PaymentBadge status={b.paymentStatus} />}
         </div>
