@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getPublicVenue } from "@/queries/venue";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { Hero } from "@/components/public/Hero";
+import { LocationSection } from "@/components/public/LocationSection";
 import { InfoSection } from "@/components/public/InfoSection";
 import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
 import { SiteFooter } from "@/components/public/SiteFooter";
@@ -25,6 +26,7 @@ export default async function Home() {
             </Suspense>
           </div>
         </section>
+        <LocationSection venue={venue} />
       </main>
       <SiteFooter name={venue.name} />
     </>

@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { geocodeAddress } from "@/services/geocode";
 import type { ActionResult } from "../reservas/actions";
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horario inválido.");
@@ -43,9 +44,28 @@ export async function saveSettings(raw: z.input<typeof schema>): Promise<ActionR
   }
 
   const supabase = await createClient();
+
+  // Coordenadas para el mapa 3D: se recalculan solo si cambió la dirección (o si todavía no hay).
+  const { data: prev } = await supabase.from("venue_settings").select("address, latitude, longitude").eq("id", 1).maybeSingle();
+  const newAddress = v.address.trim();
+  let latitude = prev?.latitude ?? null;
+  let longitude = prev?.longitude ?? null;
+  let located = true;
+  if (!newAddress) {
+    latitude = null;
+    longitude = null;
+  } else if (newAddress !== (prev?.address ?? "").trim() || latitude === null || longitude === null) {
+    const point = await geocodeAddress(newAddress);
+    latitude = point?.lat ?? null;
+    longitude = point?.lng ?? null;
+    located = point !== null;
+  }
+
   const { data, error } = await supabase
     .from("venue_settings")
     .update({
+      latitude,
+      longitude,
       venue_name: v.venueName,
       address: v.address || null,
       contact_phone: v.contactPhone || null,
@@ -81,5 +101,11 @@ export async function saveSettings(raw: z.input<typeof schema>): Promise<ActionR
 
   updateTag("venue"); // la web pública toma los precios y horarios nuevos de inmediato
   revalidatePath("/admin", "layout");
+  if (!located) {
+    return {
+      ok: true,
+      message: "Configuración guardada, pero no pudimos ubicar la dirección en el mapa 3D (se muestra un mapa común). Probá con calle, número y ciudad.",
+    };
+  }
   return { ok: true, message: "Configuración guardada. Ya se ve en la web pública." };
 }

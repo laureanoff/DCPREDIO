@@ -106,19 +106,6 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
           </Card>
         )}
       </div>
-
-      {venue.address && (
-        <div className="mx-auto mt-4 max-w-5xl overflow-hidden rounded-3xl border border-border bg-surface">
-          <iframe
-            title={`Mapa: ${venue.address}`}
-            src={`https://www.google.com/maps?q=${encodeURIComponent(venue.address)}&z=16&output=embed`}
-            className="h-72 w-full border-0 sm:h-96"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        </div>
-      )}
     </section>
   );
 }

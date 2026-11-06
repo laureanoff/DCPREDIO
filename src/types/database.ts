@@ -284,6 +284,8 @@ export type Database = {
           logo_url: string | null;
           max_active_bookings_per_phone: number;
           max_players: number;
+          latitude: number | null;
+          longitude: number | null;
           notification_whatsapp_number: string | null;
           price_group: number;
           price_individual: number;
@@ -306,6 +308,8 @@ export type Database = {
           logo_url?: string | null;
           max_active_bookings_per_phone?: number;
           max_players?: number;
+          latitude?: number | null;
+          longitude?: number | null;
           notification_whatsapp_number?: string | null;
           price_group?: number;
           price_individual?: number;
@@ -328,6 +332,8 @@ export type Database = {
           logo_url?: string | null;
           max_active_bookings_per_phone?: number;
           max_players?: number;
+          latitude?: number | null;
+          longitude?: number | null;
           notification_whatsapp_number?: string | null;
           price_group?: number;
           price_individual?: number;

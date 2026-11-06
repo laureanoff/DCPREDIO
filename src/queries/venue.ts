@@ -5,6 +5,8 @@ export type PublicVenue = {
   name: string;
   logoUrl: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   contactPhone: string | null;
   contactEmail: string | null;
   contactWhatsapp: string | null;
@@ -22,7 +24,7 @@ export type PublicVenue = {
 
 // Columnas públicas (el rol anónimo no puede leer el resto, p. ej. el número que recibe los avisos).
 const PUBLIC_COLUMNS =
-  "venue_name, logo_url, address, contact_phone, contact_email, contact_whatsapp, currency, timezone, " +
+  "venue_name, logo_url, address, latitude, longitude, contact_phone, contact_email, contact_whatsapp, currency, timezone, " +
   "price_individual, price_group, max_players, slot_duration_minutes, booking_window_days, require_confirmation";
 
 /** Configuración pública del predio. Se refresca sola cada pocos minutos (no hace falta redeploy). */
@@ -47,6 +49,8 @@ export async function getPublicVenue(): Promise<PublicVenue> {
     name: s.venue_name as string,
     logoUrl: s.logo_url as string | null,
     address: s.address as string | null,
+    latitude: s.latitude === null ? null : Number(s.latitude),
+    longitude: s.longitude === null ? null : Number(s.longitude),
     contactPhone: s.contact_phone as string | null,
     contactEmail: s.contact_email as string | null,
     contactWhatsapp: s.contact_whatsapp as string | null,
