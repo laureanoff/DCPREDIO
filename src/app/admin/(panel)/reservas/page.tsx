@@ -107,7 +107,7 @@ async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
                 <span className="min-w-40 flex-1">
                   <span className="block font-semibold">{b.customer_name}</span>
                   <span className="block text-sm text-muted">
-                    {b.code} · {b.mode === "group" ? "Cancha completa" : "Individual"} · {b.players} {b.players === 1 ? "jugador" : "jugadores"}
+                    {b.code} · {b.playersPaid} de {b.players} jugadores pagaron
                   </span>
                 </span>
                 <span className="flex items-center gap-2">

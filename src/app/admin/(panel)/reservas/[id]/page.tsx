@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
-import { getAdminVenue, getBooking, getPayments } from "@/queries/admin";
+import { getBooking, getPayments } from "@/queries/admin";
 import { BookingManager } from "./booking-manager";
 import { PaymentsPanel } from "./payments-panel";
 
@@ -17,7 +17,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [b, venue, payments] = await Promise.all([getBooking(id), getAdminVenue(), getPayments(id)]);
+  const [b, payments] = await Promise.all([getBooking(id), getPayments(id)]);
   if (!b) notFound();
 
   return (
@@ -41,8 +41,8 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
       </header>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Info label="Modalidad" value={b.mode === "group" ? "Cancha completa" : "Individual"} />
-        <Info label="Jugadores" value={String(b.players)} />
+        <Info label="Cancha" value="Completa" />
+        <Info label="Jugadores" value={`${b.playersPaid} de ${b.players} pagaron`} />
         <Info label="Total" value={formatMoney(b.total_price)} />
         <Info label="Saldo" value={formatMoney(b.balance)} />
       </dl>
@@ -56,6 +56,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
         total={b.total_price}
         totalPaid={b.totalPaid}
         balance={b.balance}
+        players={b.players}
         cancelled={b.status === "cancelled"}
         payments={payments.map((p) => ({
           id: p.id,
@@ -65,6 +66,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           paidAt: p.paid_at,
           isVoided: p.is_voided,
           voidReason: p.void_reason,
+          playerSlot: p.player_slot,
         }))}
       />
 
@@ -75,13 +77,10 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           status: b.status,
           name: b.customer_name,
           phone: b.customer_phone,
-          mode: b.mode,
-          players: b.players,
           notes: b.notes ?? "",
           date: b.booking_date ?? todayKey(),
           startAt: b.start_at,
         }}
-        maxPlayers={venue.maxPlayers}
         today={todayKey()}
       />
     </div>

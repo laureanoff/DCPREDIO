@@ -12,13 +12,10 @@ type Props = {
     status: "pending" | "confirmed" | "cancelled" | "completed";
     name: string;
     phone: string;
-    mode: "individual" | "group";
-    players: number;
     notes: string;
     date: string;
     startAt: string;
   };
-  maxPlayers: number;
   today: string;
 };
 
@@ -29,7 +26,7 @@ const btn = "h-11 rounded-xl border border-border px-4 text-sm font-semibold tra
 const time = (iso: string) =>
   new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Cordoba", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 
-export function BookingManager({ booking, maxPlayers, today }: Props) {
+export function BookingManager({ booking, today }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -37,8 +34,6 @@ export function BookingManager({ booking, maxPlayers, today }: Props) {
 
   const [name, setName] = useState(booking.name);
   const [phone, setPhone] = useState(booking.phone);
-  const [mode, setMode] = useState(booking.mode);
-  const [players, setPlayers] = useState(booking.players);
   const [notes, setNotes] = useState(booking.notes);
 
   const [reason, setReason] = useState("");
@@ -104,7 +99,7 @@ export function BookingManager({ booking, maxPlayers, today }: Props) {
           className="grid gap-3 sm:grid-cols-2"
           onSubmit={(e) => {
             e.preventDefault();
-            run(() => updateBooking(booking.id, { name, phone, mode, players, notes }));
+            run(() => updateBooking(booking.id, { name, phone, notes }));
           }}
         >
           <label className="flex flex-col gap-1 text-sm">Nombre y apellido
@@ -113,19 +108,9 @@ export function BookingManager({ booking, maxPlayers, today }: Props) {
           <label className="flex flex-col gap-1 text-sm">Teléfono
             <input className={field} value={phone} onChange={(e) => setPhone(e.target.value)} disabled={cancelled} inputMode="tel" required />
           </label>
-          <label className="flex flex-col gap-1 text-sm">Modalidad
-            <select className={field} value={mode} onChange={(e) => setMode(e.target.value as "individual" | "group")} disabled={cancelled}>
-              <option value="individual">Individual</option>
-              <option value="group">Cancha completa (grupo)</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">Jugadores
-            <input className={field} type="number" min={1} max={maxPlayers} value={players} onChange={(e) => setPlayers(Number(e.target.value))} disabled={cancelled} required />
-          </label>
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">Notas
             <textarea className={cn(field, "h-24 py-2")} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={cancelled} maxLength={500} />
           </label>
-          <p className="text-xs text-muted sm:col-span-2">Si cambiás la modalidad o los jugadores, el total se recalcula con los precios actuales.</p>
           <div className="sm:col-span-2">
             <button type="submit" disabled={pending || cancelled} className="h-11 rounded-xl bg-lime px-6 text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50">
               {pending ? "Guardando…" : "Guardar cambios"}
@@ -148,7 +133,7 @@ export function BookingManager({ booking, maxPlayers, today }: Props) {
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {slots.map((s) => {
                   const current = s.start === booking.startAt;
-                  const usable = !current && (s.state === "available" || (s.state === "partial" && mode === "individual" && s.spotsLeft >= players));
+                  const usable = !current && s.state === "available";
                   return (
                     <button
                       key={s.start}
@@ -159,7 +144,7 @@ export function BookingManager({ booking, maxPlayers, today }: Props) {
                     >
                       <span className="block font-semibold">{time(s.start)}–{time(s.end)}</span>
                       <span className="block text-xs">
-                        {current ? "Horario actual" : s.state === "available" ? "Libre" : s.state === "partial" ? `${s.spotsLeft} lugares` : s.state === "past" ? "Pasado" : s.state === "blocked" ? "Bloqueado" : "Completo"}
+                        {current ? "Horario actual" : s.state === "available" ? "Libre" : s.state === "past" ? "Pasado" : s.state === "blocked" ? "Bloqueado" : "Completo"}
                       </span>
                     </button>
                   );

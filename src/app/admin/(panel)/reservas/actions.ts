@@ -4,10 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { computeTotal } from "@/business/pricing";
 import { phoneSchema } from "@/validations/booking";
-import type { TablesUpdate } from "@/types/database";
-import { getAdminVenue, getBooking } from "@/queries/admin";
+import { getBooking } from "@/queries/admin";
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -38,12 +36,10 @@ function refresh() {
 const editSchema = z.object({
   name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
   phone: phoneSchema,
-  mode: z.enum(["individual", "group"]),
-  players: z.number().int().min(1).max(50),
   notes: z.string().trim().max(500),
 });
 
-/** Edita los datos del cliente y la modalidad. El total se recalcula con los precios vigentes si cambia modalidad o jugadores. */
+/** Edita los datos de contacto y las notas. El precio y la capacidad del turno no se tocan desde acá. */
 export async function updateBooking(id: string, raw: z.input<typeof editSchema>): Promise<ActionResult> {
   await requireStaff();
   if (!idSchema.safeParse(id).success) return { ok: false, error: "Reserva inválida." };
@@ -55,28 +51,13 @@ export async function updateBooking(id: string, raw: z.input<typeof editSchema>)
   if (!current) return { ok: false, error: "La reserva no existe." };
   if (current.status === "cancelled") return { ok: false, error: "Una reserva cancelada no se puede editar. Reactivala primero." };
 
-  const players = v.mode === "group" ? Math.max(v.players, 1) : v.players;
-  const pricingChanged = v.mode !== current.mode || players !== current.players;
-  const patch: TablesUpdate<"bookings"> = {
-    customer_name: v.name,
-    customer_phone: v.phone,
-    notes: v.notes || null,
-    mode: v.mode,
-    players,
-  };
-
-  if (pricingChanged) {
-    const venue = await getAdminVenue();
-    const total = computeTotal(v.mode, players, venue);
-    if (total < current.totalPaid) {
-      return { ok: false, error: "El nuevo total queda por debajo de lo ya cobrado. Revisá los pagos primero." };
-    }
-    patch.unit_price = v.mode === "group" ? venue.priceGroup : venue.priceIndividual;
-    patch.total_price = total;
-  }
-
   const supabase = await createClient();
-  const { data, error } = await supabase.from("bookings").update(patch).eq("id", id).select("id").maybeSingle();
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ customer_name: v.name, customer_phone: v.phone, notes: v.notes || null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
   if (error) return fail(error, "No se pudo guardar. Intentá de nuevo.");
   if (!data) return { ok: false, error: "No tenés permiso para modificar esta reserva." };
   refresh();

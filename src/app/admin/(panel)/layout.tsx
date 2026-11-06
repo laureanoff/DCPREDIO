@@ -32,7 +32,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
           </form>
         </div>
       </header>
-      <AdminNav />
+      <AdminNav isAdmin={staff.role === "admin"} />
       <div className="flex-1 px-4 py-6">{children}</div>
     </div>
   );

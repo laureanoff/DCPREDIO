@@ -136,3 +136,14 @@ Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección 
 - En el detalle de cada reserva: monto cobrado, saldo, historial y formulario para registrar pagos (efectivo, transferencia, otro), parciales o totales.
 - El total pagado nunca puede superar el total de la reserva (lo valida la base, código `DC011`).
 - Los pagos no se editan ni se borran: se anulan (queda quién y cuándo). Migración `payments_column_grants` restringe las columnas que el personal puede escribir.
+
+## Modelo de reserva y cobros por jugador
+
+- Una reserva es **el turno completo de la cancha** para hasta `max_players` jugadores (sin elegir individual/grupal). El precio es `price_group`.
+- En el detalle de la reserva se ve la grilla de jugadores: al cobrar a cada uno (su parte = total / jugadores, calculada en el servidor) el jugador se tacha, hasta saldar la cancha.
+- Un jugador no puede tener dos cobros vigentes (índice único); un pago libre (seña) reduce el saldo sin marcar jugadores.
+- Migración `player_payments_and_income_summary`: `payments.player_slot` y la función `income_summary`.
+
+## Estadísticas (Fase 6, solo administradores)
+
+- `/admin/estadisticas`: ingresos por mes del año o por día de un mes, filtrables por medio de pago. Se calculan por **fecha de pago** (zona horaria del predio) y excluyen pagos anulados. Cada barra del gráfico mensual lleva al detalle diario; hay vista en tabla.

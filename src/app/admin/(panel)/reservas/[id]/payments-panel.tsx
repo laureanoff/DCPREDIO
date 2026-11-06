@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { registerPayment, voidPayment } from "../payment-actions";
+import { Check, User } from "lucide-react";
+import { registerPayment, registerPlayerPayment, voidPayment } from "../payment-actions";
 import type { ActionResult } from "../actions";
+import { playerShare } from "@/business/payments";
 import { formatDateShort, formatTime } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
 
@@ -15,22 +17,43 @@ export type PaymentItem = {
   paidAt: string;
   isVoided: boolean;
   voidReason: string | null;
+  playerSlot: number | null;
 };
 
-type Props = { bookingId: string; total: number; totalPaid: number; balance: number; cancelled: boolean; payments: PaymentItem[] };
+type Props = {
+  bookingId: string;
+  total: number;
+  totalPaid: number;
+  balance: number;
+  players: number;
+  cancelled: boolean;
+  payments: PaymentItem[];
+};
 
-const METHODS = { cash: "Efectivo", transfer: "Transferencia", other: "Otro" } as const;
+type Method = "cash" | "transfer" | "other";
+const METHODS: Record<Method, string> = { cash: "Efectivo", transfer: "Transferencia", other: "Otro" };
 const field = "h-11 w-full rounded-xl border border-border bg-surface-2 px-3 text-base outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30";
 
-export function PaymentsPanel({ bookingId, total, totalPaid, balance, cancelled, payments }: Props) {
+export function PaymentsPanel({ bookingId, total, totalPaid, balance, players, cancelled, payments }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [amount, setAmount] = useState(balance > 0 ? String(balance) : "");
-  const [method, setMethod] = useState<"cash" | "transfer" | "other">("cash");
+
+  const [openSlot, setOpenSlot] = useState<number | null>(null);
+  const [slotMethod, setSlotMethod] = useState<Method>("cash");
+  const [slotNotes, setSlotNotes] = useState("");
+
+  const [freeOpen, setFreeOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState<Method>("cash");
   const [notes, setNotes] = useState("");
+
   const [voiding, setVoiding] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+
+  const bySlot = new Map<number, PaymentItem>();
+  for (const p of payments) if (p.playerSlot && !p.isVoided) bySlot.set(p.playerSlot, p);
+  const paidPlayers = bySlot.size;
 
   function run(action: () => Promise<ActionResult>, after?: () => void) {
     setMsg(null);
@@ -48,13 +71,13 @@ export function PaymentsPanel({ bookingId, total, totalPaid, balance, cancelled,
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-lg font-bold uppercase">Pagos</h2>
+      <h2 className="mb-3 font-[family-name:var(--font-display)] text-lg font-bold uppercase">Cobros</h2>
 
       <div className="mb-4">
         <div className="mb-1 flex justify-between text-sm">
           <span>Cobrado {formatMoney(totalPaid)} de {formatMoney(total)}</span>
           <span className={cn("font-semibold", balance > 0 ? "text-warning" : "text-lime-ink")}>
-            {balance > 0 ? `Saldo ${formatMoney(balance)}` : "Saldada"}
+            {balance > 0 ? `Saldo ${formatMoney(balance)}` : "Cancha saldada"}
           </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Porcentaje cobrado">
@@ -68,70 +91,128 @@ export function PaymentsPanel({ bookingId, total, totalPaid, balance, cancelled,
         </p>
       )}
 
+      <div className="mb-2 flex items-baseline justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Jugadores</h3>
+        <span className="text-sm text-muted">{paidPlayers} de {players} pagaron</span>
+      </div>
+
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {Array.from({ length: players }, (_, i) => i + 1).map((slot) => {
+          const paid = bySlot.get(slot);
+          const share = playerShare(total, players, slot);
+          const open = openSlot === slot;
+          return (
+            <li key={slot} className={cn("rounded-xl border p-2", paid ? "border-lime-ink/40 bg-lime/10" : "border-border bg-surface-2")}>
+              <button
+                type="button"
+                disabled={cancelled || pending || (!!paid && true)}
+                aria-expanded={open}
+                onClick={() => {
+                  setOpenSlot(open ? null : slot);
+                  setSlotNotes("");
+                }}
+                className="flex w-full flex-col items-start text-left disabled:cursor-default"
+              >
+                <span className="flex w-full items-center justify-between text-xs text-muted">
+                  <span className="flex items-center gap-1"><User size={12} aria-hidden /> Jugador {slot}</span>
+                  {paid && <Check size={14} className="text-lime-ink" aria-label="Pagó" />}
+                </span>
+                <span className={cn("mt-1 font-[family-name:var(--font-display)] text-xl font-bold", paid && "text-muted line-through")}>
+                  {formatMoney(paid ? paid.amount : share)}
+                </span>
+                <span className="text-xs text-muted">{paid ? `${METHODS[paid.method]} · pagó` : cancelled ? "—" : "Tocar para cobrar"}</span>
+              </button>
+
+              {paid && !cancelled && (
+                <button type="button" className="mt-1 text-xs text-danger hover:underline" onClick={() => { setVoiding(paid.id); setReason(""); }}>
+                  Anular
+                </button>
+              )}
+
+              {open && !paid && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <select className={cn(field, "h-10")} value={slotMethod} onChange={(e) => setSlotMethod(e.target.value as Method)} aria-label={`Medio de pago del jugador ${slot}`}>
+                    {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                  <input className={cn(field, "h-10")} placeholder="Nombre / nota" value={slotNotes} onChange={(e) => setSlotNotes(e.target.value)} maxLength={300} aria-label={`Nota del jugador ${slot}`} />
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run(() => registerPlayerPayment(bookingId, { slot, method: slotMethod, notes: slotNotes }), () => setOpenSlot(null))}
+                    className="h-10 rounded-xl bg-lime text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50"
+                  >
+                    Cobrar {formatMoney(share)}
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      {voiding && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-danger/40 p-3">
+          <span className="text-sm">Anular este cobro:</span>
+          <input className={cn(field, "h-10 flex-1")} placeholder="Motivo (opcional)" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
+          <button className="h-10 rounded-xl bg-danger px-4 text-sm font-bold text-white disabled:opacity-50" disabled={pending} onClick={() => run(() => voidPayment(voiding, reason), () => setVoiding(null))}>
+            Confirmar anulación
+          </button>
+          <button className="h-10 rounded-xl border border-border px-4 text-sm" onClick={() => setVoiding(null)}>Volver</button>
+        </div>
+      )}
+
       {!cancelled && balance > 0 && (
-        <form
-          className="grid gap-3 sm:grid-cols-[1fr_1fr_2fr_auto]"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const value = Number(amount.replace(",", "."));
-            run(() => registerPayment(bookingId, { amount: value, method, notes }), () => {
-              setNotes("");
-              setAmount("");
-            });
-          }}
-        >
-          <label className="flex flex-col gap-1 text-sm">Monto
-            <input className={field} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" required />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">Medio
-            <select className={field} value={method} onChange={(e) => setMethod(e.target.value as typeof method)}>
-              {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">Nota (opcional)
-            <input className={field} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />
-          </label>
-          <div className="flex items-end gap-2">
-            <button type="submit" disabled={pending} className="h-11 rounded-xl bg-lime px-5 text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50">
-              Registrar
-            </button>
-          </div>
-          <div className="sm:col-span-4">
-            <button type="button" className="text-sm text-lime-ink underline-offset-2 hover:underline" onClick={() => setAmount(String(balance))}>
-              Completar con el saldo ({formatMoney(balance)})
-            </button>
-          </div>
-        </form>
+        <div className="mt-4">
+          <button type="button" className="text-sm text-lime-ink underline-offset-2 hover:underline" onClick={() => setFreeOpen((v) => !v)} aria-expanded={freeOpen}>
+            {freeOpen ? "Ocultar pago libre" : "Registrar un pago libre (seña o monto distinto)"}
+          </button>
+          {freeOpen && (
+            <form
+              className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_2fr_auto]"
+              onSubmit={(e) => {
+                e.preventDefault();
+                run(() => registerPayment(bookingId, { amount: Number(amount.replace(",", ".")), method, notes }), () => {
+                  setNotes("");
+                  setAmount("");
+                });
+              }}
+            >
+              <label className="flex flex-col gap-1 text-sm">Monto
+                <input className={field} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" required />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">Medio
+                <select className={field} value={method} onChange={(e) => setMethod(e.target.value as Method)}>
+                  {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-sm">Nota (opcional)
+                <input className={field} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />
+              </label>
+              <div className="flex items-end">
+                <button type="submit" disabled={pending} className="h-11 rounded-xl bg-lime px-5 text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50">Registrar</button>
+              </div>
+              <p className="text-xs text-muted sm:col-span-4">Un pago libre reduce el saldo pero no marca a ningún jugador como pagado.</p>
+            </form>
+          )}
+        </div>
       )}
 
       <h3 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Historial</h3>
       {payments.length === 0 ? (
-        <p className="text-sm text-muted">Todavía no hay pagos registrados.</p>
+        <p className="text-sm text-muted">Todavía no hay cobros registrados.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {payments.map((p) => (
             <li key={p.id} className={cn("rounded-xl border border-border px-3 py-2", p.isVoided && "opacity-60")}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <span className={cn("font-semibold", p.isVoided && "line-through")}>{formatMoney(p.amount)}</span>
-                  <span className="ml-2 text-sm text-muted">{METHODS[p.method]} · {formatDateShort(p.paidAt)} {formatTime(p.paidAt)}</span>
-                  {p.isVoided && <span className="ml-2 rounded-full border border-danger/50 px-2 py-0.5 text-xs text-danger">Anulado</span>}
-                </div>
-                {!p.isVoided && voiding !== p.id && (
-                  <button className="text-sm text-danger hover:underline" onClick={() => { setVoiding(p.id); setReason(""); }}>Anular</button>
-                )}
+              <div className="flex flex-wrap items-center gap-x-2">
+                <span className={cn("font-semibold", p.isVoided && "line-through")}>{formatMoney(p.amount)}</span>
+                <span className="text-sm text-muted">
+                  {p.playerSlot ? `Jugador ${p.playerSlot}` : "Pago libre"} · {METHODS[p.method]} · {formatDateShort(p.paidAt)} {formatTime(p.paidAt)}
+                </span>
+                {p.isVoided && <span className="rounded-full border border-danger/50 px-2 py-0.5 text-xs text-danger">Anulado</span>}
               </div>
               {(p.notes || p.voidReason) && (
                 <p className="mt-1 text-sm text-muted">{p.notes}{p.voidReason ? ` · Motivo de anulación: ${p.voidReason}` : ""}</p>
-              )}
-              {voiding === p.id && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <input className={cn(field, "h-10 flex-1")} placeholder="Motivo (opcional)" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
-                  <button className="h-10 rounded-xl bg-danger px-4 text-sm font-bold text-white disabled:opacity-50" disabled={pending} onClick={() => run(() => voidPayment(p.id, reason), () => setVoiding(null))}>
-                    Confirmar anulación
-                  </button>
-                  <button className="h-10 rounded-xl border border-border px-4 text-sm" onClick={() => setVoiding(null)}>Volver</button>
-                </div>
               )}
             </li>
           ))}

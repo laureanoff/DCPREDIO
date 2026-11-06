@@ -15,8 +15,6 @@ export const bookingInputSchema = z.object({
   startAt: z.string().datetime({ offset: true }),
   name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
   phone: phoneSchema,
-  mode: z.enum(["individual", "group"]),
-  players: z.number().int().min(1).max(50),
   notes: z.string().trim().max(500).optional(),
   /** Campo trampa anti-bots: las personas no lo ven ni lo completan. */
   website: z.string().max(200).optional(),

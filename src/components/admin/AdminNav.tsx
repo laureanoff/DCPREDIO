@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ClipboardList } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ITEMS = [
+const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
   { href: "/admin", label: "Agenda", Icon: CalendarDays, match: (p: string) => p === "/admin" },
   { href: "/admin/reservas", label: "Reservas", Icon: ClipboardList, match: (p: string) => p.startsWith("/admin/reservas") },
+  { href: "/admin/estadisticas", label: "Estadísticas", Icon: BarChart3, match: (p: string) => p.startsWith("/admin/estadisticas"), adminOnly: true },
 ];
 
-export function AdminNav() {
+export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Secciones del panel" className="flex gap-1 overflow-x-auto border-b border-border bg-background px-3">
-      {ITEMS.map(({ href, label, Icon, match }) => {
+      {ITEMS.filter((i) => !i.adminOnly || isAdmin).map(({ href, label, Icon, match }) => {
         const active = match(pathname);
         return (
           <Link

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
 export type BookingRow = Tables<"bookings">;
-export type BookingWithMoney = BookingRow & { totalPaid: number; balance: number; paymentStatus: string };
+export type BookingWithMoney = BookingRow & { totalPaid: number; balance: number; paymentStatus: string; playersPaid: number };
 
 export const PAGE_SIZE = 20;
 
@@ -17,9 +17,21 @@ async function attachMoney(supabase: SupabaseServer, rows: BookingRow[]): Promis
     .in("booking_id", rows.map((r) => r.id));
   if (error) throw new Error(`No se pudieron leer los pagos: ${error.message}`);
   const byId = new Map((data ?? []).map((f) => [f.booking_id, f]));
+
+  const { data: slotRows, error: slotError } = await supabase
+    .from("payments")
+    .select("booking_id")
+    .in("booking_id", rows.map((r) => r.id))
+    .eq("is_voided", false)
+    .not("player_slot", "is", null);
+  if (slotError) throw new Error(`No se pudieron leer los pagos: ${slotError.message}`);
+  const paidCount = new Map<string, number>();
+  for (const sr of slotRows ?? []) paidCount.set(sr.booking_id, (paidCount.get(sr.booking_id) ?? 0) + 1);
+
   return rows.map((r) => {
     const f = byId.get(r.id);
     return {
+      playersPaid: paidCount.get(r.id) ?? 0,
       ...r,
       totalPaid: Number(f?.total_paid ?? 0),
       balance: Number(f?.balance ?? r.total_price),
@@ -140,4 +152,24 @@ export async function getPayments(bookingId: string): Promise<PaymentRow[]> {
     .order("created_at", { ascending: false });
   if (error) throw new Error(`No se pudieron leer los pagos: ${error.message}`);
   return data ?? [];
+}
+
+export type IncomeBucket = { bucket: string; total: number; payments: number };
+
+/** Ingresos agrupados por fecha de pago (zona horaria del predio). Pagos anulados excluidos. */
+export async function getIncome(params: {
+  from: string;
+  to: string;
+  group: "month" | "day";
+  method?: "cash" | "transfer" | "other";
+}): Promise<IncomeBucket[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("income_summary", {
+    p_from: params.from,
+    p_to: params.to,
+    p_group: params.group,
+    p_method: params.method,
+  });
+  if (error) throw new Error(`No se pudieron calcular los ingresos: ${error.message}`);
+  return (data ?? []).map((r) => ({ bucket: r.bucket, total: Number(r.total), payments: Number(r.payments) }));
 }

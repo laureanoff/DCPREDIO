@@ -216,6 +216,7 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method"];
           notes: string | null;
           paid_at: string;
+          player_slot: number | null;
           updated_at: string;
           void_reason: string | null;
           voided_at: string | null;
@@ -231,6 +232,7 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method"];
           notes?: string | null;
           paid_at?: string;
+          player_slot?: number | null;
           updated_at?: string;
           void_reason?: string | null;
           voided_at?: string | null;
@@ -246,6 +248,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["payment_method"];
           notes?: string | null;
           paid_at?: string;
+          player_slot?: number | null;
           updated_at?: string;
           void_reason?: string | null;
           voided_at?: string | null;
@@ -352,6 +355,15 @@ export type Database = {
       };
     };
     Functions: {
+      income_summary: {
+        Args: {
+          p_from: string;
+          p_group: string;
+          p_method?: Database["public"]["Enums"]["payment_method"];
+          p_to: string;
+        };
+        Returns: { bucket: string; payments: number; total: number }[];
+      };
       create_public_booking: {
         Args: {
           p_court_id: string;

@@ -26,21 +26,21 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
         <Card icon={<Banknote size={20} />} title="Precios">
           <dl className="space-y-3 text-sm">
             <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-muted">Turno individual
-                <span className="block text-xs">por persona</span>
-              </dt>
-              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime-ink">
-                {formatMoney(venue.priceIndividual, venue.currency)}
-              </dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-muted">Turno grupal
-                <span className="block text-xs">cancha completa, hasta {venue.maxPlayers} personas</span>
+              <dt className="text-muted">Turno de cancha
+                <span className="block text-xs">hasta {venue.maxPlayers} jugadores</span>
               </dt>
               <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime-ink">
                 {formatMoney(venue.priceGroup, venue.currency)}
               </dd>
             </div>
+            {venue.maxPlayers > 1 && (
+              <div>
+                <dt className="sr-only">Por jugador</dt>
+                <dd className="text-xs text-muted">
+                  Unos {formatMoney(Math.round(venue.priceGroup / venue.maxPlayers), venue.currency)} por jugador si se divide entre {venue.maxPlayers}.
+                </dd>
+              </div>
+            )}
           </dl>
         </Card>
 

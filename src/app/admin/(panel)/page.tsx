@@ -26,6 +26,7 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
 
   const active = bookings.filter((b) => b.status !== "cancelled");
   const players = active.reduce((sum, b) => sum + b.players, 0);
+  const playersPaid = active.reduce((sum, b) => sum + b.playersPaid, 0);
   const expected = active.reduce((sum, b) => sum + b.total_price, 0);
   const collected = active.reduce((sum, b) => sum + b.totalPaid, 0);
 
@@ -69,7 +70,7 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
 
       <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Reservas del día" value={String(active.length)} />
-        <Stat label="Jugadores" value={String(players)} />
+        <Stat label="Jugadores que pagaron" value={`${playersPaid} de ${players}`} />
         <Stat label="Cobrado / a cobrar" value={`${formatMoney(collected)} / ${formatMoney(expected)}`} small />
         <Stat label="Próximos 7 días" value={String(week)} />
       </dl>
@@ -104,7 +105,7 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
               <span className="min-w-40 flex-1">
                 <span className="block font-semibold">{b.customer_name}</span>
                 <span className="block text-sm text-muted">
-                  {b.mode === "group" ? "Cancha completa" : "Individual"} · {b.players} {b.players === 1 ? "jugador" : "jugadores"} · {b.customer_phone}
+                  {b.playersPaid} de {b.players} jugadores pagaron · {b.customer_phone}
                 </span>
               </span>
               <span className="flex items-center gap-2">

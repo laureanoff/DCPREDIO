@@ -44,13 +44,20 @@ export async function createPublicBooking(input: BookingInput): Promise<CreateBo
     return { ok: false, error: "El sistema de reservas no está disponible en este momento. Intentá más tarde." };
   }
 
+  // Toda reserva es el turno completo de la cancha: la capacidad sale de la configuración, nunca del navegador.
+  const { data: settings, error: settingsError } = await supabase.from("venue_settings").select("max_players").eq("id", 1).single();
+  if (settingsError || !settings) {
+    console.error("[booking] no se pudo leer la configuración:", settingsError?.message);
+    return { ok: false, error: "El sistema de reservas no está disponible en este momento. Intentá más tarde." };
+  }
+
   const { data, error } = await supabase.rpc("create_public_booking", {
     p_court_id: input.courtId,
     p_start_at: input.startAt,
     p_customer_name: input.name,
     p_customer_phone: input.phone,
-    p_mode: input.mode,
-    p_players: input.players,
+    p_mode: "group",
+    p_players: settings.max_players,
     p_notes: input.notes || undefined,
   });
 
