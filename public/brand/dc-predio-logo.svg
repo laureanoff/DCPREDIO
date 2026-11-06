@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="DC Predio">
+  <title>DC Predio</title>
+  <!-- D -->
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M105 105H160A70 70 0 0 1 160 245H105Z M137 137V213H157A38 38 0 0 0 157 137Z"/>
+  <!-- C (lime) con borde oscuro para separarla de la D -->
+  <path fill="#B6D61A" stroke="#0A0A0A" stroke-width="7" paint-order="stroke" stroke-linejoin="round" d="M310 105H255A70 70 0 0 0 255 245H310V205H262A30 30 0 0 1 262 145H310Z"/>
+  <!-- línea + PREDIO -->
+  <rect x="105" y="262" width="205" height="6" fill="#FFFFFF"/>
+  <text x="207.5" y="318" text-anchor="middle" fill="#FFFFFF" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="52" letter-spacing="2" textLength="205" lengthAdjust="spacingAndGlyphs">PREDIO</text>
+</svg>
