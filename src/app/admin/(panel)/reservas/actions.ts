@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { phoneSchema } from "@/validations/booking";
 import { getBooking } from "@/queries/admin";
@@ -135,4 +135,27 @@ export async function rescheduleBooking(id: string, date: string, slotStart: str
   if (!data) return { ok: false, error: "La reserva no existe." };
   refresh();
   return { ok: true, message: "Reserva reprogramada." };
+}
+
+/**
+ * Elimina reservas canceladas (solo admin). Las que tienen pagos registrados se conservan
+ * porque los pagos son el registro contable. ids vacío/undefined = todas las canceladas sin pagos.
+ */
+export async function deleteCancelledBookings(ids?: string[]): Promise<ActionResult> {
+  await requireAdmin();
+  if (ids && !ids.every((i) => idSchema.safeParse(i).success)) return { ok: false, error: "Reserva inválida." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("delete_cancelled_bookings", ids?.length ? { p_ids: ids } : {});
+  if (error) return fail(error, "No se pudieron eliminar las reservas.");
+  const r = Array.isArray(data) ? data[0] : data;
+  const deleted = Number(r?.deleted ?? 0);
+  const skipped = Number(r?.skipped ?? 0);
+  refresh();
+  if (deleted === 0 && skipped === 0) return { ok: true, message: "No había reservas canceladas para eliminar." };
+  const kept = skipped
+    ? skipped === 1
+      ? " 1 se conservó porque tiene pagos registrados."
+      : ` ${skipped} se conservaron porque tienen pagos registrados.`
+    : "";
+  return { ok: true, message: `${deleted} ${deleted === 1 ? "reserva eliminada" : "reservas eliminadas"}.${kept}` };
 }

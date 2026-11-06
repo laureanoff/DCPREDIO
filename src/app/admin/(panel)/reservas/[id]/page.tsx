@@ -11,6 +11,8 @@ import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
 import { confirmationMessage, whatsappLink } from "@/business/confirmation-message";
 import { getAdminVenue, getBooking, getPayments } from "@/queries/admin";
+import { getStaff } from "@/lib/auth";
+import { DeleteCancelled } from "../delete-cancelled";
 import { BookingManager } from "./booking-manager";
 import { PaymentsPanel } from "./payments-panel";
 
@@ -20,7 +22,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [b, payments, venue] = await Promise.all([getBooking(id), getPayments(id), getAdminVenue()]);
+  const [b, payments, venue, staff] = await Promise.all([getBooking(id), getPayments(id), getAdminVenue(), getStaff()]);
   if (!b) notFound();
   const waLink = whatsappLink(
     b.customer_phone,
@@ -116,6 +118,20 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
         }}
         today={todayKey()}
       />
+
+      {b.status === "cancelled" && staff?.role === "admin" && (
+        <section className="rounded-2xl border border-border bg-surface p-4">
+          <h2 className="mb-1 font-semibold">Eliminar reserva</h2>
+          {payments.length === 0 ? (
+            <>
+              <p className="mb-3 text-sm text-muted">Está cancelada y sin pagos: se puede borrar definitivamente.</p>
+              <DeleteCancelled ids={[b.id]} label="Eliminar esta reserva" redirectTo="/admin/reservas?estado=cancelled" />
+            </>
+          ) : (
+            <p className="text-sm text-muted">Tiene pagos registrados, así que se conserva para la contabilidad.</p>
+          )}
+        </section>
+      )}
     </div>
   );
 }

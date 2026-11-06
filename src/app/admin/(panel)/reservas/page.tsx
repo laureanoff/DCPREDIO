@@ -2,9 +2,11 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
+import { DeleteCancelled } from "./delete-cancelled";
 import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDateShort, formatTime } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
+import { getStaff } from "@/lib/auth";
 import { listBookings, PAGE_SIZE, type BookingFilters } from "@/queries/admin";
 
 export const metadata: Metadata = { title: "Reservas" };
@@ -45,7 +47,8 @@ function href(f: BookingFilters, over: Partial<Params>) {
 async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
   await connection();
   const f = parse(await searchParams);
-  const { rows, total } = await listBookings(f);
+  const [{ rows, total }, staff] = await Promise.all([listBookings(f), getStaff()]);
+  const isAdmin = staff?.role === "admin";
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -85,7 +88,15 @@ async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
         </div>
       </form>
 
-      <p className="text-sm text-muted">{total} {total === 1 ? "reserva" : "reservas"}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">{total} {total === 1 ? "reserva" : "reservas"}</p>
+        {isAdmin && f.status === "cancelled" && total > 0 && (
+          <DeleteCancelled label="Eliminar todas las canceladas" />
+        )}
+      </div>
+      {isAdmin && f.status === "cancelled" && (
+        <p className="-mt-3 text-xs text-muted">Las canceladas que tengan pagos registrados no se eliminan, para conservar la contabilidad.</p>
+      )}
 
       {rows.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-muted">No hay reservas con esos filtros.</p>

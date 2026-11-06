@@ -388,6 +388,10 @@ export type Database = {
           state: string;
         }[];
       };
+      delete_cancelled_bookings: {
+        Args: { p_ids?: string[] };
+        Returns: { deleted: number; skipped: number }[];
+      };
       get_month_availability: {
         Args: { p_court_id: string; p_month: number; p_year: number };
         Returns: { day: string; free_slots: number; is_open: boolean; total_slots: number }[];

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { BRAND } from "@/config/brand";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { NewBookingAlerts } from "@/components/admin/NewBookingAlerts";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { requireStaff } from "@/lib/auth";
 import { logout } from "../login/actions";
@@ -34,6 +35,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
       </header>
       <AdminNav isAdmin={staff.role === "admin"} />
       <div className="flex-1 px-4 py-6">{children}</div>
+      <NewBookingAlerts />
     </div>
   );
 }
