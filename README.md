@@ -4,7 +4,7 @@ Aplicación web para gestionar las reservas de **DC Predio** (fútbol 5): págin
 
 **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + PostgreSQL) · Vercel · WhatsApp Business Cloud API (Meta).
 
-> Estado: **Fase 2 — Base de datos y autenticación** completa. Ver [Roadmap](#roadmap).
+> Estado: **Fase 3 — Página pública y reservas** completa. Ver [Roadmap](#roadmap).
 
 ## Identidad
 
@@ -75,6 +75,16 @@ Códigos de error de la base (`error.code`): `DC001` turno no disponible · `DC0
 
 > Valores iniciales **provisorios** (editables desde el panel): horario 16:00–00:00 todos los días, precio individual $5.000, grupal $40.000, 10 jugadores, turnos de 60 min.
 
+
+## Página pública y flujo de reserva
+
+- `/` — hero, precios, horarios y widget de reservas (calendario → horarios → datos → resumen → confirmación con código `DC-XXXXXX`).
+- La disponibilidad se lee en vivo desde la base (`get_month_availability` / `get_day_availability`, públicas y sin datos personales).
+- La reserva se crea en una **Server Action** (`src/app/reservar/actions.ts`) que valida con zod y llama a `create_public_booking` usando `SUPABASE_SERVICE_ROLE_KEY` (solo servidor). Si esa variable no está configurada, el cliente ve un error claro y **no se guarda nada**.
+- Anti-abuso: campo trampa (honeypot) y tope configurable de reservas activas por teléfono (`venue_settings.max_active_bookings_per_phone`, por defecto 3).
+- El precio total siempre lo recalcula el servidor desde `venue_settings`.
+- La configuración pública se cachea unos minutos (`src/queries/venue.ts`): los cambios del panel se reflejan sin volver a desplegar.
+
 ## Autenticación y administradores
 
 No hay registro público. Un usuario de Auth **sin fila en `profiles` no accede a nada** (aunque exista).
@@ -102,7 +112,7 @@ Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y 
 
 1. ✅ Preparación
 2. ✅ Base de datos, RLS y autenticación
-3. Página pública y reservas
+3. ✅ Página pública y reservas
 4. Panel de administración
 5. Pagos
 6. Ingresos y estadísticas

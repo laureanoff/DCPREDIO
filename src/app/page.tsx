@@ -1,15 +1,32 @@
-import { Logo } from "@/components/brand/Logo";
-import { BRAND } from "@/config/brand";
+import { Suspense } from "react";
+import { getPublicVenue } from "@/queries/venue";
+import { SiteHeader } from "@/components/public/SiteHeader";
+import { Hero } from "@/components/public/Hero";
+import { InfoSection } from "@/components/public/InfoSection";
+import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
+import { SiteFooter } from "@/components/public/SiteFooter";
 
-/** Pantalla provisoria de Fase 1. La página pública real (calendario y reservas) se construye en la Fase 3. */
-export default function Home() {
+export default async function Home() {
+  const venue = await getPublicVenue();
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center text-white">
-      <Logo variant="full" className="h-44 w-auto text-background" />
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase tracking-wide">
-        {BRAND.name}
-      </h1>
-      <p className="max-w-sm text-sm text-muted">Estamos preparando el sistema de reservas online.</p>
-    </main>
+    <>
+      <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
+      <main className="flex-1">
+        <Hero venueName={venue.name} />
+        <InfoSection venue={venue} />
+        <section id="reservar" className="scroll-mt-20 px-5 py-10">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
+              Reservar <span className="text-lime">turno</span>
+            </h2>
+            <Suspense fallback={<BookingSkeleton />}>
+              <BookingSection venue={venue} />
+            </Suspense>
+          </div>
+        </section>
+      </main>
+      <SiteFooter name={venue.name} />
+    </>
   );
 }

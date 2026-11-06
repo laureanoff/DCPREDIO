@@ -279,6 +279,7 @@ export type Database = {
           currency: string;
           id: number;
           logo_url: string | null;
+          max_active_bookings_per_phone: number;
           max_players: number;
           notification_whatsapp_number: string | null;
           price_group: number;
@@ -300,6 +301,7 @@ export type Database = {
           currency?: string;
           id?: number;
           logo_url?: string | null;
+          max_active_bookings_per_phone?: number;
           max_players?: number;
           notification_whatsapp_number?: string | null;
           price_group?: number;
@@ -321,6 +323,7 @@ export type Database = {
           currency?: string;
           id?: number;
           logo_url?: string | null;
+          max_active_bookings_per_phone?: number;
           max_players?: number;
           notification_whatsapp_number?: string | null;
           price_group?: number;
