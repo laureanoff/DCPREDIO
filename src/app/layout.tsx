@@ -18,7 +18,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: BRAND.colors.black,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: BRAND.colors.black },
+    { media: "(prefers-color-scheme: light)", color: "#f4f5ee" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -27,8 +30,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-AR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
     >
+      <head>
+        {/* Aplica el tema guardado antes del primer pintado para evitar el parpadeo. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("dc-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

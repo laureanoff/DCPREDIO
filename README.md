@@ -118,3 +118,15 @@ Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y 
 6. Ingresos y estadísticas
 7. WhatsApp (Meta Cloud API)
 8. Pruebas y producción
+
+
+## Panel de administración (Fase 4)
+
+- `/admin` — agenda del día (navegación por fecha, métricas, reservas pendientes).
+- `/admin/reservas` — listado con vistas (próximas / pasadas / todas), búsqueda por nombre, teléfono o código, y filtros por estado y fecha.
+- `/admin/reservas/[id]` — editar datos, cambiar estado, reprogramar y cancelar.
+- Todas las operaciones usan la sesión de quien está logueado (RLS); la disponibilidad y la capacidad las valida la base de datos.
+
+## Tema
+
+Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección se guarda en el navegador (`localStorage: dc-theme`); sin elección sigue al sistema. Los colores viven en variables CSS en `src/app/globals.css`.

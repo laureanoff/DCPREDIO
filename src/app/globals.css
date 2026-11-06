@@ -10,8 +10,42 @@
   --muted: #8a8a8a;
   --lime: #b6d61a;
   --lime-dark: #98b30f;
+  --lime-ink: #b6d61a;
   --danger: #ef4444;
   --warning: #facc15;
+  --logo-ink: #ffffff;
+  color-scheme: dark;
+}
+
+/* Tema claro: manual (data-theme="light") o automático según el sistema. */
+:root[data-theme="light"] {
+  --background: #f4f5ee;
+  --foreground: #101010;
+  --surface: #ffffff;
+  --surface-2: #eceee2;
+  --border: #d3d7c4;
+  --muted: #5b5f50;
+  --lime-ink: #566600;
+  --danger: #c62828;
+  --warning: #a16207;
+  --logo-ink: #0a0a0a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --background: #f4f5ee;
+    --foreground: #101010;
+    --surface: #ffffff;
+    --surface-2: #eceee2;
+    --border: #d3d7c4;
+    --muted: #5b5f50;
+    --lime-ink: #566600;
+    --danger: #c62828;
+    --warning: #a16207;
+    --logo-ink: #0a0a0a;
+    color-scheme: light;
+  }
 }
 
 @theme inline {
@@ -23,15 +57,12 @@
   --color-muted: var(--muted);
   --color-lime: var(--lime);
   --color-lime-dark: var(--lime-dark);
+  --color-lime-ink: var(--lime-ink);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);
-}
-
-html {
-  color-scheme: dark;
 }
 
 body {

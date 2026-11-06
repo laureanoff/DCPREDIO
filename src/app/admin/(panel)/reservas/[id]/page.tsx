@@ -1,0 +1,88 @@
+import { Suspense } from "react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { ArrowLeft } from "lucide-react";
+import { PaymentBadge, StatusBadge } from "@/components/admin/StatusBadge";
+import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
+import { formatMoney } from "@/lib/utils";
+import { getAdminVenue, getBooking } from "@/queries/admin";
+import { BookingManager } from "./booking-manager";
+
+export const metadata: Metadata = { title: "Reserva" };
+
+async function Detail({ params }: { params: Promise<{ id: string }> }) {
+  await connection();
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  const [b, venue] = await Promise.all([getBooking(id), getAdminVenue()]);
+  if (!b) notFound();
+
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <Link href="/admin/reservas" className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground">
+        <ArrowLeft size={16} /> Volver a reservas
+      </Link>
+
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-muted">{b.code}</p>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">{b.customer_name}</h1>
+          <p className="mt-1 text-muted">
+            {formatDateLong(b.booking_date ?? todayKey())} · {formatTime(b.start_at)}–{formatTime(b.end_at)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <StatusBadge status={b.status} />
+          {b.status !== "cancelled" && <PaymentBadge status={b.paymentStatus} />}
+        </div>
+      </header>
+
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Info label="Modalidad" value={b.mode === "group" ? "Cancha completa" : "Individual"} />
+        <Info label="Jugadores" value={String(b.players)} />
+        <Info label="Total" value={formatMoney(b.total_price)} />
+        <Info label="Saldo" value={formatMoney(b.balance)} />
+      </dl>
+
+      {b.status === "cancelled" && b.cancel_reason && (
+        <p className="rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">Motivo de cancelación: {b.cancel_reason}</p>
+      )}
+
+      <BookingManager
+        booking={{
+          id: b.id,
+          courtId: b.court_id,
+          status: b.status,
+          name: b.customer_name,
+          phone: b.customer_phone,
+          mode: b.mode,
+          players: b.players,
+          notes: b.notes ?? "",
+          date: b.booking_date ?? todayKey(),
+          startAt: b.start_at,
+        }}
+        maxPlayers={venue.maxPlayers}
+        today={todayKey()}
+      />
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-3">
+      <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
+      <dd className="mt-1 font-semibold">{value}</dd>
+    </div>
+  );
+}
+
+export default function BookingDetailPage(props: PageProps<"/admin/reservas/[id]">) {
+  return (
+    <Suspense fallback={<div className="mx-auto h-64 max-w-3xl animate-pulse rounded-2xl bg-surface" />}>
+      <Detail params={props.params} />
+    </Suspense>
+  );
+}

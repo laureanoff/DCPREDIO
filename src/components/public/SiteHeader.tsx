@@ -1,4 +1,5 @@
 import { Logo } from "@/components/brand/Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function SiteHeader({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   return (
@@ -10,12 +11,15 @@ export function SiteHeader({ name, logoUrl }: { name: string; logoUrl: string | 
             {name}
           </span>
         </a>
+        <div className="flex items-center gap-3">
+        <ThemeToggle className="hidden sm:inline-flex" />
         <a
           href="#reservar"
           className="inline-flex h-10 items-center rounded-xl bg-lime px-5 font-[family-name:var(--font-display)] text-base font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark"
         >
           Reservar
         </a>
+        </div>
       </div>
     </header>
   );

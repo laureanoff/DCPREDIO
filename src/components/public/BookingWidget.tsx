@@ -189,7 +189,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
     return (
       <div className="rounded-3xl border border-lime/40 bg-surface p-6 sm:p-8">
         <div className="flex flex-col items-center text-center">
-          <CheckCircle2 size={56} className="text-lime" />
+          <CheckCircle2 size={56} className="text-lime-ink" />
           <h3 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-extrabold uppercase">
             {pending ? "Reserva recibida" : "¡Reserva confirmada!"}
           </h3>
@@ -200,7 +200,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
           </p>
           <div className="mt-6 rounded-2xl border border-dashed border-lime/50 bg-lime/10 px-8 py-4">
             <p className="text-xs uppercase tracking-widest text-muted">Código de reserva</p>
-            <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-widest text-lime">
+            <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-widest text-lime-ink">
               {done.code}
             </p>
           </div>
@@ -220,7 +220,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
         <button
           type="button"
           onClick={reset}
-          className="mx-auto mt-6 flex h-12 items-center rounded-xl border border-border px-6 font-medium transition hover:border-lime hover:text-lime"
+          className="mx-auto mt-6 flex h-12 items-center rounded-xl border border-border px-6 font-medium transition hover:border-lime hover:text-lime-ink"
         >
           Hacer otra reserva
         </button>
@@ -468,7 +468,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
             {notes.trim() && <Row label="Observaciones" value={notes.trim()} />}
             <div className="flex items-baseline justify-between border-t border-border pt-3">
               <dt className="font-medium">Total a pagar</dt>
-              <dd className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-lime">
+              <dd className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-lime-ink">
                 {formatMoney(total, venue.currency)}
               </dd>
             </div>
@@ -498,7 +498,7 @@ function Row({ label, value, strong }: { label: string; value: React.ReactNode; 
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-muted">{label}</dt>
-      <dd className={cn("text-right", strong && "font-semibold text-lime")}>{value}</dd>
+      <dd className={cn("text-right", strong && "font-semibold text-lime-ink")}>{value}</dd>
     </div>
   );
 }
@@ -513,7 +513,7 @@ function ErrorBox({ children }: { children: React.ReactNode }) {
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex items-center gap-1.5 text-sm text-muted transition hover:text-lime">
+    <button type="button" onClick={onClick} className="flex items-center gap-1.5 text-sm text-muted transition hover:text-lime-ink">
       <ArrowLeft size={16} /> Volver
     </button>
   );
@@ -549,7 +549,7 @@ function StepperButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="flex h-12 w-12 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime disabled:opacity-30"
+      className="flex h-12 w-12 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
     >
       {children}
     </button>

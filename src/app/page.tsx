@@ -18,7 +18,7 @@ export default async function Home() {
         <section id="reservar" className="scroll-mt-20 px-5 py-10">
           <div className="mx-auto max-w-5xl">
             <h2 className="mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
-              Reservar <span className="text-lime">turno</span>
+              Reservar <span className="text-lime-ink">turno</span>
             </h2>
             <Suspense fallback={<BookingSkeleton />}>
               <BookingSection venue={venue} />

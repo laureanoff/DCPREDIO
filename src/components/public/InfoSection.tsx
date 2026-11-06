@@ -7,7 +7,7 @@ function Card({ icon, title, children }: { icon: React.ReactNode; title: string;
   return (
     <div className="rounded-3xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime/15 text-lime">{icon}</span>
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime/15 text-lime-ink">{icon}</span>
         <h2 className="font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide">{title}</h2>
       </div>
       {children}
@@ -29,7 +29,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
               <dt className="text-muted">Turno individual
                 <span className="block text-xs">por persona</span>
               </dt>
-              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime">
+              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime-ink">
                 {formatMoney(venue.priceIndividual, venue.currency)}
               </dd>
             </div>
@@ -37,7 +37,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
               <dt className="text-muted">Turno grupal
                 <span className="block text-xs">cancha completa, hasta {venue.maxPlayers} personas</span>
               </dt>
-              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime">
+              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime-ink">
                 {formatMoney(venue.priceGroup, venue.currency)}
               </dd>
             </div>
@@ -68,7 +68,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
               {venue.contactPhone && (
                 <li className="flex items-center gap-2">
                   <Phone size={16} className="shrink-0 text-muted" />
-                  <a href={`tel:${venue.contactPhone}`} className="hover:text-lime">{venue.contactPhone}</a>
+                  <a href={`tel:${venue.contactPhone}`} className="hover:text-lime-ink">{venue.contactPhone}</a>
                 </li>
               )}
               {whatsappDigits && (
@@ -78,7 +78,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
                     href={`https://wa.me/${whatsappDigits}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-lime"
+                    className="hover:text-lime-ink"
                   >
                     Consultas por WhatsApp
                   </a>
@@ -87,7 +87,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
               {venue.contactEmail && (
                 <li className="flex items-center gap-2">
                   <Mail size={16} className="shrink-0 text-muted" />
-                  <a href={`mailto:${venue.contactEmail}`} className="hover:text-lime">{venue.contactEmail}</a>
+                  <a href={`mailto:${venue.contactEmail}`} className="hover:text-lime-ink">{venue.contactEmail}</a>
                 </li>
               )}
             </ul>

@@ -3,7 +3,7 @@ function PitchLines() {
     <svg
       aria-hidden
       viewBox="0 0 600 400"
-      className="pointer-events-none absolute -right-24 top-4 h-[120%] w-auto text-lime opacity-[0.07] sm:right-0"
+      className="pointer-events-none absolute -right-24 top-4 h-[120%] w-auto text-lime-ink opacity-[0.07] sm:right-0"
       fill="none"
       stroke="currentColor"
       strokeWidth="3"
@@ -25,13 +25,13 @@ export function Hero({ venueName }: { venueName: string }) {
     <section className="relative overflow-hidden px-5 pb-16 pt-14 sm:pb-24 sm:pt-20">
       <PitchLines />
       <div className="relative mx-auto max-w-5xl">
-        <p className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-[0.35em] text-lime">
+        <p className="font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-[0.35em] text-lime-ink">
           Fútbol 5 · {venueName}
         </p>
         <h1 className="mt-4 font-[family-name:var(--font-display)] text-[4.25rem] font-extrabold uppercase leading-[0.88] sm:text-9xl">
           Reservá
           <br />
-          tu <span className="text-lime">cancha</span>
+          tu <span className="text-lime-ink">cancha</span>
         </h1>
         <p className="mt-6 max-w-md text-lg text-muted">
           Elegí el día y el horario, confirmá tu turno online y pagá en el predio.

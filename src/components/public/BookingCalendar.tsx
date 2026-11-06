@@ -38,7 +38,7 @@ export function BookingCalendar({
           onClick={onPrev}
           disabled={!canPrev}
           aria-label="Mes anterior"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime disabled:opacity-30"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
         >
           <ChevronLeft size={20} />
         </button>
@@ -50,7 +50,7 @@ export function BookingCalendar({
           onClick={onNext}
           disabled={!canNext}
           aria-label="Mes siguiente"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime disabled:opacity-30"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
         >
           <ChevronRight size={20} />
         </button>
@@ -95,7 +95,7 @@ export function BookingCalendar({
               onClick={() => onSelect(key)}
               className={cn(
                 "flex aspect-square flex-col items-center justify-center rounded-xl border text-base font-semibold transition",
-                kind === "open" && !isSelected && "border-lime/40 bg-lime/10 text-lime hover:bg-lime/25",
+                kind === "open" && !isSelected && "border-lime/40 bg-lime/10 text-lime-ink hover:bg-lime/25",
                 kind === "open" && isSelected && "border-lime bg-lime text-black",
                 kind === "full" && "border-danger/30 bg-danger/10 text-danger/80",
                 kind === "closed" && "border-transparent bg-surface-2 text-muted/50",
