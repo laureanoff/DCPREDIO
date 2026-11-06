@@ -155,3 +155,6 @@ Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección 
 
 ## Respaldos y producción (Fase 8)
 Panel → **Respaldos** (admin): descarga JSON completo o CSV por tabla. Guía de producción, credenciales y seguridad en [docs/produccion.md](docs/produccion.md).
+
+## Galería del carrusel
+Panel → **Galería** (admin): subir videos (MP4/WebM/MOV) o fotos (JPG/PNG/WebP, máx. 50 MB), ponerles título, reordenar, ocultar o eliminar. Los archivos van al bucket `gallery` de Supabase Storage (lectura pública, escritura solo admin) y aparecen solos en la web; el carrusel avanza despacio y se detiene si lo tocás.

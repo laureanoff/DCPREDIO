@@ -143,6 +143,48 @@ export type Database = {
           { foreignKeyName: "bookings_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ];
       };
+      gallery_items: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_active: boolean;
+          kind: string;
+          poster_storage_path: string | null;
+          poster_url: string | null;
+          sort_order: number;
+          storage_path: string | null;
+          title: string;
+          url: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind: string;
+          poster_storage_path?: string | null;
+          poster_url?: string | null;
+          sort_order?: number;
+          storage_path?: string | null;
+          title?: string;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: string;
+          poster_storage_path?: string | null;
+          poster_url?: string | null;
+          sort_order?: number;
+          storage_path?: string | null;
+          title?: string;
+          url?: string;
+        };
+        Relationships: [];
+      };
       courts: {
         Row: { created_at: string; id: string; is_active: boolean; name: string; sort_order: number; updated_at: string };
         Insert: { created_at?: string; id?: string; is_active?: boolean; name: string; sort_order?: number; updated_at?: string };
