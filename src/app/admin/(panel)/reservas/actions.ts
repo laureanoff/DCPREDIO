@@ -138,14 +138,18 @@ export async function rescheduleBooking(id: string, date: string, slotStart: str
 }
 
 /**
- * Elimina reservas canceladas (solo admin). Las que tienen pagos registrados se conservan
- * porque los pagos son el registro contable. ids vacío/undefined = todas las canceladas sin pagos.
+ * Elimina reservas canceladas (solo admin). Por defecto conserva las que tienen pagos registrados;
+ * con includePaid también borra esas (y sus pagos: el movimiento queda en el historial de auditoría).
+ * ids vacío/undefined = todas las canceladas.
  */
-export async function deleteCancelledBookings(ids?: string[]): Promise<ActionResult> {
+export async function deleteCancelledBookings(ids?: string[], includePaid = false): Promise<ActionResult> {
   await requireAdmin();
   if (ids && !ids.every((i) => idSchema.safeParse(i).success)) return { ok: false, error: "Reserva inválida." };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("delete_cancelled_bookings", ids?.length ? { p_ids: ids } : {});
+  const { data, error } = await supabase.rpc("delete_cancelled_bookings", {
+    ...(ids?.length ? { p_ids: ids } : {}),
+    ...(includePaid ? { p_include_paid: true } : {}),
+  });
   if (error) return fail(error, "No se pudieron eliminar las reservas.");
   const r = Array.isArray(data) ? data[0] : data;
   const deleted = Number(r?.deleted ?? 0);

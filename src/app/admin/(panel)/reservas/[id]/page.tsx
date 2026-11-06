@@ -128,7 +128,20 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
               <DeleteCancelled ids={[b.id]} label="Eliminar esta reserva" redirectTo="/admin/reservas?estado=cancelled" />
             </>
           ) : (
-            <p className="text-sm text-muted">Tiene pagos registrados, así que se conserva para la contabilidad.</p>
+            <>
+              <p className="mb-3 text-sm text-muted">
+                Tiene {payments.length} {payments.length === 1 ? "pago registrado" : "pagos registrados"}
+                {payments.some((p) => !p.is_voided) ? ` (${formatMoney(payments.filter((p) => !p.is_voided).reduce((t, p) => t + Number(p.amount), 0))} sin anular)` : " (todos anulados)"}.
+                Si la eliminás, esos pagos también se borran y dejan de contarse en las estadísticas. Útil si marcaste un pago por error.
+              </p>
+              <DeleteCancelled
+                ids={[b.id]}
+                includePaid
+                label="Eliminar reserva y sus pagos"
+                warning="Se borran la reserva y sus pagos, para siempre."
+                redirectTo="/admin/reservas?estado=cancelled"
+              />
+            </>
           )}
         </section>
       )}

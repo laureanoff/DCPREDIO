@@ -91,11 +91,18 @@ async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">{total} {total === 1 ? "reserva" : "reservas"}</p>
         {isAdmin && f.status === "cancelled" && total > 0 && (
-          <DeleteCancelled label="Eliminar todas las canceladas" />
+          <div className="flex flex-wrap gap-2">
+            <DeleteCancelled label="Eliminar canceladas sin pagos" />
+            <DeleteCancelled
+              includePaid
+              label="Eliminar todas (incluso con pagos)"
+              warning="Se borran las reservas canceladas Y sus pagos registrados, para siempre."
+            />
+          </div>
         )}
       </div>
       {isAdmin && f.status === "cancelled" && (
-        <p className="-mt-3 text-xs text-muted">Las canceladas que tengan pagos registrados no se eliminan, para conservar la contabilidad.</p>
+        <p className="-mt-3 text-xs text-muted">Las canceladas con pagos solo se borran con la opción «incluso con pagos»: esos pagos dejan de contarse en las estadísticas.</p>
       )}
 
       {rows.length === 0 ? (

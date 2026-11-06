@@ -395,7 +395,7 @@ export type Database = {
         }[];
       };
       delete_cancelled_bookings: {
-        Args: { p_ids?: string[] };
+        Args: { p_ids?: string[]; p_include_paid?: boolean };
         Returns: { deleted: number; skipped: number }[];
       };
       get_month_availability: {
