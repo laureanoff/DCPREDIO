@@ -4,7 +4,7 @@ Aplicación web para gestionar las reservas de **DC Predio** (fútbol 5): págin
 
 **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + PostgreSQL) · Vercel · WhatsApp Business Cloud API (Meta).
 
-> Estado: **Fase 3 — Página pública y reservas** completa. Ver [Roadmap](#roadmap).
+> Estado: **Fase 8 — completa** (producción, respaldos, seguridad). Ver docs/produccion.md.
 
 ## Identidad
 
@@ -153,3 +153,6 @@ Selector Sistema / Claro / Oscuro en el sitio público y el panel. La elección 
 - `/admin/configuracion` (solo administradores): precio del turno, jugadores, duración y descanso de turnos, ventana de reserva, confirmación manual, horarios por día, datos del predio y número de avisos. Al guardar se invalida el caché público (`updateTag("venue")`).
 - Cronómetro en la agenda del día y en el detalle de cada reserva: cuenta regresiva al comienzo y al final del turno, con aviso en pantalla (y sonido/notificación si se activan) al empezar, a 5 minutos del final y al terminar. Funciona mientras la pantalla esté abierta.
 - WhatsApp Cloud API: ver `docs/whatsapp.md`. Registro en `notification_logs`, reintentos y pantalla `/admin/avisos`.
+
+## Respaldos y producción (Fase 8)
+Panel → **Respaldos** (admin): descarga JSON completo o CSV por tabla. Guía de producción, credenciales y seguridad en [docs/produccion.md](docs/produccion.md).
