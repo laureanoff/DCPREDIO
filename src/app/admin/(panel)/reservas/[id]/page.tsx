@@ -9,7 +9,8 @@ import { TurnAlerts } from "@/components/admin/TurnAlerts";
 import { TurnTimer } from "@/components/admin/TurnTimer";
 import { formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
-import { getBooking, getPayments } from "@/queries/admin";
+import { confirmationMessage, whatsappLink } from "@/business/confirmation-message";
+import { getAdminVenue, getBooking, getPayments } from "@/queries/admin";
 import { BookingManager } from "./booking-manager";
 import { PaymentsPanel } from "./payments-panel";
 
@@ -19,8 +20,19 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [b, payments] = await Promise.all([getBooking(id), getPayments(id)]);
+  const [b, payments, venue] = await Promise.all([getBooking(id), getPayments(id), getAdminVenue()]);
   if (!b) notFound();
+  const waLink = whatsappLink(
+    b.customer_phone,
+    confirmationMessage({
+      customerName: b.customer_name,
+      code: b.code,
+      dateLabel: formatDateLong(b.booking_date ?? todayKey()),
+      startTime: formatTime(b.start_at),
+      endTime: formatTime(b.end_at),
+      players: b.players || venue.maxPlayers,
+    }),
+  );
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -37,14 +49,14 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/^\+?[0-9]{8,15}$/.test(b.customer_phone) && (
+          {waLink && b.status !== "cancelled" && (
             <a
-              href={`https://wa.me/${b.customer_phone.replace(/\D/g, "")}`}
+              href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl border border-border px-3 py-1.5 text-sm hover:border-lime"
+              className="rounded-xl bg-lime px-3 py-1.5 text-sm font-semibold text-black hover:brightness-110"
             >
-              Escribirle por WhatsApp
+              Enviar confirmación por WhatsApp
             </a>
           )}
           <StatusBadge status={b.status} />
