@@ -4,7 +4,7 @@ Aplicación web para gestionar las reservas de **DC Predio** (fútbol 5): págin
 
 **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + PostgreSQL) · Vercel · WhatsApp Business Cloud API (Meta).
 
-> Estado: **Fase 1 — Preparación** completa. Ver [Roadmap](#roadmap).
+> Estado: **Fase 2 — Base de datos y autenticación** completa. Ver [Roadmap](#roadmap).
 
 ## Identidad
 
@@ -59,6 +59,41 @@ Abrir http://localhost:3000.
 3. Cargar las variables de `.env.example` en **Settings → Environment Variables** (Production y Preview).
 4. Cada `git push` a `main` despliega automáticamente.
 
+
+## Base de datos (Supabase)
+
+Migraciones versionadas en `supabase/migrations/` (ya aplicadas al proyecto `dc-predio`). Tablas: `profiles`, `venue_settings`, `courts`, `operating_hours`, `special_days`, `blocked_slots`, `bookings`, `payments`, `notification_logs`, `audit_log` y la vista `booking_financials`.
+
+Reglas clave (aplicadas en la base, no solo en la app):
+- **Sin doble reserva:** un trigger serializa por cancha y rechaza turnos ocupados, bloqueados o sin cupo. El turno *grupal* ocupa la cancha completa; los *individuales* suman plazas hasta `max_players`. Hay además una restricción de exclusión para turnos grupales superpuestos.
+- **Alta atómica pública:** `create_public_booking(...)` valida horario, ventana de reserva, teléfono y calcula el precio desde `venue_settings`. Solo la puede ejecutar `service_role` (Server Actions).
+- **Pagos:** cada pago es un registro independiente; no se borran, se **anulan** (`is_voided`). Un pago no puede superar el saldo. Los ingresos se calculan por `paid_at` de pagos no anulados.
+- **Auditoría:** `audit_log` registra altas/cambios/bajas con el usuario (solo lectura para admin).
+- **RLS:** el público (`anon`) solo lee columnas públicas de la configuración, canchas y horarios. Reservas, pagos, clientes y auditoría son solo para personal con perfil activo.
+
+Códigos de error de la base (`error.code`): `DC001` turno no disponible · `DC002` bloqueado · `DC003` sin cupo · `DC004` cancha inexistente · `DC005` nombre inválido · `DC006` horario inválido · `DC007` teléfono inválido · `DC008` turno pasado · `DC009` fuera de ventana · `DC010` jugadores inválidos · `DC011` pago supera saldo · `DC012` pagos no se borran · `DC013` el pago no puede cambiar de reserva.
+
+> Valores iniciales **provisorios** (editables desde el panel): horario 16:00–00:00 todos los días, precio individual $5.000, grupal $40.000, 10 jugadores, turnos de 60 min.
+
+## Autenticación y administradores
+
+No hay registro público. Un usuario de Auth **sin fila en `profiles` no accede a nada** (aunque exista).
+
+Para dar de alta al administrador:
+1. Supabase → **Authentication → Users → Add user → Create new user** (email + contraseña, marcar *Auto Confirm User*).
+2. Supabase → **SQL Editor**:
+```sql
+insert into public.profiles (id, full_name, role)
+select id, 'Diego', 'admin' from auth.users where email = 'EMAIL_DE_DIEGO';
+```
+3. Supabase → **Authentication → Sign In / Providers**: desactivar **"Allow new users to sign up"**.
+
+Ingreso: `/admin/login`. El panel está en `/admin` (protegido por `src/proxy.ts`, `requireStaff()` y RLS).
+
+## Pruebas de base de datos
+
+La batería de permisos y conflictos (anon / staff / admin, doble reserva, cupos, pagos, auditoría) se ejecutó contra el proyecto y pasó completa. Para repetirla, ver `docs/database-tests.md`.
+
 ## Variables de entorno
 
 Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y nunca se exponen al navegador.
@@ -66,7 +101,7 @@ Ver `.env.example`. Las que **no** llevan `NEXT_PUBLIC_` son solo de servidor y 
 ## Roadmap
 
 1. ✅ Preparación
-2. Base de datos, RLS y autenticación
+2. ✅ Base de datos, RLS y autenticación
 3. Página pública y reservas
 4. Panel de administración
 5. Pagos
