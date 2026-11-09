@@ -15,6 +15,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ fecha?: strin
   const { fecha } = await searchParams;
   const supabase = await createClient();
   const { data: courts } = await supabase.from("courts").select("id, name").eq("is_active", true).order("sort_order").order("created_at");
+  const { data: settings } = await supabase.from("venue_settings").select("price_group").eq("id", 1).single();
   const today = todayKey();
   const initial = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) && fecha >= today ? fecha : today;
 
@@ -23,7 +24,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ fecha?: strin
       <Link href="/admin/reservas" className="text-sm text-muted hover:text-foreground">← Reservas</Link>
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Nueva reserva</h1>
       <p className="text-sm text-muted">Para cargar pedidos que llegan por teléfono o WhatsApp. El turno queda bloqueado igual que una reserva de la web.</p>
-      <NewBookingForm courts={courts ?? []} today={today} initialDate={initial} />
+      <NewBookingForm courts={courts ?? []} today={today} initialDate={initial} slotPrice={Number(settings?.price_group ?? 0)} />
     </div>
   );
 }

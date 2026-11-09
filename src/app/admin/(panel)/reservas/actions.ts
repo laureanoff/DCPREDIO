@@ -127,6 +127,13 @@ export async function rescheduleBooking(id: string, date: string, slotStart: str
   const slot = (slots ?? []).find((s) => new Date(s.slot_start).getTime() === wanted);
   if (!slot) return { ok: false, error: "Ese horario no existe para la fecha elegida." };
 
+  const { data: cur } = await supabase.from("bookings").select("start_at, end_at").eq("id", id).maybeSingle();
+  if (cur) {
+    const curLen = new Date(cur.end_at).getTime() - new Date(cur.start_at).getTime();
+    const slotLen = new Date(slot.slot_end).getTime() - new Date(slot.slot_start).getTime();
+    if (curLen !== slotLen) return { ok: false, error: "Esta reserva ocupa varios turnos y no se puede mover desde acá. Cancelala y cargala de nuevo en el nuevo horario." };
+  }
+
   const { data, error } = await supabase
     .from("bookings")
     .update({ start_at: slot.slot_start, end_at: slot.slot_end })
@@ -168,32 +175,33 @@ export async function deleteCancelledBookings(ids?: string[], includePaid = fals
 
 const newSchema = z.object({
   courtId: idSchema,
-  slotStarts: z.array(z.string().min(10).max(40)).min(1, "Elegí al menos un horario.").max(12, "Máximo 12 turnos por vez."),
+  firstStart: z.string().min(10).max(40),
+  lastStart: z.string().min(10).max(40),
   name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
   phone: phoneSchema,
   notes: z.string().trim().max(500),
   status: z.enum(["pending", "confirmed"]),
 });
 
-/** Carga una o varias reservas a mano (pedidos por teléfono, cumpleaños). Todo o nada, con la misma regla anti-doble-reserva que la web. */
-export async function createManualBooking(raw: z.input<typeof newSchema>): Promise<(ActionResult & { id?: string; count?: number })> {
+/** Carga a mano UNA reserva que ocupa uno o varios turnos seguidos (ej. cumpleaños de 16 a 20). */
+export async function createManualBooking(raw: z.input<typeof newSchema>): Promise<(ActionResult & { id?: string })> {
   await requireStaff();
   const parsed = newSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   const v = parsed.data;
-  if (v.slotStarts.some((t) => Number.isNaN(new Date(t).getTime()))) return { ok: false, error: "Horario inválido." };
+  if (Number.isNaN(new Date(v.firstStart).getTime()) || Number.isNaN(new Date(v.lastStart).getTime())) return { ok: false, error: "Horario inválido." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_staff_bookings", {
+  const { data, error } = await supabase.rpc("create_staff_booking_range", {
     p_court_id: v.courtId,
-    p_starts: v.slotStarts,
+    p_first_start: v.firstStart,
+    p_last_start: v.lastStart,
     p_customer_name: v.name,
     p_customer_phone: v.phone,
     p_notes: v.notes || undefined,
     p_status: v.status,
   });
-  if (error || !data || data.length === 0) return fail(error, "No se pudo cargar la reserva.");
+  if (error || !data) return fail(error, "No se pudo cargar la reserva.");
   refresh();
-  const codes = data.map((b) => b.code).join(", ");
-  return { ok: true, message: data.length === 1 ? `Reserva ${codes} cargada.` : `${data.length} reservas cargadas: ${codes}.`, id: data[0].id, count: data.length };
+  return { ok: true, message: `Reserva ${data.code} cargada.`, id: data.id };
 }
