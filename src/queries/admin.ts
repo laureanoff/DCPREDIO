@@ -187,6 +187,8 @@ export type VenueSettingsForm = {
   bookingWindowDays: number;
   maxActiveBookingsPerPhone: number;
   requireConfirmation: boolean;
+  allowCustomerCancellation: boolean;
+  cancellationCutoffHours: number;
   hours: { weekday: number; isOpen: boolean; open: string; close: string }[];
 };
 
@@ -213,6 +215,8 @@ export async function getVenueSettingsForm(): Promise<VenueSettingsForm> {
     bookingWindowDays: s.booking_window_days,
     maxActiveBookingsPerPhone: s.max_active_bookings_per_phone,
     requireConfirmation: s.require_confirmation,
+    allowCustomerCancellation: s.allow_customer_cancellation,
+    cancellationCutoffHours: s.cancellation_cutoff_hours,
     hours: (hours.data ?? []).map((h) => ({
       weekday: h.weekday,
       isOpen: h.is_open,

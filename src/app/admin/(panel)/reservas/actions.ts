@@ -18,6 +18,8 @@ const DB_ERRORS: Record<string, string> = {
   DC007: "El teléfono no es válido.",
   DC008: "Ese horario ya pasó.",
   DC010: "La cantidad de jugadores no es válida.",
+  DC014: "Ese teléfono ya tiene el máximo de reservas activas.",
+  DC016: "Estado inválido.",
 };
 
 function fail(error: { code?: string; message?: string } | null, fallback: string): ActionResult {
@@ -162,4 +164,35 @@ export async function deleteCancelledBookings(ids?: string[], includePaid = fals
       : ` ${skipped} se conservaron porque tienen pagos registrados.`
     : "";
   return { ok: true, message: `${deleted} ${deleted === 1 ? "reserva eliminada" : "reservas eliminadas"}.${kept}` };
+}
+
+const newSchema = z.object({
+  courtId: idSchema,
+  slotStart: z.string().min(10).max(40),
+  name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
+  phone: phoneSchema,
+  notes: z.string().trim().max(500),
+  status: z.enum(["pending", "confirmed"]),
+});
+
+/** Carga una reserva a mano (pedido por teléfono/WhatsApp). Usa la misma regla anti-doble-reserva que la web. */
+export async function createManualBooking(raw: z.input<typeof newSchema>): Promise<(ActionResult & { id?: string })> {
+  await requireStaff();
+  const parsed = newSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+  const v = parsed.data;
+  if (Number.isNaN(new Date(v.slotStart).getTime())) return { ok: false, error: "Horario inválido." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_staff_booking", {
+    p_court_id: v.courtId,
+    p_start_at: v.slotStart,
+    p_customer_name: v.name,
+    p_customer_phone: v.phone,
+    p_notes: v.notes || undefined,
+    p_status: v.status,
+  });
+  if (error || !data) return fail(error, "No se pudo cargar la reserva.");
+  refresh();
+  return { ok: true, message: `Reserva ${data.code} cargada.`, id: data.id };
 }

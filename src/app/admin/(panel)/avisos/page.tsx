@@ -1,3 +1,4 @@
+import { PushToggle } from "@/components/admin/PushToggle";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { connection } from "next/server";
@@ -27,6 +28,7 @@ async function Inbox() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8">
+      <PushToggle />
       <div>
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Avisos</h1>
         <p className="text-sm text-muted">Cada reserva nueva llega acá. Confirmala o rechazala; al confirmar podés enviarle el mensaje al cliente por WhatsApp.</p>

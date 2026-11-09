@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { IncomeChart, type ChartBar } from "@/components/admin/IncomeChart";
+import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { daysInMonth, dateKey, monthLabel, todayKey } from "@/lib/datetime";
 import { formatMoney } from "@/lib/utils";
@@ -66,6 +67,16 @@ async function Stats({ searchParams }: { searchParams: Promise<Params> }) {
     });
   }
 
+  const from = month ? dateKey(year, month, 1) : dateKey(year, 1, 1);
+  const to = month ? dateKey(year, month, daysInMonth(year, month)) : dateKey(year, 12, 31);
+  const supabase = await createClient();
+  const [buffetSum, buffetTop] = await Promise.all([
+    supabase.rpc("buffet_summary", { p_from: from, p_to: to }),
+    supabase.rpc("buffet_top_products", { p_from: from, p_to: to }),
+  ]);
+  const buffet = buffetSum.data?.[0];
+  const topProducts = (buffetTop.data ?? []).slice(0, 5);
+
   const total = bars.reduce((s, b) => s + b.value, 0);
   const count = bars.reduce((s, b) => s + b.count, 0);
   const periods = bars.filter((b) => b.value > 0).length;
@@ -98,6 +109,16 @@ async function Stats({ searchParams }: { searchParams: Promise<Params> }) {
         <Tile label="Cantidad de cobros" value={String(count)} />
         <Tile label={month ? "Promedio por día con cobros" : "Promedio por mes con cobros"} value={formatMoney(periods ? Math.round(total / periods) : 0)} />
       </dl>
+
+      <section className="rounded-2xl border border-border bg-surface p-4">
+        <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">Buffet · {month ? monthLabel(year, month) : year}</h2>
+        <p className="mt-1 text-2xl font-bold">{formatMoney(Number(buffet?.total ?? 0))} <span className="text-sm font-normal text-muted">· {Number(buffet?.sales ?? 0)} ventas (aparte de los cobros de canchas)</span></p>
+        {topProducts.length > 0 && (
+          <ol className="mt-2 list-decimal pl-5 text-sm text-muted">
+            {topProducts.map((t) => <li key={t.product_name}>{t.product_name}: {Number(t.quantity)} u. · {formatMoney(Number(t.total))}</li>)}
+          </ol>
+        )}
+      </section>
 
       {count === 0 ? (
         <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-muted">No hay cobros registrados en este período.</p>

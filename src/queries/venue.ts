@@ -18,7 +18,8 @@ export type PublicVenue = {
   slotDurationMinutes: number;
   bookingWindowDays: number;
   requireConfirmation: boolean;
-  courtId: string;
+  courtId: string; // cancha por defecto (la primera activa)
+  courts: { id: string; name: string }[];
   hours: { weekday: number; isOpen: boolean; open: string; close: string }[];
 };
 
@@ -34,14 +35,14 @@ export async function getPublicVenue(): Promise<PublicVenue> {
   cacheTag("venue");
 
   const supabase = createAnonClient();
-  const [settings, court, hours] = await Promise.all([
+  const [settings, courtsRes, hours] = await Promise.all([
     supabase.from("venue_settings").select(PUBLIC_COLUMNS).eq("id", 1).single(),
-    supabase.from("courts").select("id").eq("is_active", true).order("sort_order").limit(1).single(),
+    supabase.from("courts").select("id, name").eq("is_active", true).order("sort_order").order("created_at"),
     supabase.from("operating_hours").select("weekday, is_open, open_time, close_time").order("weekday"),
   ]);
 
   if (settings.error || !settings.data) throw new Error(`No se pudo leer la configuración: ${settings.error?.message}`);
-  if (court.error || !court.data) throw new Error(`No hay canchas activas: ${court.error?.message}`);
+  if (courtsRes.error || !courtsRes.data?.length) throw new Error(`No hay canchas activas: ${courtsRes.error?.message}`);
   if (hours.error) throw new Error(`No se pudieron leer los horarios: ${hours.error.message}`);
 
   const s = settings.data as unknown as Record<string, string | number | boolean | null>;
@@ -62,7 +63,8 @@ export async function getPublicVenue(): Promise<PublicVenue> {
     slotDurationMinutes: Number(s.slot_duration_minutes),
     bookingWindowDays: Number(s.booking_window_days),
     requireConfirmation: Boolean(s.require_confirmation),
-    courtId: court.data.id,
+    courtId: courtsRes.data[0].id,
+    courts: courtsRes.data,
     hours: (hours.data ?? []).map((h) => ({
       weekday: h.weekday,
       isOpen: h.is_open,

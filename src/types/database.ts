@@ -143,6 +143,46 @@ export type Database = {
           { foreignKeyName: "bookings_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ];
       };
+      buffet_products: {
+        Row: { created_at: string; id: string; is_active: boolean; name: string; price: number; sort_order: number; updated_at: string };
+        Insert: { created_at?: string; id?: string; is_active?: boolean; name: string; price: number; sort_order?: number; updated_at?: string };
+        Update: { created_at?: string; id?: string; is_active?: boolean; name?: string; price?: number; sort_order?: number; updated_at?: string };
+        Relationships: [];
+      };
+      buffet_sales: {
+        Row: {
+          booking_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_voided: boolean;
+          method: Database["public"]["Enums"]["payment_method"];
+          note: string | null;
+          total: number;
+          void_reason: string | null;
+          voided_at: string | null;
+          voided_by: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          { foreignKeyName: "buffet_sales_booking_id_fkey"; columns: ["booking_id"]; isOneToOne: false; referencedRelation: "bookings"; referencedColumns: ["id"] },
+        ];
+      };
+      buffet_sale_items: {
+        Row: { id: string; product_id: string | null; product_name: string; quantity: number; sale_id: string; unit_price: number };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          { foreignKeyName: "buffet_sale_items_sale_id_fkey"; columns: ["sale_id"]; isOneToOne: false; referencedRelation: "buffet_sales"; referencedColumns: ["id"] },
+        ];
+      };
+      push_subscriptions: {
+        Row: { auth: string; created_at: string; endpoint: string; id: string; p256dh: string; user_agent: string | null; user_id: string };
+        Insert: { auth: string; created_at?: string; endpoint: string; id?: string; p256dh: string; user_agent?: string | null; user_id: string };
+        Update: { auth?: string; endpoint?: string; p256dh?: string; user_agent?: string | null };
+        Relationships: [];
+      };
       gallery_items: {
         Row: {
           created_at: string;
@@ -326,6 +366,8 @@ export type Database = {
           logo_url: string | null;
           max_active_bookings_per_phone: number;
           max_players: number;
+          allow_customer_cancellation: boolean;
+          cancellation_cutoff_hours: number;
           latitude: number | null;
           longitude: number | null;
           notification_whatsapp_number: string | null;
@@ -350,6 +392,8 @@ export type Database = {
           logo_url?: string | null;
           max_active_bookings_per_phone?: number;
           max_players?: number;
+          allow_customer_cancellation?: boolean;
+          cancellation_cutoff_hours?: number;
           latitude?: number | null;
           longitude?: number | null;
           notification_whatsapp_number?: string | null;
@@ -374,6 +418,8 @@ export type Database = {
           logo_url?: string | null;
           max_active_bookings_per_phone?: number;
           max_players?: number;
+          allow_customer_cancellation?: boolean;
+          cancellation_cutoff_hours?: number;
           latitude?: number | null;
           longitude?: number | null;
           notification_whatsapp_number?: string | null;
@@ -435,6 +481,30 @@ export type Database = {
           spots_left: number;
           state: string;
         }[];
+      };
+      create_staff_booking: {
+        Args: {
+          p_court_id: string;
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_notes?: string;
+          p_start_at: string;
+          p_status?: Database["public"]["Enums"]["booking_status"];
+        };
+        Returns: Database["public"]["Tables"]["bookings"]["Row"];
+      };
+      create_buffet_sale: {
+        Args: { p_booking_id?: string; p_items: { product_id: string; quantity: number }[]; p_method: Database["public"]["Enums"]["payment_method"]; p_note?: string };
+        Returns: Database["public"]["Tables"]["buffet_sales"]["Row"];
+      };
+      void_buffet_sale: { Args: { p_id: string; p_reason?: string }; Returns: undefined };
+      buffet_summary: {
+        Args: { p_from: string; p_to: string };
+        Returns: { cash: number; other: number; sales: number; total: number; transfer: number }[];
+      };
+      buffet_top_products: {
+        Args: { p_from: string; p_to: string };
+        Returns: { product_name: string; quantity: number; total: number }[];
       };
       delete_cancelled_bookings: {
         Args: { p_ids?: string[]; p_include_paid?: boolean };

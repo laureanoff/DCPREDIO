@@ -53,7 +53,10 @@ async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Reservas</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Reservas</h1>
+        <Link href="/admin/reservas/nueva" className="rounded-xl bg-lime px-4 py-2.5 text-sm font-semibold text-black">+ Nueva reserva</Link>
+      </div>
 
       <div className="flex gap-1 rounded-xl border border-border bg-surface p-1 self-start">
         {VIEWS.map((v) => (

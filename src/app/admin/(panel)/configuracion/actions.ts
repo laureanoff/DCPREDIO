@@ -28,6 +28,8 @@ const schema = z.object({
   bookingWindowDays: z.number().int().min(1).max(365),
   maxActiveBookingsPerPhone: z.number().int().min(1).max(20),
   requireConfirmation: z.boolean(),
+  allowCustomerCancellation: z.boolean(),
+  cancellationCutoffHours: z.number().int().min(0).max(168),
   hours: z
     .array(z.object({ weekday: z.number().int().min(0).max(6), isOpen: z.boolean(), open: time, close: time }))
     .length(7),
@@ -78,6 +80,8 @@ export async function saveSettings(raw: z.input<typeof schema>): Promise<ActionR
       booking_window_days: v.bookingWindowDays,
       max_active_bookings_per_phone: v.maxActiveBookingsPerPhone,
       require_confirmation: v.requireConfirmation,
+      allow_customer_cancellation: v.allowCustomerCancellation,
+      cancellation_cutoff_hours: v.cancellationCutoffHours,
     })
     .eq("id", 1)
     .select("id")

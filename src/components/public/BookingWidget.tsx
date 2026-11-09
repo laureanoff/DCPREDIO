@@ -30,6 +30,8 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const maxDate = addDaysKey(today, venue.bookingWindowDays);
   const [ty, tm] = today.split("-").map(Number);
 
+  const [courtId, setCourtId] = useState(venue.courtId);
+  const courtName = venue.courts.length > 1 ? (venue.courts.find((c) => c.id === courtId)?.name ?? null) : null;
   const [step, setStep] = useState<Step>("pick");
   const [view, setView] = useState({ year: ty, month: tm });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   useEffect(() => {
     let cancelled = false;
     supabase
-      .rpc("get_month_availability", { p_court_id: venue.courtId, p_year: view.year, p_month: view.month })
+      .rpc("get_month_availability", { p_court_id: courtId, p_year: view.year, p_month: view.month })
       .then(({ data, error }) => {
         if (cancelled) return;
         setMonthState({
@@ -63,7 +65,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
     return () => {
       cancelled = true;
     };
-  }, [supabase, venue.courtId, view.year, view.month, monthKey]);
+  }, [supabase, courtId, view.year, view.month, monthKey]);
   const monthDays = monthState?.key === monthKey ? monthState.days : null;
   const monthFailed = monthState?.key === monthKey && monthState.failed;
 
@@ -73,14 +75,14 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   useEffect(() => {
     if (!selectedDate || !dayKey) return;
     let cancelled = false;
-    supabase.rpc("get_day_availability", { p_court_id: venue.courtId, p_date: selectedDate }).then(({ data, error }) => {
+    supabase.rpc("get_day_availability", { p_court_id: courtId, p_date: selectedDate }).then(({ data, error }) => {
       if (cancelled) return;
       setDayState({ key: dayKey, slots: data ?? [], failed: !!error });
     });
     return () => {
       cancelled = true;
     };
-  }, [supabase, venue.courtId, selectedDate, dayKey]);
+  }, [supabase, courtId, selectedDate, dayKey]);
   const slots = dayState && dayState.key === dayKey ? dayState.slots : null;
   const dayFailed = dayState?.key === dayKey && dayState.failed;
 
@@ -131,7 +133,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
     setFormError(null);
     startSubmit(async () => {
       const res = await createBooking({
-        courtId: venue.courtId,
+        courtId,
         startAt: slot.slot_start,
         name,
         phone,
@@ -189,14 +191,14 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
               {done.code}
             </p>
           </div>
-          <p className="mt-2 text-xs text-muted">Guardá este código por cualquier consulta.</p>
+          <p className="mt-2 text-xs text-muted">Guardá este código: con él y tu teléfono podés <a href="/mi-reserva" className="underline">consultar o cancelar tu reserva</a>.</p>
         </div>
 
         <dl className="mx-auto mt-6 max-w-sm space-y-2 text-sm">
           <Row label="A nombre de" value={done.customerName} />
           <Row label="Fecha" value={formatDateShort(done.startAt, tz)} />
           <Row label="Horario" value={`${formatTime(done.startAt, tz)} a ${formatTime(done.endAt, tz)}`} />
-          <Row label="Cancha" value={`Completa · hasta ${done.players} jugadores`} />
+          <Row label="Cancha" value={`${courtName ? `${courtName} · ` : ""}Completa · hasta ${done.players} jugadores`} />
           <Row label="Total a pagar" value={formatMoney(done.totalPrice, venue.currency)} strong />
         </dl>
         <p className="mt-4 text-center text-sm text-muted">El pago se realiza en el predio, entre todos los jugadores.</p>
@@ -210,7 +212,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                 `👤 A nombre de: ${done.customerName}`,
                 `📅 Día: ${formatDateShort(done.startAt, tz)}`,
                 `🕐 Horario: ${formatTime(done.startAt, tz)} a ${formatTime(done.endAt, tz)} hs`,
-                `⚽ Cancha de fútbol 5 completa (hasta ${done.players} jugadores)`,
+                `⚽ ${courtName ? `${courtName} · ` : ""}Cancha de fútbol 5 completa (hasta ${done.players} jugadores)`,
                 `🔖 Código de reserva: ${done.code}`,
               ].join("\n"),
             )}`}
@@ -258,6 +260,31 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
         <p role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning">
           <AlertCircle size={18} className="mt-0.5 shrink-0" /> {notice}
         </p>
+      )}
+
+      {step === "pick" && venue.courts.length > 1 && (
+        <div role="radiogroup" aria-label="Elegí la cancha" className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold">Cancha:</span>
+          {venue.courts.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={c.id === courtId}
+              onClick={() => {
+                setCourtId(c.id);
+                setSlotStart(null);
+                setNotice(null);
+              }}
+              className={cn(
+                "h-11 rounded-xl border px-4 text-sm font-semibold transition",
+                c.id === courtId ? "border-lime bg-lime text-black" : "border-border hover:border-lime",
+              )}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
       )}
 
       {step === "pick" && (

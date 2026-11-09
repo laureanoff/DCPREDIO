@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, ClipboardList, Database, Film, MessageCircle, Settings } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Coffee, Database, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
   { href: "/admin", label: "Agenda", Icon: CalendarDays, match: (p: string) => p === "/admin" },
   { href: "/admin/reservas", label: "Reservas", Icon: ClipboardList, match: (p: string) => p.startsWith("/admin/reservas") },
   { href: "/admin/avisos", label: "Avisos", Icon: MessageCircle, match: (p: string) => p.startsWith("/admin/avisos") },
+  { href: "/admin/bloqueos", label: "Bloqueos", Icon: Lock, match: (p: string) => p.startsWith("/admin/bloqueos") },
+  { href: "/admin/buffet", label: "Buffet", Icon: Coffee, match: (p: string) => p.startsWith("/admin/buffet") },
   { href: "/admin/estadisticas", label: "Estadísticas", Icon: BarChart3, match: (p: string) => p.startsWith("/admin/estadisticas"), adminOnly: true },
   { href: "/admin/galeria", label: "Galería", Icon: Film, match: (p: string) => p.startsWith("/admin/galeria"), adminOnly: true },
   { href: "/admin/respaldos", label: "Respaldos", Icon: Database, match: (p: string) => p.startsWith("/admin/respaldos"), adminOnly: true },
+  { href: "/admin/usuarios", label: "Empleados", Icon: Users, match: (p: string) => p.startsWith("/admin/usuarios"), adminOnly: true },
   { href: "/admin/configuracion", label: "Configuración", Icon: Settings, match: (p: string) => p.startsWith("/admin/configuracion"), adminOnly: true },
 ];
 

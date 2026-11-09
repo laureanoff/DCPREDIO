@@ -89,6 +89,15 @@ export function SettingsForm({ initial }: { initial: VenueSettingsForm }) {
           <input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={f.requireConfirmation} onChange={(e) => set("requireConfirmation", e.target.checked)} />
           Las reservas nuevas quedan pendientes hasta que el predio las confirme
         </label>
+        <label className="flex items-center gap-3 text-sm sm:col-span-2">
+          <input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={f.allowCustomerCancellation} onChange={(e) => set("allowCustomerCancellation", e.target.checked)} />
+          El cliente puede cancelar su reserva desde la web con su código
+        </label>
+        {f.allowCustomerCancellation && (
+          <Field label="Puede cancelar hasta … horas antes del turno (0 = hasta que empiece)">
+            <input className={field} type="number" min={0} max={168} value={f.cancellationCutoffHours} onChange={(e) => set("cancellationCutoffHours", Number(e.target.value))} required />
+          </Field>
+        )}
       </Section>
 
       <Section title="Horarios de atención" hint="Si el cierre es 00:00 el último turno termina a medianoche.">

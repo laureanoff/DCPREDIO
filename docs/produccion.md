@@ -29,3 +29,13 @@ Si una clave se pegó en un chat o se subió a Git: Supabase → Project Setting
 - 6 navegadores confirmando el mismo turno a la vez → 1 reserva creada, 5 rechazadas con "Ese turno acaba de ser reservado". El control está en la base (bloqueo + chequeo de solapamiento), no en la pantalla.
 - Pruebas de reglas de pagos y estadísticas: ver docs/database-tests.md.
 - Móvil (390×844) verificado en reserva pública y panel.
+
+## Empleados, buffet, bloqueos, canchas y avisos push
+
+- **Empleados** (`/admin/usuarios`, solo administrador): se crean con email y contraseña; el rol «staff» opera reservas, cobros, bloqueos y buffet, pero no ve configuración, estadísticas, galería, respaldos ni usuarios. Desactivar un empleado cierra su acceso al instante.
+- **Reservas manuales** (`/admin/reservas/nueva`) usan la misma regla anti-doble-reserva que la web.
+- **Bloqueos** (`/admin/bloqueos`): lluvia, mantenimiento, torneo (todo el personal) y feriados/días especiales (solo administrador). No permite bloquear sobre reservas activas.
+- **Mi reserva** (`/mi-reserva`): el cliente consulta/cancela con código + teléfono. Se configura en Configuración (permitir cancelar y horas de anticipación). No se puede cancelar online si hay pagos registrados.
+- **Canchas** (Configuración → Canchas): agregar, renombrar, activar/desactivar. Con más de una activa, la web pide elegir cancha.
+- **Buffet** (`/admin/buffet`): productos (admin), ventas rápidas, anulaciones y totales; resumen en Estadísticas.
+- **Avisos push con el celular bloqueado**: variables `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (sensible) y `VAPID_SUBJECT` en Vercel. Cada persona activa los avisos desde Avisos → «Activar avisos». En iPhone hay que instalar antes la web en la pantalla de inicio.
