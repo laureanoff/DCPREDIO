@@ -2,10 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addCommonProducts, addProduct, deleteSale, createSale, updateProduct, voidSale } from "./actions";
+import { addCommonProducts, addProduct, deleteSale, restock, createSale, updateProduct, voidSale } from "./actions";
 import { cn, formatMoney } from "@/lib/utils";
 
-type Product = { id: string; name: string; price: number; active: boolean };
+type Product = { id: string; name: string; price: number; active: boolean; track: boolean; stock: number; low: number };
 type Sale = { id: string; total: number; method: "cash" | "transfer" | "other"; note: string; voided: boolean; at: string; mine: boolean; items: string };
 type Summary = { count: number; total: number; cash: number; transfer: number; other: number };
 type Msg = { ok: boolean; text: string } | null;
@@ -27,13 +27,42 @@ function ProductEditor({ p, onMsg }: { p: Product; onMsg: (m: Msg) => void }) {
   const [name, setName] = useState(p.name);
   const [price, setPrice] = useState(String(p.price));
   const [active, setActive] = useState(p.active);
-  const dirty = name !== p.name || Number(price) !== p.price || active !== p.active;
+  const [track, setTrack] = useState(p.track);
+  const [stock, setStock] = useState(String(p.stock));
+  const [low, setLow] = useState(String(p.low));
+  const dirty = name !== p.name || Number(price) !== p.price || active !== p.active || track !== p.track || (track && (Number(stock) !== p.stock || Number(low) !== p.low));
   return (
-    <li className="flex flex-wrap items-center gap-2 py-2">
-      <input className={cn(field, "min-w-0 flex-1")} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} aria-label="Nombre" />
-      <input className={cn(field, "w-28")} type="number" min={0} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} aria-label="Precio" />
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={active} onChange={(e) => setActive(e.target.checked)} />Activo</label>
-      {dirty && <button disabled={pending} onClick={() => start(async () => { const r = await updateProduct(p.id, { name, price: Number(price), active }); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); router.refresh(); })} className="h-11 rounded-xl bg-lime px-3 text-sm font-semibold text-black disabled:opacity-50">Guardar</button>}
+    <li className="flex flex-col gap-2 py-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <input className={cn(field, "min-w-0 flex-1")} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} aria-label="Nombre" />
+        <input className={cn(field, "w-28")} type="number" min={0} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} aria-label="Precio" />
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={active} onChange={(e) => setActive(e.target.checked)} />Activo</label>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <label className="flex items-center gap-2"><input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={track} onChange={(e) => setTrack(e.target.checked)} />Controlar stock</label>
+        {track && (
+          <>
+            <label className="flex items-center gap-2">Hay<input className={cn(field, "w-24")} type="number" min={0} inputMode="numeric" value={stock} onChange={(e) => setStock(e.target.value)} /></label>
+            <label className="flex items-center gap-2">Avisar con<input className={cn(field, "w-20")} type="number" min={0} inputMode="numeric" value={low} onChange={(e) => setLow(e.target.value)} />o menos</label>
+          </>
+        )}
+        {dirty && <button disabled={pending} onClick={() => start(async () => { const r = await updateProduct(p.id, { name, price: Number(price), active, track, stock: Math.round(Number(stock) || 0), low: Math.round(Number(low) || 0) }); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); router.refresh(); })} className="h-11 rounded-xl bg-lime px-4 font-semibold text-black disabled:opacity-50">Guardar</button>}
+      </div>
+    </li>
+  );
+}
+
+function RestockRow({ p, onMsg }: { p: Product; onMsg: (m: Msg) => void }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [qty, setQty] = useState("");
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      <span><strong>{p.name}</strong> · {p.stock <= 0 ? "agotado" : `quedan ${p.stock}`}</span>
+      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await restock(p.id, Math.round(Number(qty))); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); if (r.ok) setQty(""); router.refresh(); }); }}>
+        <input className={cn(field, "w-24")} type="number" min={1} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="Cantidad" required />
+        <button disabled={pending} className="h-11 rounded-xl bg-lime px-3 font-semibold text-black disabled:opacity-50">Reponer</button>
+      </form>
     </li>
   );
 }
@@ -54,12 +83,26 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
   const active = products.filter((p) => p.active);
   const total = useMemo(() => active.reduce((t, p) => t + p.price * (cart[p.id] ?? 0), 0), [active, cart]);
   const lines = Object.entries(cart).filter(([, q]) => q > 0);
-  const change = (id: string, d: number) => setCart((c) => ({ ...c, [id]: Math.max(0, Math.min(999, (c[id] ?? 0) + d)) }));
+  const change = (id: string, d: number) => {
+    const prod = products.find((x) => x.id === id);
+    const cap = prod?.track ? prod.stock : 999;
+    setCart((c) => ({ ...c, [id]: Math.max(0, Math.min(cap, (c[id] ?? 0) + d)) }));
+  };
+  const lowStock = products.filter((p) => p.active && p.track && p.stock <= p.low);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Buffet</h1>
       <Notice msg={msg} />
+
+      {lowStock.length > 0 && (
+        <section className="rounded-2xl border border-warning/60 bg-warning/10 p-4">
+          <h2 className={h2}>Stock bajo</h2>
+          <ul className="flex flex-col gap-2">
+            {lowStock.map((p) => <RestockRow key={p.id} p={p} onMsg={setMsg} />)}
+          </ul>
+        </section>
+      )}
 
       <section className={card}>
         <h2 className={h2}>Hoy</h2>
@@ -74,21 +117,24 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
             {active.map((p) => {
               const qty = cart[p.id] ?? 0;
               const noPrice = p.price <= 0;
+              const out = p.track && p.stock <= 0;
+              const left = p.track ? p.stock - qty : null;
               return (
                 <li key={p.id} className="relative">
                   <button
                     type="button"
-                    disabled={noPrice}
+                    disabled={noPrice || out || (left !== null && left <= 0)}
                     onClick={() => change(p.id, 1)}
                     aria-label={`Agregar ${p.name}, ${formatMoney(p.price)}`}
                     className={cn(
                       "flex h-24 w-full flex-col items-center justify-center gap-1 rounded-2xl border-2 px-2 text-center transition active:scale-95",
                       qty > 0 ? "border-lime bg-lime/15" : "border-border bg-surface-2 hover:border-lime",
-                      noPrice && "cursor-not-allowed opacity-50",
+                      (noPrice || out) && "cursor-not-allowed opacity-50",
                     )}
                   >
                     <span className="line-clamp-2 text-sm font-semibold leading-tight">{p.name}</span>
-                    <span className="text-sm text-muted">{noPrice ? "Sin precio" : formatMoney(p.price)}</span>
+                    <span className="text-sm text-muted">{noPrice ? "Sin precio" : out ? "Agotado" : formatMoney(p.price)}</span>
+                    {p.track && !out && <span className={cn("text-[11px]", p.stock <= p.low ? "font-semibold text-warning" : "text-muted")}>Quedan {p.stock}</span>}
                   </button>
                   {qty > 0 && (
                     <>
@@ -171,7 +217,7 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
         <section className={card}>
           <h2 className={h2}>Productos</h2>
           <button type="button" disabled={pending} onClick={() => start(async () => { const r = await addCommonProducts(); setMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); router.refresh(); })} className="mb-3 h-11 rounded-xl border border-border px-4 text-sm font-semibold hover:border-lime disabled:opacity-50">+ Agregar productos comunes (agua, gaseosa, cerveza…)</button>
-          <ul className="divide-y divide-border">{products.map((p) => <ProductEditor key={`${p.id}-${p.name}-${p.price}-${p.active}`} p={p} onMsg={setMsg} />)}</ul>
+          <ul className="divide-y divide-border">{products.map((p) => <ProductEditor key={`${p.id}-${p.name}-${p.price}-${p.active}-${p.track}-${p.stock}-${p.low}`} p={p} onMsg={setMsg} />)}</ul>
           <form
             className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3"
             onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await addProduct({ name: newName, price: Number(newPrice) }); setMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); if (r.ok) { setNewName(""); setNewPrice(""); } router.refresh(); }); }}

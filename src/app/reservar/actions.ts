@@ -2,6 +2,9 @@
 
 import { after } from "next/server";
 import { notifyStaff } from "@/services/push";
+import { z } from "zod";
+import { joinWaitlist } from "@/services/waitlist";
+import { phoneSchema } from "@/validations/booking";
 import { bookingInputSchema } from "@/validations/booking";
 import { createPublicBooking, type CreateBookingResult } from "@/services/booking";
 
@@ -30,4 +33,19 @@ export async function createBooking(input: unknown): Promise<CreateBookingResult
     );
   }
   return result;
+}
+
+const waitSchema = z.object({
+  courtId: z.string().uuid(),
+  startAt: z.string().datetime({ offset: true }),
+  name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
+  phone: phoneSchema,
+  website: z.string().max(200).optional(),
+});
+
+export async function joinWaitingList(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = waitSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisá los datos ingresados." };
+  if (parsed.data.website) return { ok: false, error: "No pudimos anotarte. Probá de nuevo en unos minutos." };
+  return joinWaitlist({ courtId: parsed.data.courtId, startAt: parsed.data.startAt, name: parsed.data.name, phone: parsed.data.phone });
 }

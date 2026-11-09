@@ -144,9 +144,9 @@ export type Database = {
         ];
       };
       buffet_products: {
-        Row: { created_at: string; id: string; is_active: boolean; name: string; price: number; sort_order: number; updated_at: string };
-        Insert: { created_at?: string; id?: string; is_active?: boolean; name: string; price: number; sort_order?: number; updated_at?: string };
-        Update: { created_at?: string; id?: string; is_active?: boolean; name?: string; price?: number; sort_order?: number; updated_at?: string };
+        Row: { created_at: string; id: string; is_active: boolean; low_stock_threshold: number; name: string; price: number; sort_order: number; stock: number; track_stock: boolean; updated_at: string };
+        Insert: { created_at?: string; id?: string; is_active?: boolean; low_stock_threshold?: number; name: string; price: number; sort_order?: number; stock?: number; track_stock?: boolean; updated_at?: string };
+        Update: { created_at?: string; id?: string; is_active?: boolean; low_stock_threshold?: number; name?: string; price?: number; sort_order?: number; stock?: number; track_stock?: boolean; updated_at?: string };
         Relationships: [];
       };
       buffet_sales: {
@@ -176,6 +176,12 @@ export type Database = {
         Relationships: [
           { foreignKeyName: "buffet_sale_items_sale_id_fkey"; columns: ["sale_id"]; isOneToOne: false; referencedRelation: "buffet_sales"; referencedColumns: ["id"] },
         ];
+      };
+      waitlist_entries: {
+        Row: { court_id: string; created_at: string; customer_name: string; customer_phone: string; end_at: string; id: string; start_at: string };
+        Insert: { court_id: string; created_at?: string; customer_name: string; customer_phone: string; end_at: string; id?: string; start_at: string };
+        Update: { customer_name?: string };
+        Relationships: [];
       };
       push_subscriptions: {
         Row: { auth: string; created_at: string; endpoint: string; id: string; p256dh: string; user_agent: string | null; user_id: string };
@@ -509,6 +515,7 @@ export type Database = {
         Args: { p_booking_id?: string; p_items: { product_id: string; quantity: number }[]; p_method: Database["public"]["Enums"]["payment_method"]; p_note?: string };
         Returns: Database["public"]["Tables"]["buffet_sales"]["Row"];
       };
+      adjust_buffet_stock: { Args: { p_delta: number; p_id: string }; Returns: number };
       delete_buffet_sale: { Args: { p_id: string }; Returns: undefined };
       void_buffet_sale: { Args: { p_id: string; p_reason?: string }; Returns: undefined };
       buffet_summary: {

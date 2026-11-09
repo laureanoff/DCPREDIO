@@ -5,6 +5,7 @@ import { updateTag } from "next/cache";
 import { z } from "zod";
 import { cancelMyBooking, findMyBooking, type LookupResult } from "@/services/my-booking";
 import { notifyStaff } from "@/services/push";
+import { notifyWaitlistFreed } from "@/services/waitlist";
 
 const schema = z.object({ code: z.string().min(4).max(20), phone: z.string().min(8).max(25) });
 
@@ -28,5 +29,6 @@ export async function cancelBookingByCustomer(raw: unknown): Promise<{ ok: true 
       tag: "cancel",
     }),
   );
+  after(() => notifyWaitlistFreed(r.courtId, r.startAt, r.endAt));
   return { ok: true };
 }

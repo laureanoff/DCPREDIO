@@ -16,7 +16,7 @@ async function Content() {
   const today = todayKey();
 
   const [products, sales, summary] = await Promise.all([
-    supabase.from("buffet_products").select("id, name, price, is_active").order("sort_order").order("created_at"),
+    supabase.from("buffet_products").select("id, name, price, is_active, track_stock, stock, low_stock_threshold").order("sort_order").order("created_at"),
     supabase
       .from("buffet_sales")
       .select("id, total, method, note, is_voided, created_at, created_by, buffet_sale_items(product_name, quantity)")
@@ -31,7 +31,7 @@ async function Content() {
     <BuffetUI
       isAdmin={staff?.role === "admin"}
       userId={staff?.userId ?? ""}
-      products={(products.data ?? []).map((p) => ({ id: p.id, name: p.name, price: Number(p.price), active: p.is_active }))}
+      products={(products.data ?? []).map((p) => ({ id: p.id, name: p.name, price: Number(p.price), active: p.is_active, track: p.track_stock, stock: p.stock, low: p.low_stock_threshold }))}
       sales={(sales.data ?? []).map((x) => ({
         id: x.id,
         total: Number(x.total),

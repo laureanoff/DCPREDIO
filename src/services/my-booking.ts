@@ -76,7 +76,7 @@ export async function findMyBooking(code: string, phone: string): Promise<Lookup
   };
 }
 
-export async function cancelMyBooking(code: string, phone: string): Promise<{ ok: true; id: string; customerName: string; startAt: string; courtId: string } | { ok: false; error: string }> {
+export async function cancelMyBooking(code: string, phone: string): Promise<{ ok: true; id: string; customerName: string; startAt: string; endAt: string; courtId: string } | { ok: false; error: string }> {
   const found = await findMyBooking(code, phone);
   if (!found.ok) return found;
   if (!found.booking.canCancel) return { ok: false, error: found.booking.cancelHint ?? "No se puede cancelar esta reserva." };
@@ -87,11 +87,11 @@ export async function cancelMyBooking(code: string, phone: string): Promise<{ ok
     .update({ status: "cancelled", cancel_reason: "Cancelada por el cliente desde la web" })
     .eq("code", found.booking.code)
     .in("status", ["pending", "confirmed"])
-    .select("id, customer_name, start_at, court_id")
+    .select("id, customer_name, start_at, end_at, court_id")
     .maybeSingle();
   if (error || !data) {
     console.error("[mi-reserva] cancelar", error?.code, error?.message);
     return { ok: false, error: "No pudimos cancelar la reserva. Intentá de nuevo o comunicate con el predio." };
   }
-  return { ok: true, id: data.id, customerName: data.customer_name, startAt: data.start_at, courtId: data.court_id };
+  return { ok: true, id: data.id, customerName: data.customer_name, startAt: data.start_at, endAt: data.end_at, courtId: data.court_id };
 }

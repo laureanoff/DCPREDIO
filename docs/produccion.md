@@ -39,3 +39,5 @@ Si una clave se pegó en un chat o se subió a Git: Supabase → Project Setting
 - **Canchas** (Configuración → Canchas): agregar, renombrar, activar/desactivar. Con más de una activa, la web pide elegir cancha.
 - **Buffet** (`/admin/buffet`): productos (admin), ventas rápidas, anulaciones y totales; resumen en Estadísticas.
 - **Avisos push con el celular bloqueado**: variables `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (sensible) y `VAPID_SUBJECT` en Vercel. Cada persona activa los avisos desde Avisos → «Activar avisos». En iPhone hay que instalar antes la web en la pantalla de inicio.
+- **Lista de espera**: en la web, tocar un turno «Ocupado» deja anotarse con nombre y WhatsApp. En el panel (Espera) aparecen marcados los turnos que se liberaron y un botón «Avisar» por WhatsApp; si se cancela un turno con gente esperando llega un aviso push.
+- **Stock del buffet**: por producto se activa «Controlar stock» (cantidad y umbral de aviso). Cada venta descuenta de forma atómica, anular o borrar devuelve el stock, y «Stock bajo» permite reponer desde la misma pantalla.

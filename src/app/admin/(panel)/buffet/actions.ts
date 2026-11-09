@@ -12,6 +12,7 @@ const ERR: Record<string, string> = {
   DC021: "La reserva indicada no existe.",
   DC022: "Algún producto ya no está disponible. Actualizá la pantalla.",
   DC023: "La venta no existe.",
+  DC024: "No hay stock suficiente de algún producto. Actualizá la pantalla.",
   "42501": "No tenés permiso para anular esta venta (los empleados solo pueden anular las suyas dentro de las 2 horas).",
 };
 
@@ -78,16 +79,51 @@ export async function addProduct(raw: z.input<typeof productSchema>): Promise<Ac
   return { ok: true, message: "Producto agregado." };
 }
 
-export async function updateProduct(id: string, raw: z.input<typeof productSchema> & { active: boolean }): Promise<ActionResult> {
+const updateSchema = productSchema.extend({
+  active: z.boolean(),
+  track: z.boolean(),
+  stock: z.number().int().min(0).max(1_000_000),
+  low: z.number().int().min(0).max(100_000),
+});
+
+export async function updateProduct(id: string, raw: z.input<typeof updateSchema>): Promise<ActionResult> {
   await requireAdmin();
   if (!idSchema.safeParse(id).success) return { ok: false, error: "Producto inválido." };
-  const p = productSchema.safeParse(raw);
+  const p = updateSchema.safeParse(raw);
   if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  const v = p.data;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("buffet_products").update({ name: p.data.name, price: p.data.price, is_active: !!raw.active }).eq("id", id).select("id").maybeSingle();
-  if (error || !data) return { ok: false, error: "No se pudo guardar el producto." };
+  const { data: cur } = await supabase.from("buffet_products").select("stock, track_stock").eq("id", id).maybeSingle();
+  if (!cur) return { ok: false, error: "El producto no existe." };
+
+  const { error } = await supabase
+    .from("buffet_products")
+    .update({ name: v.name, price: v.price, is_active: v.active, track_stock: v.track, low_stock_threshold: v.low })
+    .eq("id", id);
+  if (error) return { ok: false, error: "No se pudo guardar el producto." };
+
+  // El stock se corrige con una resta/suma atómica (no pisa ventas que entren al mismo tiempo).
+  if (v.track) {
+    const base = cur.track_stock ? cur.stock : 0;
+    const delta = v.stock - base;
+    if (delta !== 0) {
+      const { error: e2 } = await supabase.rpc("adjust_buffet_stock", { p_id: id, p_delta: delta });
+      if (e2) return { ok: false, error: (e2.code && ERR[e2.code]) || "Se guardó el producto, pero no se pudo ajustar el stock." };
+    }
+  }
   revalidatePath("/admin/buffet");
   return { ok: true, message: "Producto guardado." };
+}
+
+/** Suma stock (reposición) — también para empleados. */
+export async function restock(id: string, qty: number): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success || !Number.isInteger(qty) || qty < 1 || qty > 100000) return { ok: false, error: "Cantidad inválida." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("adjust_buffet_stock", { p_id: id, p_delta: qty });
+  if (error) return { ok: false, error: (error.code && ERR[error.code]) || "No se pudo reponer." };
+  revalidatePath("/admin/buffet");
+  return { ok: true, message: `Stock repuesto (+${qty}).` };
 }
 
 const COMMON = [

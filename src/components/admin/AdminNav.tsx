@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, ClipboardList, Coffee, Database, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Clock, Coffee, Database, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
   { href: "/admin", label: "Agenda", Icon: CalendarDays, match: (p: string) => p === "/admin" },
   { href: "/admin/reservas", label: "Reservas", Icon: ClipboardList, match: (p: string) => p.startsWith("/admin/reservas") },
   { href: "/admin/avisos", label: "Avisos", Icon: MessageCircle, match: (p: string) => p.startsWith("/admin/avisos") },
+  { href: "/admin/espera", label: "Espera", Icon: Clock, match: (p: string) => p.startsWith("/admin/espera") },
   { href: "/admin/bloqueos", label: "Bloqueos", Icon: Lock, match: (p: string) => p.startsWith("/admin/bloqueos") },
   { href: "/admin/buffet", label: "Buffet", Icon: Coffee, match: (p: string) => p.startsWith("/admin/buffet") },
   { href: "/admin/estadisticas", label: "Estadísticas", Icon: BarChart3, match: (p: string) => p.startsWith("/admin/estadisticas"), adminOnly: true },

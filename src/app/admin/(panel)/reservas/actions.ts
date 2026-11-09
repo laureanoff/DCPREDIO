@@ -6,6 +6,8 @@ import { requireAdmin, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { phoneSchema } from "@/validations/booking";
 import { getBooking } from "@/queries/admin";
+import { after } from "next/server";
+import { notifyWaitlistFreed } from "@/services/waitlist";
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -92,10 +94,11 @@ export async function cancelBooking(id: string, reason: string): Promise<ActionR
     .from("bookings")
     .update({ status: "cancelled", cancel_reason: clean || null })
     .eq("id", id)
-    .select("id")
+    .select("id, court_id, start_at, end_at")
     .maybeSingle();
   if (error) return fail(error, "No se pudo cancelar la reserva.");
   if (!data) return { ok: false, error: "La reserva no existe." };
+  after(() => notifyWaitlistFreed(data.court_id, data.start_at, data.end_at));
   refresh();
   return { ok: true, message: "Reserva cancelada. El horario quedó libre." };
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
-import { createBooking } from "@/app/reservar/actions";
+import { createBooking, joinWaitingList } from "@/app/reservar/actions";
 import { addDaysKey, addMonths, formatDateLong, formatDateShort, formatTime } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
 import { normalizePhone } from "@/validations/booking";
@@ -36,6 +36,11 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const [view, setView] = useState({ year: ty, month: tm });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [slotStart, setSlotStart] = useState<string | null>(null);
+  const [waitSlot, setWaitSlot] = useState<string | null>(null);
+  const [wName, setWName] = useState("");
+  const [wPhone, setWPhone] = useState("");
+  const [wBusy, setWBusy] = useState(false);
+  const [wMsg, setWMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [name, setName] = useState("");
@@ -100,11 +105,18 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
 
   function pickDate(key: string) {
     setSelectedDate(key);
+    setWaitSlot(null);
     setSlotStart(null);
     setNotice(null);
   }
 
   function pickSlot(s: Slot) {
+    if (s.state === "full") {
+      setWaitSlot(s.slot_start);
+      setWMsg(null);
+      return;
+    }
+    setWaitSlot(null);
     setSlotStart(s.slot_start);
     setNotice(null);
   }
@@ -333,7 +345,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                       <button
                         key={s.slot_start}
                         type="button"
-                        disabled={!bookable}
+                        disabled={!bookable && s.state !== "full"}
                         aria-pressed={isSel}
                         onClick={() => pickSlot(s)}
                         className={cn(
@@ -351,7 +363,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                         </span>
                         <span className={cn("mt-1 text-[11px] font-medium", !isSel && "opacity-80")}>
                           {s.state === "available" && (pending ? "Pendiente de confirmación" : "Disponible")}
-                          {s.state === "full" && "Ocupado"}
+                          {s.state === "full" && "Ocupado · lista de espera"}
                           {s.state === "blocked" && "No disponible"}
                           {s.state === "past" && "Finalizado"}
                         </span>
@@ -359,6 +371,33 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                     );
                   })}
                 </div>
+                {waitSlot && (() => {
+                  const ws = slots.find((x) => x.slot_start === waitSlot);
+                  if (!ws) return null;
+                  return (
+                    <form
+                      className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface-2 p-4"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setWBusy(true);
+                        setWMsg(null);
+                        const r = await joinWaitingList({ courtId, startAt: ws.slot_start, name: wName, phone: wPhone });
+                        setWBusy(false);
+                        setWMsg(r.ok ? { ok: true, text: "¡Listo! Te anotamos. Si se libera el turno, el predio te avisa por WhatsApp." } : { ok: false, text: r.error });
+                        if (r.ok) { setWName(""); setWPhone(""); }
+                      }}
+                    >
+                      <p className="text-sm">Turno <strong>{formatTime(ws.slot_start, tz)} a {formatTime(ws.slot_end, tz)}</strong> ocupado. Dejá tus datos y, si se libera, te avisamos.</p>
+                      <input className="h-12 rounded-xl border border-border bg-background px-3 text-base" placeholder="Nombre y apellido" value={wName} onChange={(e) => setWName(e.target.value)} maxLength={100} required />
+                      <input className="h-12 rounded-xl border border-border bg-background px-3 text-base" type="tel" inputMode="tel" placeholder="WhatsApp (con código de área)" value={wPhone} onChange={(e) => setWPhone(e.target.value)} required />
+                      {wMsg && <p role={wMsg.ok ? "status" : "alert"} className={cn("text-sm", wMsg.ok ? "text-lime-ink" : "text-danger")}>{wMsg.text}</p>}
+                      <div className="flex gap-2">
+                        <button type="submit" disabled={wBusy} className="h-11 flex-1 rounded-xl bg-lime font-semibold text-black disabled:opacity-60">{wBusy ? "Anotando…" : "Anotarme en la lista de espera"}</button>
+                        <button type="button" onClick={() => setWaitSlot(null)} className="h-11 rounded-xl border border-border px-4 font-semibold">Cerrar</button>
+                      </div>
+                    </form>
+                  );
+                })()}
                 <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
                   <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-lime/70" /> Disponible</li>
                   <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-warning/70" /> Pendiente</li>
