@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addCommonProducts, addProduct, createSale, updateProduct, voidSale } from "./actions";
+import { addCommonProducts, addProduct, deleteSale, createSale, updateProduct, voidSale } from "./actions";
 import { cn, formatMoney } from "@/lib/utils";
 
 type Product = { id: string; name: string; price: number; active: boolean };
@@ -48,6 +48,7 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [voidId, setVoidId] = useState<string | null>(null);
+  const [delId, setDelId] = useState<string | null>(null);
   const [voidReason, setVoidReason] = useState("");
 
   const active = products.filter((p) => p.active);
@@ -135,9 +136,24 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
                     <p className="font-semibold">{formatMoney(s.total)} · {METHODS[s.method]} · {hhmm(s.at)}</p>
                     <p className="text-muted">{s.items}{s.note ? ` — ${s.note}` : ""}</p>
                   </div>
-                  {s.voided ? <span className="text-xs text-muted">Anulada</span> : (isAdmin || s.mine) && (
-                    <button onClick={() => { setVoidId(voidId === s.id ? null : s.id); setVoidReason(""); }} className="h-10 shrink-0 rounded-xl border border-border px-3 font-semibold hover:border-danger">Anular</button>
-                  )}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {s.voided ? <span className="text-xs text-muted">Anulada</span> : (isAdmin || s.mine) && (
+                      <button onClick={() => { setVoidId(voidId === s.id ? null : s.id); setVoidReason(""); }} className="h-10 rounded-xl border border-border px-3 font-semibold hover:border-danger">Anular</button>
+                    )}
+                    {isAdmin && (
+                      <button
+                        disabled={pending}
+                        onClick={() => {
+                          if (delId !== s.id) return setDelId(s.id);
+                          start(async () => { const r = await deleteSale(s.id); setMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); setDelId(null); router.refresh(); });
+                        }}
+                        onBlur={() => setDelId(null)}
+                        className={cn("h-10 rounded-xl border px-3 font-semibold disabled:opacity-50", delId === s.id ? "border-danger bg-danger text-white" : "border-border hover:border-danger")}
+                      >
+                        {delId === s.id ? "¿Borrar?" : "Borrar"}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {voidId === s.id && (
                   <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await voidSale(s.id, voidReason); setMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); setVoidId(null); router.refresh(); }); }}>

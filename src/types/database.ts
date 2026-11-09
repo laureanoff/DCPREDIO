@@ -509,6 +509,7 @@ export type Database = {
         Args: { p_booking_id?: string; p_items: { product_id: string; quantity: number }[]; p_method: Database["public"]["Enums"]["payment_method"]; p_note?: string };
         Returns: Database["public"]["Tables"]["buffet_sales"]["Row"];
       };
+      delete_buffet_sale: { Args: { p_id: string }; Returns: undefined };
       void_buffet_sale: { Args: { p_id: string; p_reason?: string }; Returns: undefined };
       buffet_summary: {
         Args: { p_from: string; p_to: string };

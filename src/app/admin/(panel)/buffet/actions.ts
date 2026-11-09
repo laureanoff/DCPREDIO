@@ -50,6 +50,17 @@ export async function voidSale(id: string, reason: string): Promise<ActionResult
   return { ok: true, message: "Venta anulada." };
 }
 
+/** Borra definitivamente una venta (solo administrador). Para corregir un error sin dejar rastro; si querés conservar el registro, usá «Anular». */
+export async function deleteSale(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Venta inválida." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_buffet_sale", { p_id: id });
+  if (error) return { ok: false, error: (error.code && ERR[error.code]) || "No se pudo borrar la venta." };
+  revalidatePath("/admin/buffet");
+  return { ok: true, message: "Venta borrada." };
+}
+
 const productSchema = z.object({
   name: z.string().trim().min(1, "Poné un nombre.").max(80),
   price: z.number().min(0, "El precio no puede ser negativo.").max(10_000_000),
