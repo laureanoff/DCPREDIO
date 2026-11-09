@@ -22,7 +22,7 @@ const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: s
 export function AdminNav({ isAdmin, pendingCount = 0 }: { isAdmin: boolean; pendingCount?: number }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Secciones del panel" className="flex gap-1 overflow-x-auto border-b border-border bg-background px-3">
+    <nav aria-label="Secciones del panel" className="panel-nav flex gap-1 overflow-x-auto border-b border-border px-3">
       {ITEMS.filter((i) => !i.adminOnly || isAdmin).map(({ href, label, Icon, match }) => {
         const active = match(pathname);
         return (

@@ -76,3 +76,129 @@ body {
   background: var(--lime);
   color: #0a0a0a;
 }
+
+/* ============================================================
+   Panel (administrador y empleados): estética de cancha.
+   Césped cortado en franjas, líneas de cancha de fondo y
+   tarjetas con textura sutil. Todo decorativo (sin interacción).
+   ============================================================ */
+:root {
+  --grass-a: rgba(182, 214, 26, 0.055);
+  --grass-b: rgba(182, 214, 26, 0);
+  --pitch-line: rgba(182, 214, 26, 0.13);
+  --card-glow: rgba(182, 214, 26, 0.10);
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --header-from: #12200a;
+  --header-to: #0a0a0a;
+}
+:root[data-theme="light"] {
+  --grass-a: rgba(86, 102, 0, 0.07);
+  --grass-b: rgba(86, 102, 0, 0);
+  --pitch-line: rgba(86, 102, 0, 0.16);
+  --card-glow: rgba(120, 150, 0, 0.12);
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 8px 22px -14px rgba(60, 80, 0, 0.35);
+  --header-from: #dfe9b8;
+  --header-to: #f4f5ee;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --grass-a: rgba(86, 102, 0, 0.07);
+    --grass-b: rgba(86, 102, 0, 0);
+    --pitch-line: rgba(86, 102, 0, 0.16);
+    --card-glow: rgba(120, 150, 0, 0.12);
+    --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 8px 22px -14px rgba(60, 80, 0, 0.35);
+    --header-from: #dfe9b8;
+    --header-to: #f4f5ee;
+  }
+}
+
+.pitch-bg {
+  position: relative;
+  isolation: isolate;
+}
+/* Franjas de césped */
+.pitch-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--card-glow), transparent 70%),
+    repeating-linear-gradient(90deg, var(--grass-a) 0 72px, var(--grass-b) 72px 144px);
+}
+/* Líneas de la cancha (medio campo, círculo central y áreas) */
+.pitch-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pitch-line);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Crect x='20' y='20' width='560' height='360' rx='4'/%3E%3Cpath d='M300 20V380'/%3E%3Ccircle cx='300' cy='200' r='52'/%3E%3Ccircle cx='300' cy='200' r='4' fill='black'/%3E%3Cpath d='M20 120H100V280H20M580 120H500V280H580'/%3E%3Cpath d='M20 160H48V240H20M580 160H552V240H580'/%3E%3Cpath d='M100 168A40 40 0 0 1 100 232M500 168A40 40 0 0 0 500 232'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Crect x='20' y='20' width='560' height='360' rx='4'/%3E%3Cpath d='M300 20V380'/%3E%3Ccircle cx='300' cy='200' r='52'/%3E%3Ccircle cx='300' cy='200' r='4' fill='black'/%3E%3Cpath d='M20 120H100V280H20M580 120H500V280H580'/%3E%3Cpath d='M20 160H48V240H20M580 160H552V240H580'/%3E%3Cpath d='M100 168A40 40 0 0 1 100 232M500 168A40 40 0 0 0 500 232'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
+}
+
+/* Cabecera: césped con la línea de banda abajo */
+.panel-header {
+  background:
+    repeating-linear-gradient(90deg, rgba(182, 214, 26, 0.07) 0 28px, transparent 28px 56px),
+    linear-gradient(180deg, var(--header-from), var(--header-to));
+  box-shadow: inset 0 -3px 0 0 var(--lime);
+}
+.panel-nav {
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: blur(6px);
+}
+.panel-nav a[aria-current="page"] {
+  background: linear-gradient(180deg, transparent, var(--card-glow));
+}
+
+/* Tarjetas del panel: relieve suave + brillo de césped en la esquina */
+.pitch-bg .bg-surface {
+  background-image:
+    radial-gradient(90% 70% at 0% 0%, var(--card-glow), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 22px, transparent 22px 44px);
+  box-shadow: var(--card-shadow);
+}
+.pitch-bg .bg-surface-2 {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+
+/* Títulos de sección con línea de cancha punteada */
+.pitch-bg h1::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, var(--lime) 0 12px, transparent 12px 17px);
+}
+.pitch-bg h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 0.95em;
+  margin-right: 8px;
+  vertical-align: -0.08em;
+  border-radius: 2px;
+  background: var(--lime);
+}
+.pitch-bg .text-center h1::after {
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pitch-bg .bg-surface {
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+}
+
+/* Celular en vertical: la cancha se dibuja de pie para que se vea el círculo central. */
+@media (orientation: portrait) {
+  .pitch-bg::after {
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Crect x='20' y='20' width='360' height='560' rx='4'/%3E%3Cpath d='M20 300H380'/%3E%3Ccircle cx='200' cy='300' r='56'/%3E%3Ccircle cx='200' cy='300' r='4' fill='black'/%3E%3Cpath d='M110 20V110H290V20M110 580V490H290V580'/%3E%3Cpath d='M160 20V50H240V20M160 580V550H240V580'/%3E%3Cpath d='M160 110A44 44 0 0 0 240 110M160 490A44 44 0 0 1 240 490'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Crect x='20' y='20' width='360' height='560' rx='4'/%3E%3Cpath d='M20 300H380'/%3E%3Ccircle cx='200' cy='300' r='56'/%3E%3Ccircle cx='200' cy='300' r='4' fill='black'/%3E%3Cpath d='M110 20V110H290V20M110 580V490H290V580'/%3E%3Cpath d='M160 20V50H240V20M160 580V550H240V580'/%3E%3Cpath d='M160 110A44 44 0 0 0 240 110M160 490A44 44 0 0 1 240 490'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
+  }
+}

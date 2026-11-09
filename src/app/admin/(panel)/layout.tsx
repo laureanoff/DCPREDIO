@@ -11,8 +11,8 @@ import { logout } from "../login/actions";
 async function PanelShell({ children }: { children: React.ReactNode }) {
   const [staff, pendingCount] = await Promise.all([requireStaff(), getPendingCount()]);
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+    <div className="pitch-bg flex flex-1 flex-col">
+      <header className="panel-header sticky top-0 z-10 flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Logo variant="mark" className="h-8 w-auto text-background" />
           <span className="font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide">

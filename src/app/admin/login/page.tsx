@@ -20,7 +20,7 @@ async function LoginContent({ searchParams }: { searchParams: Promise<{ next?: s
 
 export default function LoginPage(props: PageProps<"/admin/login">) {
   return (
-    <main className="flex flex-1 items-center justify-center px-5 py-10">
+    <main className="pitch-bg flex flex-1 items-center justify-center px-5 py-10">
       <div className="flex w-full max-w-sm flex-col items-center gap-8 rounded-3xl border border-border bg-surface p-8">
         <Logo variant="full" className="h-32 w-auto text-surface" />
         <div className="text-center">
