@@ -78,3 +78,23 @@ export async function updateProduct(id: string, raw: z.input<typeof productSchem
   revalidatePath("/admin/buffet");
   return { ok: true, message: "Producto guardado." };
 }
+
+const COMMON = [
+  "Agua 500ml", "Agua saborizada", "Gaseosa 500ml", "Gaseosa 1,5L", "Gatorade", "Cerveza lata", "Cerveza litro", "Fernet con coca",
+  "Energizante", "Café", "Papas fritas", "Maní", "Alfajor", "Hamburguesa", "Pizza porción", "Sándwich", "Empanada", "Hielo",
+];
+
+/** Carga productos comunes de buffet (sin precio: el admin los completa). No duplica los que ya existen. */
+export async function addCommonProducts(): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { data: existing } = await supabase.from("buffet_products").select("name, sort_order");
+  const names = new Set((existing ?? []).map((e) => e.name.toLowerCase()));
+  let order = Math.max(0, ...(existing ?? []).map((e) => e.sort_order));
+  const rows = COMMON.filter((n) => !names.has(n.toLowerCase())).map((name) => ({ name, price: 0, sort_order: ++order }));
+  if (rows.length === 0) return { ok: true, message: "Ya tenés todos los productos comunes cargados." };
+  const { error } = await supabase.from("buffet_products").insert(rows);
+  if (error) return { ok: false, error: "No se pudieron cargar los productos." };
+  revalidatePath("/admin/buffet");
+  return { ok: true, message: `${rows.length} productos agregados. Poné el precio de cada uno para poder venderlos y borrá o desactivá los que no uses.` };
+}

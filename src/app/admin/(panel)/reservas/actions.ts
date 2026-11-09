@@ -168,31 +168,32 @@ export async function deleteCancelledBookings(ids?: string[], includePaid = fals
 
 const newSchema = z.object({
   courtId: idSchema,
-  slotStart: z.string().min(10).max(40),
+  slotStarts: z.array(z.string().min(10).max(40)).min(1, "Elegí al menos un horario.").max(12, "Máximo 12 turnos por vez."),
   name: z.string().trim().min(2, "Ingresá nombre y apellido.").max(100),
   phone: phoneSchema,
   notes: z.string().trim().max(500),
   status: z.enum(["pending", "confirmed"]),
 });
 
-/** Carga una reserva a mano (pedido por teléfono/WhatsApp). Usa la misma regla anti-doble-reserva que la web. */
-export async function createManualBooking(raw: z.input<typeof newSchema>): Promise<(ActionResult & { id?: string })> {
+/** Carga una o varias reservas a mano (pedidos por teléfono, cumpleaños). Todo o nada, con la misma regla anti-doble-reserva que la web. */
+export async function createManualBooking(raw: z.input<typeof newSchema>): Promise<(ActionResult & { id?: string; count?: number })> {
   await requireStaff();
   const parsed = newSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   const v = parsed.data;
-  if (Number.isNaN(new Date(v.slotStart).getTime())) return { ok: false, error: "Horario inválido." };
+  if (v.slotStarts.some((t) => Number.isNaN(new Date(t).getTime()))) return { ok: false, error: "Horario inválido." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_staff_booking", {
+  const { data, error } = await supabase.rpc("create_staff_bookings", {
     p_court_id: v.courtId,
-    p_start_at: v.slotStart,
+    p_starts: v.slotStarts,
     p_customer_name: v.name,
     p_customer_phone: v.phone,
     p_notes: v.notes || undefined,
     p_status: v.status,
   });
-  if (error || !data) return fail(error, "No se pudo cargar la reserva.");
+  if (error || !data || data.length === 0) return fail(error, "No se pudo cargar la reserva.");
   refresh();
-  return { ok: true, message: `Reserva ${data.code} cargada.`, id: data.id };
+  const codes = data.map((b) => b.code).join(", ");
+  return { ok: true, message: data.length === 1 ? `Reserva ${codes} cargada.` : `${data.length} reservas cargadas: ${codes}.`, id: data[0].id, count: data.length };
 }

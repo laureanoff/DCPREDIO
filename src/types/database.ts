@@ -493,6 +493,17 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["bookings"]["Row"];
       };
+      create_staff_bookings: {
+        Args: {
+          p_court_id: string;
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_notes?: string;
+          p_starts: string[];
+          p_status?: Database["public"]["Enums"]["booking_status"];
+        };
+        Returns: Database["public"]["Tables"]["bookings"]["Row"][];
+      };
       create_buffet_sale: {
         Args: { p_booking_id?: string; p_items: { product_id: string; quantity: number }[]; p_method: Database["public"]["Enums"]["payment_method"]; p_note?: string };
         Returns: Database["public"]["Tables"]["buffet_sales"]["Row"];

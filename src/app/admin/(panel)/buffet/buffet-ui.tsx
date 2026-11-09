@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addProduct, createSale, updateProduct, voidSale } from "./actions";
+import { addCommonProducts, addProduct, createSale, updateProduct, voidSale } from "./actions";
 import { cn, formatMoney } from "@/lib/utils";
 
 type Product = { id: string; name: string; price: number; active: boolean };
@@ -68,18 +68,36 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
 
       <section className={card}>
         <h2 className={h2}>Nueva venta</h2>
-        {active.length === 0 ? <p className="text-sm text-muted">{isAdmin ? "Cargá productos abajo para empezar a vender." : "Todavía no hay productos cargados."}</p> : (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {active.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 p-2 pl-3">
-                <span className="min-w-0"><span className="block truncate font-semibold">{p.name}</span><span className="text-sm text-muted">{formatMoney(p.price)}</span></span>
-                <span className="flex items-center gap-1">
-                  <button type="button" onClick={() => change(p.id, -1)} aria-label={`Quitar ${p.name}`} className="h-11 w-11 rounded-xl border border-border text-xl">−</button>
-                  <span className="w-7 text-center font-semibold" aria-live="polite">{cart[p.id] ?? 0}</span>
-                  <button type="button" onClick={() => change(p.id, 1)} aria-label={`Agregar ${p.name}`} className="h-11 w-11 rounded-xl bg-lime text-xl font-bold text-black">+</button>
-                </span>
-              </li>
-            ))}
+        {active.length === 0 ? <p className="text-sm text-muted">{isAdmin ? "Cargá productos abajo (podés usar «Agregar productos comunes») para empezar a vender." : "Todavía no hay productos cargados."}</p> : (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {active.map((p) => {
+              const qty = cart[p.id] ?? 0;
+              const noPrice = p.price <= 0;
+              return (
+                <li key={p.id} className="relative">
+                  <button
+                    type="button"
+                    disabled={noPrice}
+                    onClick={() => change(p.id, 1)}
+                    aria-label={`Agregar ${p.name}, ${formatMoney(p.price)}`}
+                    className={cn(
+                      "flex h-24 w-full flex-col items-center justify-center gap-1 rounded-2xl border-2 px-2 text-center transition active:scale-95",
+                      qty > 0 ? "border-lime bg-lime/15" : "border-border bg-surface-2 hover:border-lime",
+                      noPrice && "cursor-not-allowed opacity-50",
+                    )}
+                  >
+                    <span className="line-clamp-2 text-sm font-semibold leading-tight">{p.name}</span>
+                    <span className="text-sm text-muted">{noPrice ? "Sin precio" : formatMoney(p.price)}</span>
+                  </button>
+                  {qty > 0 && (
+                    <>
+                      <span className="pointer-events-none absolute -right-1.5 -top-1.5 flex h-7 min-w-7 items-center justify-center rounded-full bg-lime px-1.5 text-sm font-bold text-black shadow" aria-live="polite">{qty}</span>
+                      <button type="button" onClick={() => change(p.id, -1)} aria-label={`Quitar uno de ${p.name}`} className="absolute -left-1.5 -top-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-lg shadow">−</button>
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {lines.length > 0 && (
@@ -136,6 +154,7 @@ export function BuffetUI({ isAdmin, products, sales, summary }: { isAdmin: boole
       {isAdmin && (
         <section className={card}>
           <h2 className={h2}>Productos</h2>
+          <button type="button" disabled={pending} onClick={() => start(async () => { const r = await addCommonProducts(); setMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); router.refresh(); })} className="mb-3 h-11 rounded-xl border border-border px-4 text-sm font-semibold hover:border-lime disabled:opacity-50">+ Agregar productos comunes (agua, gaseosa, cerveza…)</button>
           <ul className="divide-y divide-border">{products.map((p) => <ProductEditor key={`${p.id}-${p.name}-${p.price}-${p.active}`} p={p} onMsg={setMsg} />)}</ul>
           <form
             className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3"
