@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
-import { createBooking, joinWaitingList } from "@/app/reservar/actions";
+import { checkBookingStatus, createBooking, joinWaitingList } from "@/app/reservar/actions";
 import { addDaysKey, addMonths, formatDateLong, formatDateShort, formatTime } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
 import { normalizePhone } from "@/validations/booking";
@@ -65,6 +65,29 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const [notice, setNotice] = useState<string | null>(null);
   const [done, setDone] = useState<CreatedBooking | null>(null);
   const [submitting, startSubmit] = useTransition();
+
+  // ---- Pantalla de espera: si el predio confirma (o rechaza) mientras el cliente mira, se actualiza sola
+  const [justConfirmed, setJustConfirmed] = useState(false);
+  const watching = step === "done" && done?.status === "pending" ? done : null;
+  useEffect(() => {
+    if (!watching) return;
+    let stop = false;
+    const check = async () => {
+      if (stop || document.hidden) return;
+      const st = await checkBookingStatus(watching.code, watching.customerPhone);
+      if (stop || !st || st === "pending") return;
+      stop = true;
+      setDone((d) => (d ? { ...d, status: st } : d));
+      if (st === "confirmed") {
+        setJustConfirmed(true);
+        try { navigator.vibrate?.([120, 60, 220]); } catch { /* sin vibración */ }
+      }
+    };
+    const id = window.setInterval(check, 6000);
+    const onVis = () => { if (!document.hidden) void check(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop = true; window.clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+  }, [watching]);
 
   // ---- Disponibilidad del mes
   const monthKey = `${view.year}-${view.month}-${refreshTick}`;
@@ -199,17 +222,25 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   // ---------------- Pantalla de confirmación
   if (step === "done" && done) {
     const pending = done.status === "pending";
+    const cancelled = done.status === "cancelled";
     return (
-      <div ref={rootRef} className="step-enter done-card rounded-3xl border border-lime/40 bg-surface p-6 sm:p-8">
+      <div ref={rootRef} className={cn("step-enter done-card rounded-3xl border bg-surface p-6 sm:p-8", cancelled ? "border-danger/40" : "border-lime/40", justConfirmed && "confirmed-flash")}>
+        {justConfirmed && (
+          <p role="status" className="confirmed-banner mb-5 rounded-xl bg-lime px-4 py-3 text-center font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black">
+            ¡El predio confirmó tu turno!
+          </p>
+        )}
         <div className="flex flex-col items-center text-center">
-          <SuccessMark pending={pending} />
+          <SuccessMark key={done.status} kind={pending ? "pending" : cancelled ? "no" : "ok"} />
           <h3 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-extrabold uppercase">
-            {pending ? "Reserva recibida" : "¡Reserva confirmada!"}
+            {pending ? "Reserva recibida" : cancelled ? "Reserva no confirmada" : "¡Reserva confirmada!"}
           </h3>
           <p className="mt-2 text-muted">
             {pending
               ? "Tu turno quedó pendiente: el predio te va a confirmar."
-              : "Tu turno quedó guardado. ¡Te esperamos!"}
+              : cancelled
+                ? "El predio no pudo confirmar este turno. Comunicate con ellos o elegí otro horario."
+                : "Tu turno quedó guardado. ¡Te esperamos!"}
           </p>
           {pending && (
             <p className="wait-dots mt-4 inline-flex items-center gap-2 rounded-full bg-lime/15 px-4 py-2 text-sm font-semibold text-lime-ink" role="status">
@@ -574,17 +605,19 @@ function BackButton({ onClick }: { onClick: () => void }) {
 
 
 
-function SuccessMark({ pending }: { pending: boolean }) {
+function SuccessMark({ kind }: { kind: "pending" | "ok" | "no" }) {
   return (
     <div className="success-mark relative flex h-28 w-28 items-center justify-center" aria-hidden>
       <span className="success-ring" />
       <span className="success-ring" style={{ animationDelay: "0.7s" }} />
-      {!pending && Array.from({ length: 14 }, (_, i) => (
+      {kind === "ok" && Array.from({ length: 14 }, (_, i) => (
         <span key={i} className="confetti" style={{ "--a": `${(360 / 14) * i}deg`, "--d": `${0.55 + (i % 4) * 0.08}s` } as React.CSSProperties} />
       ))}
       <svg viewBox="0 0 52 52" className="relative h-24 w-24 text-lime-ink">
         <circle className="success-circle" cx="26" cy="26" r="23" fill="none" stroke="currentColor" strokeWidth="3" />
-        {pending ? (
+        {kind === "no" ? (
+          <path className="success-check" d="M18 18 L34 34 M34 18 L18 34" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+        ) : kind === "pending" ? (
           <path className="success-check" d="M26 14 V27 L34 32" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
         ) : (
           <path className="success-check" d="M15 27 l7 7 l15 -16" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />

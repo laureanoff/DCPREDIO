@@ -7,6 +7,7 @@ import { joinWaitlist } from "@/services/waitlist";
 import { phoneSchema } from "@/validations/booking";
 import { bookingInputSchema } from "@/validations/booking";
 import { createPublicBooking, type CreateBookingResult } from "@/services/booking";
+import { findMyBooking } from "@/services/my-booking";
 
 export async function createBooking(input: unknown): Promise<CreateBookingResult> {
   const parsed = bookingInputSchema.safeParse(input);
@@ -48,4 +49,11 @@ export async function joinWaitingList(input: unknown): Promise<{ ok: true } | { 
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisá los datos ingresados." };
   if (parsed.data.website) return { ok: false, error: "No pudimos anotarte. Probá de nuevo en unos minutos." };
   return joinWaitlist({ courtId: parsed.data.courtId, startAt: parsed.data.startAt, name: parsed.data.name, phone: parsed.data.phone });
+}
+
+/** Estado actual de una reserva (por código + teléfono), para que la pantalla de espera se actualice sola. */
+export async function checkBookingStatus(code: string, phone: string): Promise<"pending" | "confirmed" | "cancelled" | "completed" | null> {
+  if (typeof code !== "string" || typeof phone !== "string") return null;
+  const r = await findMyBooking(code, phone);
+  return r.ok ? r.booking.status : null;
 }
