@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
-import { checkBookingStatus, createBooking, joinWaitingList } from "@/app/reservar/actions";
+import { checkBookingStatus, createBooking, joinWaitingList, saveCustomerPush } from "@/app/reservar/actions";
 import { addDaysKey, addMonths, formatDateLong, formatDateShort, formatTime } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
 import { normalizePhone } from "@/validations/booking";
@@ -242,6 +242,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                 ? "El predio no pudo confirmar este turno. Comunicate con ellos o elegí otro horario."
                 : "Tu turno quedó guardado. ¡Te esperamos!"}
           </p>
+          {pending && <NotifyMe code={done.code} phone={done.customerPhone} />}
           {pending && (
             <p className="wait-dots mt-4 inline-flex items-center gap-2 rounded-full bg-lime/15 px-4 py-2 text-sm font-semibold text-lime-ink" role="status">
               <span className="wait-ball" aria-hidden /> Esperando la confirmación del predio<span aria-hidden className="wait-dot">.</span><span aria-hidden className="wait-dot">.</span><span aria-hidden className="wait-dot">.</span>
@@ -623,6 +624,50 @@ function SuccessMark({ kind }: { kind: "pending" | "ok" | "no" }) {
           <path className="success-check" d="M15 27 l7 7 l15 -16" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
         )}
       </svg>
+    </div>
+  );
+}
+
+
+const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+function toKey(b64: string) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+/** Botón para recibir una notificación en el celular cuando el predio confirme (aunque cierre la página). */
+function NotifyMe({ code, phone }: { code: string; phone: string }) {
+  const [state, setState] = useState<"hidden" | "off" | "busy" | "on" | "denied" | "error">("hidden");
+  useEffect(() => {
+    const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !!VAPID;
+    // Se muestra tras montar para no desajustar el HTML del servidor
+    const t = window.setTimeout(() => setState(!ok ? "hidden" : Notification.permission === "denied" ? "denied" : "off"), 0);
+    return () => window.clearTimeout(t);
+  }, []);
+  async function enable() {
+    setState("busy");
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") return setState(perm === "denied" ? "denied" : "off");
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+      const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(VAPID) }));
+      const r = await saveCustomerPush(code, phone, sub.toJSON());
+      setState(r.ok ? "on" : "error");
+    } catch {
+      setState("error");
+    }
+  }
+  if (state === "hidden") return null;
+  if (state === "on") return <p className="mt-4 text-sm font-medium text-lime-ink" role="status">🔔 Listo: te avisamos al celular apenas el predio confirme.</p>;
+  if (state === "denied") return <p className="mt-4 max-w-sm text-sm text-muted">Las notificaciones están bloqueadas en este navegador. Podés seguir esta pantalla abierta o consultar en «Mi reserva».</p>;
+  return (
+    <div className="mt-4">
+      <button type="button" onClick={enable} disabled={state === "busy"} className="h-11 rounded-xl border border-lime bg-lime/15 px-5 text-sm font-semibold text-lime-ink transition hover:bg-lime/30 disabled:opacity-60">
+        {state === "busy" ? "Activando…" : "🔔 Avisarme al celular cuando me confirmen"}
+      </button>
+      {state === "error" && <p role="alert" className="mt-2 text-sm text-danger">No se pudo activar el aviso. Probá de nuevo.</p>}
     </div>
   );
 }

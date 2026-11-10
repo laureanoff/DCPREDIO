@@ -8,6 +8,7 @@ import { phoneSchema } from "@/validations/booking";
 import { getBooking } from "@/queries/admin";
 import { after } from "next/server";
 import { notifyWaitlistFreed } from "@/services/waitlist";
+import { notifyCustomer } from "@/services/push";
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -77,10 +78,14 @@ export async function setBookingStatus(id: string, status: "pending" | "confirme
     .from("bookings")
     .update({ status, cancel_reason: null, cancelled_at: null })
     .eq("id", id)
-    .select("id")
+    .select("id, start_at")
     .maybeSingle();
   if (error) return fail(error, "No se pudo cambiar el estado.");
   if (!data) return { ok: false, error: "La reserva no existe." };
+  if (status === "confirmed") {
+    const when = new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Cordoba", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(data.start_at));
+    after(() => notifyCustomer(data.id, { title: "¡Tu turno está confirmado!", body: `${when} hs. ¡Te esperamos!`, url: "/mi-reserva", tag: "booking-status" }));
+  }
   refresh();
   return { ok: true, message: "Estado actualizado." };
 }
@@ -99,6 +104,7 @@ export async function cancelBooking(id: string, reason: string): Promise<ActionR
   if (error) return fail(error, "No se pudo cancelar la reserva.");
   if (!data) return { ok: false, error: "La reserva no existe." };
   after(() => notifyWaitlistFreed(data.court_id, data.start_at, data.end_at));
+  after(() => notifyCustomer(data.id, { title: "Tu reserva no pudo confirmarse", body: "El predio canceló el turno. Comunicate con ellos o elegí otro horario.", url: "/mi-reserva", tag: "booking-status" }));
   refresh();
   return { ok: true, message: "Reserva cancelada. El horario quedó libre." };
 }

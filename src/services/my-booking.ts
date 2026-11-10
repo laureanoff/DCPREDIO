@@ -95,3 +95,11 @@ export async function cancelMyBooking(code: string, phone: string): Promise<{ ok
   }
   return { ok: true, id: data.id, customerName: data.customer_name, startAt: data.start_at, endAt: data.end_at, courtId: data.court_id };
 }
+
+/** Id de la reserva si el código y el teléfono coinciden (para vincular avisos push del cliente). */
+export async function resolveBookingId(code: string, phone: string): Promise<string | null> {
+  const cleanCode = code.trim().toUpperCase().replace(/\s/g, "");
+  if (!/^DC-[A-Z0-9]{4,10}$/.test(cleanCode)) return null;
+  const { data: b } = await createAdminClient().from("bookings").select("id, customer_phone").eq("code", cleanCode).maybeSingle();
+  return b && samePhone(b.customer_phone, phone) ? b.id : null;
+}

@@ -189,6 +189,12 @@ export type Database = {
         Update: { auth?: string; endpoint?: string; p256dh?: string; user_agent?: string | null };
         Relationships: [];
       };
+      customer_push_subscriptions: {
+        Row: { auth: string; booking_id: string; created_at: string; endpoint: string; id: string; p256dh: string };
+        Insert: { auth: string; booking_id: string; created_at?: string; endpoint: string; id?: string; p256dh: string };
+        Update: { auth?: string; endpoint?: string; p256dh?: string };
+        Relationships: [];
+      };
       gallery_items: {
         Row: {
           created_at: string;
