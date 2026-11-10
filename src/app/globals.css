@@ -204,157 +204,59 @@ body {
 }
 
 /* ============================================================
-   Introducción cinematográfica (IntroGoal) + entradas del sitio
-   Línea de tiempo: luces 0–.9 s · carrera .5–1.75 s · remate 2.06 s
-   · gol 3.26 s · texto 3.4 s · disolvencia 4.9 s → entra el hero.
+   Entradas del sitio + escenario de reflectores atado al scroll
    ============================================================ */
-html.intro-lock { overflow: hidden; }
-.intro-skip .intro-overlay { display: none; }
-
-.intro-overlay { animation: in-failsafe 0.01s linear 12s both; }
-.in-out { animation: in-dissolve 0.9s cubic-bezier(.5,0,.8,.4) both; pointer-events: none; }
-@keyframes in-failsafe { to { visibility: hidden; opacity: 0; } }
-@keyframes in-dissolve { to { opacity: 0; filter: blur(14px); transform: scale(1.08); } }
-
-.in-open, .in-light, .in-star, .in-flash-dot { transform-box: view-box; }
-.in-play .in-open { animation: in-open 1s ease-out both; }
-@keyframes in-open { from { opacity: 0; } to { opacity: 1; } }
-
-/* Reflectores que se encienden con parpadeo */
-.in-light { opacity: 0; }
-.in-play .in-light { animation: in-light-on 1.1s linear both; }
-@keyframes in-light-on { 0% { opacity: 0; } 12% { opacity: .95; } 20% { opacity: .15; } 34% { opacity: 1; } 44% { opacity: .45; } 60%, 100% { opacity: 1; } }
-.in-star { animation: in-twinkle 2.6s ease-in-out infinite alternate; opacity: .3; }
-@keyframes in-twinkle { from { opacity: .15; } to { opacity: .9; } }
-.in-flash-dot { opacity: 0; animation: in-blink 2.4s linear infinite; }
-@keyframes in-blink { 0%, 90%, 100% { opacity: 0; } 94% { opacity: 1; } }
-
-/* Cámara: avanza lento hacia el arco; "golpe" al patear; temblor al convertir */
-.in-cam, .in-punch, .in-shake { transform-box: view-box; }
-.in-play .in-cam { transform-origin: 800px 430px; animation: in-push 4.9s cubic-bezier(.4,0,.55,1) both; }
-.in-play .in-punch { transform-origin: 800px 520px; animation: in-punch .5s ease-out 2.06s both; }
-.in-play .in-shake { animation: in-shake .4s linear 3.26s both; }
-@keyframes in-push { from { transform: scale(1); } to { transform: scale(1.13); } }
-@keyframes in-punch { 0% { transform: scale(1); } 30% { transform: scale(1.045); } 100% { transform: scale(1); } }
-@keyframes in-shake {
-  0% { transform: translate(0,0); } 15% { transform: translate(-9px,6px); } 30% { transform: translate(8px,-6px); }
-  50% { transform: translate(-5px,-3px); } 70% { transform: translate(4px,3px); } 100% { transform: translate(0,0); }
-}
-
-/* Jugador a contraluz */
-.in-player { transform: translateX(-340px); transform-box: view-box; }
-.in-body, .in-leg-a, .in-shin-a, .in-leg-k, .in-shin-k, .in-arm-f, .in-arm-b { transform-box: view-box; transform-origin: 0 0; }
-.in-play .in-player { animation: in-run 1.25s cubic-bezier(.3,.55,.4,1) .5s both; }
-.in-play .in-body { animation: in-bob .31s ease-in-out .5s 4 alternate both; }
-.in-play .in-leg-k { animation: in-kick-thigh 2s linear .5s both; }
-.in-play .in-shin-k { animation: in-kick-shin 2s linear .5s both; }
-.in-play .in-leg-a { animation: in-sup-thigh 2s linear .5s both; }
-.in-play .in-shin-a { animation: in-sup-shin 2s linear .5s both; }
-.in-play .in-arm-f { animation: in-arm-front 2s linear .5s both; }
-.in-play .in-arm-b { animation: in-arm-back 2s linear .5s both; }
-@keyframes in-run { from { transform: translateX(-340px); } to { transform: translateX(0); } }
-@keyframes in-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
-@keyframes in-kick-thigh {
-  0% { transform: rotate(28deg); } 15.6% { transform: rotate(-28deg); } 31% { transform: rotate(28deg); }
-  47% { transform: rotate(-28deg); } 62.5% { transform: rotate(18deg); } 69% { transform: rotate(52deg); }
-  78% { transform: rotate(-45deg); } 90% { transform: rotate(-85deg); } 100% { transform: rotate(-60deg); }
-}
-@keyframes in-kick-shin {
-  0% { transform: rotate(10deg); } 15.6% { transform: rotate(35deg); } 31% { transform: rotate(10deg); }
-  47% { transform: rotate(35deg); } 62.5% { transform: rotate(25deg); } 69% { transform: rotate(95deg); }
-  78% { transform: rotate(4deg); } 90% { transform: rotate(18deg); } 100% { transform: rotate(40deg); }
-}
-@keyframes in-sup-thigh {
-  0% { transform: rotate(-28deg); } 15.6% { transform: rotate(28deg); } 31% { transform: rotate(-28deg); }
-  47% { transform: rotate(28deg); } 62.5% { transform: rotate(-4deg); } 78% { transform: rotate(8deg); } 100% { transform: rotate(14deg); }
-}
-@keyframes in-sup-shin {
-  0% { transform: rotate(32deg); } 15.6% { transform: rotate(8deg); } 31% { transform: rotate(32deg); }
-  47% { transform: rotate(8deg); } 62.5% { transform: rotate(14deg); } 78% { transform: rotate(10deg); } 100% { transform: rotate(18deg); }
-}
-@keyframes in-arm-front {
-  0% { transform: rotate(35deg); } 15.6% { transform: rotate(-35deg); } 31% { transform: rotate(35deg); }
-  47% { transform: rotate(-35deg); } 62.5% { transform: rotate(-20deg); } 78% { transform: rotate(40deg); } 100% { transform: rotate(55deg); }
-}
-@keyframes in-arm-back {
-  0% { transform: rotate(-35deg); } 15.6% { transform: rotate(35deg); } 31% { transform: rotate(-35deg); }
-  47% { transform: rotate(35deg); } 62.5% { transform: rotate(30deg); } 78% { transform: rotate(-50deg); } 100% { transform: rotate(-60deg); }
-}
-
-/* Pelota: sale al contacto (2.06 s), cámara lenta, con estela */
-.in-ball-x, .in-ball-y { transform-box: view-box; }
-.in-ball-y { transform-origin: 800px 738px; }
-.in-ball-spin { transform-box: fill-box; transform-origin: center; }
-.in-ghost { opacity: 0; }
-.in-play .in-ball-x { animation: in-ball-x 1.2s linear 2.06s both; }
-.in-play .in-ball-y { animation: in-ball-y 1.2s cubic-bezier(.12,.7,.35,1) 2.06s both; }
-.in-play .in-ball-spin { animation: in-spin 1.2s linear 2.06s both; }
-.in-play .in-ghost { animation: in-ghost 1.2s linear 2.06s both; }
-.in-play .in-ball-shadow { animation: in-fade-out .25s ease-out 2.06s both; }
-@keyframes in-ball-x { from { transform: translateX(0); } to { transform: translateX(62px); } }
-@keyframes in-ball-y { from { transform: translateY(0) scale(1); } to { transform: translateY(-420px) scale(.2); } }
-@keyframes in-spin { to { transform: rotate(1080deg); } }
-@keyframes in-ghost { 0% { opacity: 0; } 6% { opacity: .5; } 100% { opacity: 0; } }
-@keyframes in-fade-out { to { opacity: 0; } }
-
-/* Gol: red, destello, onda expansiva y chispas (3.26 s) */
-.in-net { transform-box: view-box; transform-origin: 800px 270px; }
-.in-impact, .in-ring, .in-spark { opacity: 0; transform-box: fill-box; transform-origin: center; }
-.in-play .in-net { animation: in-net .9s ease-out 3.26s both; }
-.in-play .in-impact { animation: in-impact .8s ease-out 3.26s both; }
-.in-play .in-ring { animation: in-ring 1s ease-out 3.26s both; }
-.in-play .in-spark { animation: in-spark 1.3s cubic-bezier(.1,.7,.3,1) 3.28s both; }
-@keyframes in-net {
-  0% { transform: scale(1,1); } 18% { transform: scale(1.08,1.28) skewX(-5deg); } 42% { transform: scale(.97,.93) skewX(4deg); }
-  68% { transform: scale(1.02,1.07) skewX(-1.5deg); } 100% { transform: scale(1,1); }
-}
-@keyframes in-impact { 0% { opacity: 0; transform: scale(.2); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
-@keyframes in-ring { 0% { opacity: .95; transform: scale(.3); } 100% { opacity: 0; transform: scale(5.5); } }
-@keyframes in-spark {
-  0% { opacity: 1; transform: translate(0,0); } 70% { opacity: 1; }
-  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 70px)); }
-}
-
-/* Texto de gol (pantalla) */
-.in-gol {
-  font-size: clamp(4rem, 17vw, 13rem);
-  letter-spacing: .03em;
-  opacity: 0;
-  color: #dcff45;
-  text-shadow: 0 0 28px rgba(182,214,26,.85), 0 0 80px rgba(182,214,26,.45), 0 5px 0 rgba(0,0,0,.9);
-  -webkit-text-stroke: 2px #0a0a0a;
-  paint-order: stroke fill;
-}
-.in-play .in-gol { animation: in-gol 1.4s cubic-bezier(.2,1.5,.4,1) 3.4s both; }
-@keyframes in-gol {
-  0% { opacity: 0; transform: translateY(-50%) scale(.25) skewX(-8deg); letter-spacing: .3em; }
-  40% { opacity: 1; transform: translateY(-50%) scale(1.15) skewX(2deg); }
-  100% { opacity: 1; transform: translateY(-50%) scale(1) skewX(0); letter-spacing: .03em; }
-}
-
-/* Barras de cine: se abren con la disolvencia */
-.in-bar-top, .in-bar-bottom { transform-box: view-box; }
-.in-out .in-bar-top { animation: in-bar-up .8s ease-in both; }
-.in-out .in-bar-bottom { animation: in-bar-down .8s ease-in both; }
-@keyframes in-bar-up { to { transform: translateY(-84px); } }
-@keyframes in-bar-down { to { transform: translateY(84px); } }
-
-/* Hero: entrada deslizante una vez terminada la introducción */
-.hero-reveal { opacity: 0; transform: translateX(-72px); }
-.hero-fade { opacity: 0; }
-html.intro-done .hero-reveal { animation: hero-in .95s cubic-bezier(.2,.8,.2,1) var(--d, 0s) both; }
-html.intro-done .hero-fade { animation: hero-fade 1.6s ease-out .3s both; }
+.hero-reveal { opacity: 0; transform: translateX(-72px); animation: hero-in .95s cubic-bezier(.2,.8,.2,1) var(--d, 0s) both; }
+.hero-fade { opacity: 0; animation: hero-fade 1.6s ease-out .3s both; }
 @keyframes hero-in { from { opacity: 0; transform: translateX(-72px); filter: blur(8px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
 @keyframes hero-fade { to { opacity: .07; } }
+.hero-parallax { will-change: transform, opacity; }
 
-/* Secciones: aparecen con fundido al hacer scroll */
+/* Secciones: fundido + desplazamiento, en ambos sentidos del scroll */
 @media (scripting: enabled) {
-  .reveal { opacity: 0; transform: translateY(54px); transition: opacity 1s cubic-bezier(.2,.8,.2,1), transform 1s cubic-bezier(.2,.8,.2,1); }
+  .reveal { opacity: 0; transform: translateY(60px) scale(.985); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
   .reveal.is-visible { opacity: 1; transform: none; }
 }
+
+/* Escenario nocturno: dos reflectores iluminan "Reservar turno" */
+.stage { --l1: 0; --l2: 0; position: relative; isolation: isolate; }
+.stage-bg {
+  position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #03060a;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
+}
+.stage-sky { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 0%, #0b1620 0%, #03060a 70%); }
+.stage-floor {
+  position: absolute; left: -20%; right: -20%; bottom: -6%; height: 78%;
+  transform: perspective(700px) rotateX(58deg); transform-origin: 50% 100%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 8%, rgba(0,0,0,.05) 8% 16%),
+    linear-gradient(to top, #1f5a14, #123c0c 70%, #0a2a07);
+  filter: brightness(calc(.08 + var(--l1) * .5 + var(--l2) * .5));
+}
+.stage-lines { position: absolute; inset: 0; opacity: calc((var(--l1) + var(--l2)) * .22); }
+.stage-cones { position: absolute; inset: 0; width: 100%; height: 100%; filter: blur(5px); mix-blend-mode: screen; }
+.stage-pool { position: absolute; width: 70%; height: 55%; bottom: 0; border-radius: 50%; mix-blend-mode: screen; filter: blur(30px);
+  background: radial-gradient(closest-side, rgba(255,246,205,.55), rgba(190,235,90,.18) 60%, transparent); }
+.stage-pool.l { left: -12%; opacity: calc(var(--l1) * .9); }
+.stage-pool.r { right: -12%; opacity: calc(var(--l2) * .9); }
+.stage-haze { position: absolute; inset: 0; opacity: calc((var(--l1) + var(--l2)) * .35);
+  background: radial-gradient(60% 40% at 50% 30%, rgba(200,230,255,.12), transparent); }
+.lamp { position: absolute; top: 14px; width: clamp(64px, 11vw, 132px); aspect-ratio: 4/3; z-index: 2; }
+.lamp.l { left: 6%; } .lamp.r { right: 6%; }
+.lamp-body { position: absolute; inset: 0; border-radius: 6px; background: #0a0f14; border: 1px solid #243038;
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; padding: 6px; }
+.lamp-body i { border-radius: 50%; background: #1a242c; opacity: 1; transition: none; }
+.lamp.l .lamp-body i { background: color-mix(in srgb, #fff8d8 calc(var(--l1) * 100%), #1a242c); box-shadow: 0 0 calc(var(--l1) * 14px) calc(var(--l1) * 4px) rgba(255,246,205,.9); }
+.lamp.r .lamp-body i { background: color-mix(in srgb, #fff8d8 calc(var(--l2) * 100%), #1a242c); box-shadow: 0 0 calc(var(--l2) * 14px) calc(var(--l2) * 4px) rgba(255,246,205,.9); }
+.lamp-glow { position: absolute; left: 50%; top: 50%; width: 320%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,246,210,.85), rgba(255,246,210,.22) 40%, transparent); mix-blend-mode: screen; }
+.lamp.l .lamp-glow { opacity: var(--l1); } .lamp.r .lamp-glow { opacity: var(--l2); }
+.lamp::after { content: ""; position: absolute; left: 50%; top: 100%; width: 3px; height: 40px; background: #0a0f14; transform: translateX(-50%); }
+.stage-title { color: #f4f7ef; text-shadow: 0 2px 24px rgba(0,0,0,.6); }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; filter: none !important; }
   .hero-fade { opacity: .07 !important; animation: none !important; }
 }
 

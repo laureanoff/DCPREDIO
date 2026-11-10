@@ -25,7 +25,7 @@ export function Hero({ venueName }: { venueName: string }) {
     <section className="relative overflow-hidden px-5 pb-16 pt-14 sm:pb-24 sm:pt-20">
       <PitchLines />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background" />
-      <div className="relative mx-auto max-w-5xl">
+      <div id="hero-content" className="hero-parallax relative mx-auto max-w-5xl">
         <p className="hero-reveal font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-[0.35em] text-lime-ink" style={{ "--d": "0s" } as React.CSSProperties}>
           Fútbol 5 · {venueName}
         </p>

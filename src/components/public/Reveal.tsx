@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-/** Aparece con fundido y desplazamiento suave cuando entra en pantalla al hacer scroll. */
+/** Aparece con fundido y desplazamiento al entrar en pantalla y se desvanece al salir (ida y vuelta). */
 export function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -16,13 +16,10 @@ export function Reveal({ children, className }: { children: React.ReactNode; cla
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add("is-visible");
-            io.unobserve(e.target);
-          }
+          e.target.classList.toggle("is-visible", e.isIntersecting);
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.1, rootMargin: "-6% 0px -10% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

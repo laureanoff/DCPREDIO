@@ -6,7 +6,8 @@ import { LocationSection } from "@/components/public/LocationSection";
 import { InfoSection } from "@/components/public/InfoSection";
 import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
 import { SiteFooter } from "@/components/public/SiteFooter";
-import { IntroGoal } from "@/components/public/IntroGoal";
+import { ScrollFx } from "@/components/public/ScrollFx";
+import { FloodlightStage } from "@/components/public/FloodlightStage";
 import { Reveal } from "@/components/public/Reveal";
 import { SmoothScroll } from "@/components/public/SmoothScroll";
 
@@ -15,21 +16,21 @@ export default async function Home() {
 
   return (
     <>
-      <IntroGoal />
+      <ScrollFx />
       <SmoothScroll />
       <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
       <main className="flex-1">
         <Hero venueName={venue.name} />
-        <section id="reservar" className="scroll-mt-20 px-5 py-10">
+        <FloodlightStage>
           <Reveal className="mx-auto max-w-5xl">
-            <h2 className="mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
-              Reservar <span className="text-lime-ink">turno</span>
+            <h2 className="stage-title mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
+              Reservar <span className="text-lime">turno</span>
             </h2>
             <Suspense fallback={<BookingSkeleton />}>
               <BookingSection venue={venue} />
             </Suspense>
           </Reveal>
-        </section>
+        </FloodlightStage>
         <Reveal><InfoSection venue={venue} /></Reveal>
         <Reveal><LocationSection venue={venue} /></Reveal>
       </main>
