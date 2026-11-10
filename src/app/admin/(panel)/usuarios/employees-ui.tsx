@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createEmployee, resetEmployeePassword, setEmployeeActive, setUsername } from "./actions";
+import { createEmployee, deleteEmployee, resetEmployeePassword, setEmployeeActive, setUsername } from "./actions";
 import { cn } from "@/lib/utils";
 
 const field = "h-11 w-full rounded-xl border border-border bg-surface-2 px-3 text-base outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30";
@@ -20,6 +20,7 @@ function Row({ e, onMsg }: { e: Emp; onMsg: (m: Msg) => void }) {
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showUser, setShowUser] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
   const [uname, setUname] = useState(e.username);
   return (
     <li className="flex flex-col gap-2 py-3 text-sm">
@@ -32,8 +33,16 @@ function Row({ e, onMsg }: { e: Emp; onMsg: (m: Msg) => void }) {
           <button disabled={pending} onClick={() => setShowUser((s) => !s)} className="h-10 rounded-xl border border-border px-3 font-semibold hover:border-lime">Usuario</button>
           <button disabled={pending} onClick={() => setShowPw((s) => !s)} className="h-10 rounded-xl border border-border px-3 font-semibold hover:border-lime">Contraseña</button>
           <button disabled={pending} onClick={() => start(async () => { const r = await setEmployeeActive(e.id, !e.active); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); router.refresh(); })} className="h-10 rounded-xl border border-border px-3 font-semibold hover:border-danger disabled:opacity-50">{e.active ? "Desactivar" : "Reactivar"}</button>
+          <button disabled={pending} onClick={() => setConfirmDel((c) => !c)} className="h-10 rounded-xl border border-danger/60 px-3 font-semibold text-danger hover:bg-danger/10 disabled:opacity-50">Eliminar</button>
         </div>
       </div>
+      {confirmDel && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-danger/50 bg-danger/10 p-3">
+          <p className="min-w-0 flex-1">Se borra el usuario y la contraseña de <strong>{e.name}</strong> para siempre. Sus reservas, cobros y ventas se conservan. ¿Eliminar?</p>
+          <button disabled={pending} onClick={() => start(async () => { const r = await deleteEmployee(e.id); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); setConfirmDel(false); router.refresh(); })} className="h-10 rounded-xl bg-danger px-4 font-semibold text-white disabled:opacity-50">Sí, eliminar</button>
+          <button disabled={pending} onClick={() => setConfirmDel(false)} className="h-10 rounded-xl border border-border px-4 font-semibold">Cancelar</button>
+        </div>
+      )}
       {showUser && (
         <form className="flex gap-2" onSubmit={(ev) => { ev.preventDefault(); start(async () => { const r = await setUsername(e.id, uname); onMsg({ ok: r.ok, text: r.ok ? r.message : r.error }); if (r.ok) { setShowUser(false); router.refresh(); } }); }}>
           <input className={field} autoCapitalize="none" value={uname} onChange={(ev) => setUname(ev.target.value)} placeholder="Nuevo usuario" minLength={3} maxLength={30} required />

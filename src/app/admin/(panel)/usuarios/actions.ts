@@ -98,3 +98,21 @@ export async function setUsername(id: string, raw: string): Promise<ActionResult
   revalidatePath("/admin/usuarios");
   return { ok: true, message: `Usuario cambiado a «${u.data}».` };
 }
+
+/** Elimina por completo a un empleado (usuario, contraseña y dispositivos). Sus reservas, cobros y ventas quedan, sin autor asignado. */
+export async function deleteEmployee(id: string): Promise<ActionResult> {
+  const me = await requireAdmin();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Usuario inválido." };
+  if (id === me.userId) return { ok: false, error: "No podés eliminar tu propio usuario." };
+  const admin = createAdminClient();
+  const { data: target } = await admin.from("profiles").select("role").eq("id", id).maybeSingle();
+  if (!target || target.role !== "staff") return { ok: false, error: "Solo se pueden eliminar empleados." };
+  // Borrar el usuario de Auth elimina en cascada su perfil y sus dispositivos de notificaciones.
+  const { error } = await admin.auth.admin.deleteUser(id);
+  if (error) {
+    console.error("[usuarios] deleteUser", error.message);
+    return { ok: false, error: "No se pudo eliminar al empleado." };
+  }
+  revalidatePath("/admin/usuarios");
+  return { ok: true, message: "Empleado eliminado: ya no existe su usuario ni su contraseña." };
+}
