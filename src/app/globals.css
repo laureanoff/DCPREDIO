@@ -271,6 +271,33 @@ body {
 .wait-dot { animation: wait-fade 1.4s infinite; opacity: .2; } .wait-dot:nth-of-type(2) { animation-delay: .2s; } .wait-dot:nth-of-type(3) { animation-delay: .4s; }
 @keyframes wait-fade { 0%, 100% { opacity: .2; } 40% { opacity: 1; } }
 
+/* Login del panel */
+.lg-card { animation: lg-card .9s cubic-bezier(.2,.8,.2,1) both; box-shadow: 0 30px 80px -30px rgba(0,0,0,.55); }
+@keyframes lg-card { from { opacity: 0; transform: translateY(40px) scale(.96); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.lg-logo { animation: lg-logo 1s cubic-bezier(.3,1.5,.5,1) .2s both, lg-glow 3.6s ease-in-out 1.4s infinite; }
+@keyframes lg-logo { 0% { opacity: 0; transform: scale(.6) rotate(-6deg); } 100% { opacity: 1; transform: none; } }
+@keyframes lg-glow { 0%, 100% { filter: drop-shadow(0 0 0 rgba(182,214,26,0)); } 50% { filter: drop-shadow(0 0 18px rgba(182,214,26,.55)); } }
+.lg-rise { animation: lg-rise .7s cubic-bezier(.2,.8,.2,1) var(--d, 0s) both; }
+@keyframes lg-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.lg-field > span { transition: color .2s, transform .25s; }
+.lg-field:focus-within > span { color: var(--lime-ink, #b6d61a); transform: translateX(3px); }
+.lg-shake { animation: lg-shake .5s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes lg-shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-8px); } 40%, 60% { transform: translateX(8px); } }
+.lg-btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%); transform: translateX(-120%); animation: lg-sheen 3.4s ease-in-out 1.6s infinite; }
+@keyframes lg-sheen { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.lg-btn[data-pending]::after { animation: lg-load 1.1s linear infinite; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.7) 50%, transparent 80%); }
+@keyframes lg-load { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+.lg-ball { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 30%, #111 32% 40%, #fff 42%); border: 1.5px solid #111; animation: lg-bounce .55s cubic-bezier(.3,0,.7,1) infinite alternate; }
+@keyframes lg-bounce { from { transform: translateY(-5px) rotate(0); } to { transform: translateY(4px) rotate(180deg); } }
+.lg-beam { position: absolute; top: -10%; width: 55%; height: 130%; pointer-events: none; mix-blend-mode: screen; opacity: .22; filter: blur(14px);
+  background: linear-gradient(to bottom, rgba(255,246,205,.9), rgba(255,246,205,0) 75%); transform-origin: 50% 0; }
+.lg-beam.l { left: -6%; clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); animation: lg-sway-l 9s ease-in-out infinite alternate, lg-beam-on 1.8s linear .1s both; }
+.lg-beam.r { right: -6%; clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); animation: lg-sway-r 11s ease-in-out infinite alternate, lg-beam-on 1.8s linear .6s both; }
+@keyframes lg-sway-l { from { transform: rotate(-9deg); } to { transform: rotate(6deg); } }
+@keyframes lg-sway-r { from { transform: rotate(9deg); } to { transform: rotate(-6deg); } }
+@keyframes lg-beam-on { 0% { opacity: 0; } 15% { opacity: .3; } 25% { opacity: .05; } 45% { opacity: .28; } 60% { opacity: .1; } 100% { opacity: .22; } }
+html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; background: linear-gradient(to bottom, rgba(182,214,26,.6), rgba(182,214,26,0) 75%); }
+
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; filter: none !important; }
