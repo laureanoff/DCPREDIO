@@ -1,5 +1,6 @@
 "use client";
 
+import { playGoal } from "@/lib/sfx";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export function InboxCard(p: Props) {
     start(async () => {
       const r = await setBookingStatus(p.id, "confirmed");
       if (!r.ok) setError(r.error);
-      else router.refresh();
+      else { playGoal(); router.refresh(); }
     });
   }
   function reject() {

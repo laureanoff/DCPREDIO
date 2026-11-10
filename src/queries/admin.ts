@@ -253,3 +253,18 @@ export async function listRecentlyConfirmed(days = 3): Promise<BookingRow[]> {
   if (error) throw new Error(`No se pudieron leer las confirmadas: ${error.message}`);
   return data ?? [];
 }
+
+export type DayPitchSlot = { start: string; end: string; state: string; hasPending: boolean };
+export type DayPitchCourt = { id: string; name: string; slots: DayPitchSlot[] };
+
+/** Estado de cada horario del día por cancha, para la vista de cancha de la agenda. */
+export async function getDayPitch(date: string): Promise<DayPitchCourt[]> {
+  const supabase = await createClient();
+  const { data: courts } = await supabase.from("courts").select("id, name").eq("is_active", true).order("sort_order").order("created_at");
+  const out: DayPitchCourt[] = [];
+  for (const c of courts ?? []) {
+    const { data } = await supabase.rpc("get_day_availability", { p_court_id: c.id, p_date: date });
+    out.push({ id: c.id, name: c.name, slots: (data ?? []).map((s) => ({ start: s.slot_start, end: s.slot_end, state: s.state, hasPending: s.has_pending })) });
+  }
+  return out;
+}

@@ -9,7 +9,10 @@ import { TurnAlerts } from "@/components/admin/TurnAlerts";
 import { TurnTimer } from "@/components/admin/TurnTimer";
 import { addDaysKey, formatDateLong, formatTime, todayKey } from "@/lib/datetime";
 import { cn, formatMoney } from "@/lib/utils";
-import { getDayBookings, getPendingCount, getUpcomingCount } from "@/queries/admin";
+import { getDayBookings, getDayPitch, getPendingCount, getUpcomingCount } from "@/queries/admin";
+import { CountUp } from "@/components/admin/CountUp";
+import { DayPitch } from "@/components/admin/DayPitch";
+import { NextTurn } from "@/components/admin/NextTurn";
 
 export const metadata: Metadata = { title: "Agenda" };
 
@@ -21,10 +24,11 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
   const today = todayKey();
   const date = fecha && DATE_RE.test(fecha) ? fecha : today;
 
-  const [bookings, pending, week] = await Promise.all([
+  const [bookings, pending, week, pitch] = await Promise.all([
     getDayBookings(date),
     getPendingCount(),
     getUpcomingCount(today, addDaysKey(today, 6)),
+    getDayPitch(date),
   ]);
 
   const active = bookings.filter((b) => b.status !== "cancelled");
@@ -71,6 +75,10 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
         </div>
       </div>
 
+      {date === today && (
+        <NextTurn bookings={active.map((b) => ({ id: b.id, name: b.customer_name, startAt: b.start_at, endAt: b.end_at, players: b.players }))} />
+      )}
+
       {date === today && active.length > 0 && (
         <div>
           <TurnAlerts bookings={active.map((b) => ({ id: b.id, name: b.customer_name, startAt: b.start_at, endAt: b.end_at }))} />
@@ -78,11 +86,13 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
       )}
 
       <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Reservas del día" value={String(active.length)} />
-        <Stat label="Jugadores que pagaron" value={`${playersPaid} de ${players}`} />
-        <Stat label="Cobrado / a cobrar" value={`${formatMoney(collected)} / ${formatMoney(expected)}`} small />
-        <Stat label="Próximos 7 días" value={String(week)} />
+        <Stat label="Reservas del día"><CountUp value={active.length} /></Stat>
+        <Stat label="Jugadores que pagaron"><CountUp value={playersPaid} /> de {players}</Stat>
+        <Stat label="Cobrado / a cobrar" small><CountUp value={collected} money /> / {formatMoney(expected)}</Stat>
+        <Stat label="Próximos 7 días"><CountUp value={week} /></Stat>
       </dl>
+
+      <DayPitch courts={pitch} bookings={bookings} />
 
       {pending > 0 && (
         <Link
@@ -133,11 +143,11 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
   );
 }
 
-function Stat({ label, value, small }: { label: string; value: string; small?: boolean }) {
+function Stat({ label, children, small }: { label: string; children: React.ReactNode; small?: boolean }) {
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
       <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
-      <dd className={cn("mt-1 font-[family-name:var(--font-display)] font-bold", small ? "text-xl" : "text-3xl")}>{value}</dd>
+      <dd className={cn("mt-1 font-[family-name:var(--font-display)] font-bold", small ? "text-xl" : "text-3xl")}>{children}</dd>
     </div>
   );
 }

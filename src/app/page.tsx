@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getPublicVenue } from "@/queries/venue";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { Hero } from "@/components/public/Hero";
+import { TodayBadge } from "@/components/public/TodayBadge";
 import { LocationSection } from "@/components/public/LocationSection";
 import { InfoSection } from "@/components/public/InfoSection";
 import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
@@ -20,7 +21,7 @@ export default async function Home() {
       <SmoothScroll />
       <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
       <main className="flex-1">
-        <Hero venueName={venue.name} />
+        <Hero venueName={venue.name} badge={<Suspense fallback={null}><TodayBadge venue={venue} /></Suspense>} />
         <FloodlightStage>
           <Reveal className="mx-auto max-w-5xl">
             <h2 className="stage-title mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">

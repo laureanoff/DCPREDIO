@@ -4,6 +4,7 @@ import { Logo } from "@/components/brand/Logo";
 import { BRAND } from "@/config/brand";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { NewBookingAlerts } from "@/components/admin/NewBookingAlerts";
+import { SfxToggle } from "@/components/admin/SfxToggle";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { requireStaff } from "@/lib/auth";
 import { getPendingCount } from "@/queries/admin";
@@ -21,6 +22,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
           </span>
         </div>
         <div className="flex items-center gap-2 text-sm sm:gap-3">
+          <SfxToggle />
           <ThemeToggle />
           <span className="hidden text-muted sm:inline">
             {staff.fullName} · {staff.role === "admin" ? "Administrador" : "Personal"}

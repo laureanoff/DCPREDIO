@@ -1,5 +1,6 @@
 "use client";
 
+import { playGoal } from "@/lib/sfx";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, User } from "lucide-react";
@@ -62,6 +63,7 @@ export function PaymentsPanel({ bookingId, total, totalPaid, balance, players, c
       setMsg({ ok: r.ok, text: r.ok ? r.message : r.error });
       if (r.ok) {
         after?.();
+        if (/registrado/i.test(r.message)) playGoal();
         router.refresh();
       }
     });

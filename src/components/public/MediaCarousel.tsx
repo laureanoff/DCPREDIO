@@ -131,7 +131,7 @@ export function MediaCarousel({ items }: { items: GalleryMedia[] }) {
         {items.map((m) => (
           <div
             key={m.id}
-            className="relative aspect-[9/16] w-[min(78vw,19rem)] shrink-0 snap-center overflow-hidden rounded-3xl border border-border bg-black sm:w-80"
+            className="media-card relative aspect-[9/16] w-[min(78vw,19rem)] shrink-0 snap-center overflow-hidden rounded-3xl border border-border bg-black sm:w-80"
           >
             {m.type === "video" ? (
               <video

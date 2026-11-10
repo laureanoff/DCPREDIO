@@ -1,5 +1,6 @@
 "use client";
 
+import { playGoal } from "@/lib/sfx";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelBooking, loadSlots, rescheduleBooking, setBookingStatus, updateBooking, type ActionResult, type SlotOption } from "../actions";
@@ -79,7 +80,7 @@ export function BookingManager({ booking, today }: Props) {
         <h2 className="mb-3 font-[family-name:var(--font-display)] text-lg font-bold uppercase">Estado</h2>
         <div className="flex flex-wrap gap-2">
           {booking.status !== "confirmed" && (
-            <button className={btn} disabled={pending} onClick={() => run(() => setBookingStatus(booking.id, "confirmed"))}>
+            <button className={btn} disabled={pending} onClick={() => run(() => setBookingStatus(booking.id, "confirmed"), playGoal)}>
               {cancelled ? "Reactivar como confirmada" : "Marcar confirmada"}
             </button>
           )}

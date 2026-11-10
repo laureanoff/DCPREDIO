@@ -20,10 +20,12 @@ function PitchLines() {
   );
 }
 
-export function Hero({ venueName }: { venueName: string }) {
+export function Hero({ venueName, badge }: { venueName: string; badge?: React.ReactNode }) {
   return (
     <section className="relative overflow-hidden px-5 pb-16 pt-14 sm:pb-24 sm:pt-20">
       <PitchLines />
+      <div aria-hidden className="hero-lamp l" />
+      <div aria-hidden className="hero-lamp r" />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background" />
       <div id="hero-content" className="hero-parallax relative mx-auto max-w-5xl">
         <p className="hero-reveal font-[family-name:var(--font-display)] text-sm font-semibold uppercase tracking-[0.35em] text-lime-ink" style={{ "--d": "0s" } as React.CSSProperties}>
@@ -32,7 +34,7 @@ export function Hero({ venueName }: { venueName: string }) {
         <h1 className="mt-4 font-[family-name:var(--font-display)] text-[4.25rem] font-extrabold uppercase leading-[0.88] sm:text-9xl">
           <span className="hero-reveal block" style={{ "--d": "0.12s" } as React.CSSProperties}>Reservá</span>
           <span className="hero-reveal block" style={{ "--d": "0.26s" } as React.CSSProperties}>
-            tu <span className="text-lime-ink">cancha</span>
+            tu <span className="title-grass">cancha</span>
           </span>
         </h1>
         <p className="hero-reveal mt-6 max-w-md text-lg text-muted" style={{ "--d": "0.42s" } as React.CSSProperties}>
@@ -41,10 +43,12 @@ export function Hero({ venueName }: { venueName: string }) {
         <a
           href="#reservar"
           style={{ "--d": "0.58s" } as React.CSSProperties}
-          className="hero-reveal mt-9 inline-flex h-14 items-center rounded-2xl bg-lime px-9 font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black shadow-[0_0_40px_-8px] shadow-lime/60 transition hover:bg-lime-dark"
+          className="hero-reveal cta-sheen relative mt-9 inline-flex h-14 items-center gap-3 overflow-hidden rounded-2xl bg-lime px-9 font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black shadow-[0_0_40px_-8px] shadow-lime/60 transition hover:bg-lime-dark"
         >
+          <span className="cta-ball" aria-hidden />
           Reservar ahora
         </a>
+        <div className="hero-reveal" style={{ "--d": "0.74s" } as React.CSSProperties}>{badge}</div>
       </div>
     </section>
   );

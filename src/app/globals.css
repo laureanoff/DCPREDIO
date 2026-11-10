@@ -14,6 +14,7 @@
   --danger: #ef4444;
   --warning: #facc15;
   --logo-ink: #ffffff;
+  --night: 1;
   color-scheme: dark;
 }
 
@@ -29,6 +30,7 @@
   --danger: #c62828;
   --warning: #a16207;
   --logo-ink: #0a0a0a;
+  --night: 0;
   color-scheme: light;
 }
 
@@ -316,11 +318,57 @@ html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; backgro
 .ball-loader-text { animation: text-breathe 1.4s ease-in-out infinite; }
 @keyframes text-breathe { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 
+/* Panel: transiciones, próximo turno, vista de cancha, gráficos */
+.page-enter { animation: page-enter .45s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes page-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #b6d61a; box-shadow: 0 0 0 0 rgba(182,214,26,.7); animation: live-pulse 1.6s ease-out infinite; }
+@keyframes live-pulse { 70%, 100% { box-shadow: 0 0 0 10px rgba(182,214,26,0); } }
+.day-pitch { background:
+  repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 50%, rgba(0,0,0,.08) 50% 100%) , linear-gradient(#2d7a21, #246a1a); }
+.pitch-slot { animation: slot-in .5s cubic-bezier(.2,.8,.2,1) both; color: #fff; }
+.pitch-free { background: rgba(182,214,26,.18); }
+.pitch-free:hover { background: rgba(182,214,26,.35); }
+.pitch-pending { background: rgba(214,150,30,.6); }
+.pitch-busy { background: rgba(190,50,50,.65); }
+.pitch-off { background: rgba(0,0,0,.45); color: rgba(255,255,255,.55); }
+.bar-grow { transform-origin: bottom; animation: bar-grow .8s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* Web pública: títulos con césped, botón con pelota, noche, galería, calendario, pie */
+.title-grass { color: var(--lime-ink); background: repeating-linear-gradient(100deg, #c4e41f 0 14px, #a0bd12 14px 28px); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: grass-shift 6s linear infinite; }
+@keyframes grass-shift { to { background-position: 56px 0; } }
+.cta-ball { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid #111;
+  background: radial-gradient(circle at 35% 30%, #fff 0 28%, #111 30% 38%, #fff 40% 62%, #111 64% 70%, #fff 72%);
+  transition: transform .6s cubic-bezier(.3,1.4,.5,1); }
+.cta-sheen:hover .cta-ball { transform: translateX(10px) rotate(360deg); }
+.cta-sheen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.6) 50%, transparent 70%); transform: translateX(-130%); transition: transform .8s ease; pointer-events: none; }
+.cta-sheen:hover::after { transform: translateX(130%); }
+.today-badge { animation: slot-in .6s cubic-bezier(.2,.8,.2,1) both; }
+.hero-lamp { position: absolute; top: -20%; width: 46%; height: 140%; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--night) * .16); filter: blur(18px);
+  background: linear-gradient(to bottom, rgba(255,246,205,.9), rgba(255,246,205,0) 70%); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; }
+.hero-lamp.l { left: -8%; animation: lg-sway-l 10s ease-in-out infinite alternate; }
+.hero-lamp.r { right: -8%; animation: lg-sway-r 12s ease-in-out infinite alternate; }
+.media-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 35%, rgba(255,246,205,.28) 50%, transparent 65%); transform: translateX(-120%); animation: media-sheen 7s ease-in-out infinite; }
+@keyframes media-sheen { 0%, 62% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.cal-grid { animation: cal-in .45s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cal-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+.cal-few { animation: cal-few 2.4s ease-in-out infinite; }
+@keyframes cal-few { 50% { box-shadow: 0 0 0 3px rgba(250,204,21,.18); } }
+.grass-edge { position: absolute; left: 0; right: 0; top: 0; height: 26px; overflow: hidden; pointer-events: none; }
+.grass-edge i { position: absolute; left: -10px; right: -10px; bottom: 0; height: 100%; transform-origin: 50% 100%;
+  background-repeat: repeat-x; background-size: 44px 26px; }
+.grass-edge i:nth-child(1) { opacity: .55; animation: sway 5s ease-in-out infinite alternate;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='26'%3E%3Cpath d='M2 26 L6 6 L10 26 M14 26 L19 2 L24 26 M28 26 L32 9 L37 26 M38 26 L41 12 L44 26' fill='%2398b30f'/%3E%3C/svg%3E"); }
+.grass-edge i:nth-child(2) { animation: sway 3.6s ease-in-out -1.4s infinite alternate; background-position: 20px 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='26'%3E%3Cpath d='M0 26 L5 10 L9 26 M12 26 L16 8 L21 26 M26 26 L31 4 L35 26 M36 26 L40 14 L44 26' fill='%23b6d61a'/%3E%3C/svg%3E"); }
+@keyframes sway { from { transform: skewX(-3deg); } to { transform: skewX(3deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; filter: none !important; }
   .hero-fade { opacity: .07 !important; animation: none !important; }
-  .skeleton::after, .ball-loader-ball, .ball-loader-shadow, .ball-loader-text, .loading-fade, .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
+  .title-grass, .hero-lamp, .media-card::after, .cal-grid, .cal-few, .grass-edge i, .today-badge, .page-enter, .live-dot, .pitch-slot, .bar-grow, .skeleton::after, .ball-loader-ball, .ball-loader-shadow, .ball-loader-text, .loading-fade, .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
   .success-circle, .success-check { animation: none !important; stroke-dashoffset: 0 !important; }
   .confetti { display: none; }
 }

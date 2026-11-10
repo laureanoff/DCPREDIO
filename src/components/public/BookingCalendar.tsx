@@ -62,7 +62,7 @@ export function BookingCalendar({
         ))}
       </div>
 
-      <div className={cn("mt-1 grid grid-cols-7 gap-1.5", days === null && "calendar-loading")} aria-busy={days === null}>
+      <div key={`${year}-${month}`} className={cn("cal-grid mt-1 grid grid-cols-7 gap-1.5", days === null && "calendar-loading")} aria-busy={days === null}>
         {cells.map((d, i) => {
           if (d === null) return <div key={`e${i}`} />;
           const key = dateKey(year, month, d);
@@ -95,7 +95,8 @@ export function BookingCalendar({
               onClick={() => onSelect(key)}
               className={cn(
                 "flex aspect-square flex-col items-center justify-center rounded-xl border text-base font-semibold transition",
-                kind === "open" && !isSelected && "border-lime/40 bg-lime/10 text-lime-ink hover:bg-lime/25",
+                kind === "open" && !isSelected && !(info && info.free_slots <= 2) && "border-lime/40 bg-lime/10 text-lime-ink hover:bg-lime/25",
+                kind === "open" && !isSelected && info && info.free_slots <= 2 && "cal-few border-warning/60 bg-warning/15 text-warning hover:bg-warning/30",
                 kind === "open" && isSelected && "border-lime bg-lime text-black",
                 kind === "full" && "border-danger/30 bg-danger/10 text-danger/80",
                 kind === "closed" && "border-transparent bg-surface-2 text-muted/50",
@@ -111,6 +112,7 @@ export function BookingCalendar({
 
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted">
         <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-lime/70" /> Disponible</li>
+        <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-warning/70" /> Quedan pocos</li>
         <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-danger/60" /> Completo</li>
         <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-surface-2 ring-1 ring-border" /> Cerrado</li>
       </ul>

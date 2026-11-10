@@ -40,7 +40,7 @@ export function IncomeChart({ bars, title, unitLabel }: { bars: ChartBar[]; titl
           </div>
 
           <ol className="relative flex h-56 items-end gap-[2px] sm:gap-1">
-            {bars.map((b) => {
+            {bars.map((b, i) => {
               const h = (b.value / max) * 100;
               const body = (
                 <>
@@ -53,8 +53,8 @@ export function IncomeChart({ bars, title, unitLabel }: { bars: ChartBar[]; titl
                     <span className="block text-muted">{b.count} {b.count === 1 ? "cobro" : "cobros"}</span>
                   </span>
                   <span
-                    className={cn("block w-full rounded-t-[4px] bg-lime-ink transition-opacity group-hover:opacity-80", b.value === 0 && "opacity-0")}
-                    style={{ height: `${Math.max(h, b.value > 0 ? 1.5 : 0)}%` }}
+                    className={cn("bar-grow block w-full rounded-t-[4px] bg-lime-ink transition-opacity group-hover:opacity-80", b.value === 0 && "opacity-0")}
+                    style={{ height: `${Math.max(h, b.value > 0 ? 1.5 : 0)}%`, animationDelay: `${Math.min(i, 30) * 40}ms` }}
                   />
                 </>
               );
