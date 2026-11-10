@@ -33,7 +33,7 @@ export default function LoginPage(props: PageProps<"/admin/login">) {
           </h1>
           <p className="mt-1 text-sm text-muted">Acceso solo para personal autorizado</p>
         </div>
-        <Suspense fallback={<div className="h-56 w-full animate-pulse rounded-xl bg-surface-2" />}>
+        <Suspense fallback={<div className="skeleton h-56 w-full rounded-xl bg-surface-2" />}>
           <LoginContent searchParams={props.searchParams as Promise<{ next?: string; error?: string }>} />
         </Suspense>
       </div>

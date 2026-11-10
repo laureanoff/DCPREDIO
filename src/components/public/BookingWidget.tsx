@@ -379,7 +379,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
             {selectedDate && slots === null && !dayFailed && (
               <div className="mt-4 grid grid-cols-2 gap-2" aria-busy>
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-2" />
+                  <div key={i} className="skeleton h-16 rounded-xl bg-surface-2" style={{ animationDelay: `${i * 80}ms` }} />
                 ))}
               </div>
             )}
@@ -568,9 +568,16 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
             type="button"
             onClick={confirm}
             disabled={submitting}
-            className="mt-6 h-14 w-full rounded-2xl bg-lime font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black transition enabled:hover:bg-lime-dark disabled:cursor-wait disabled:opacity-60"
+            className="lg-btn relative mt-6 h-14 w-full overflow-hidden rounded-2xl bg-lime font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black transition enabled:hover:bg-lime-dark disabled:cursor-wait"
+            data-pending={submitting || undefined}
           >
-            {submitting ? "Guardando…" : "Confirmar reserva"}
+            {submitting ? (
+              <span className="inline-flex items-center justify-center gap-3">
+                <span className="lg-ball" aria-hidden /> Reservando tu turno…
+              </span>
+            ) : (
+              "Confirmar reserva"
+            )}
           </button>
         </div>
       )}

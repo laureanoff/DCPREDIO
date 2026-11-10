@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { todayKey } from "@/lib/datetime";
 import type { PublicVenue } from "@/queries/venue";
+import { BallLoader, Skeleton } from "@/components/ui/Loaders";
 import { BookingWidget } from "./BookingWidget";
 
 /** Calcula "hoy" en el servidor, en el momento de cada request (la fecha no puede quedar congelada en el build). */
@@ -10,5 +11,10 @@ export async function BookingSection({ venue }: { venue: PublicVenue }) {
 }
 
 export function BookingSkeleton() {
-  return <div className="h-[34rem] animate-pulse rounded-3xl border border-border bg-surface" aria-busy />;
+  return (
+    <div aria-busy className="relative h-[34rem] overflow-hidden rounded-3xl border border-border bg-surface">
+      <Skeleton className="absolute inset-0 rounded-none" />
+      <BallLoader label="Cargando turnos…" className="relative h-full" />
+    </div>
+  );
 }

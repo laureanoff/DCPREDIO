@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -143,7 +144,7 @@ function Stat({ label, value, small }: { label: string; value: string; small?: b
 
 export default function AdminHome(props: PageProps<"/admin">) {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-5xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Agenda searchParams={props.searchParams as Promise<{ fecha?: string }>} />
     </Suspense>
   );

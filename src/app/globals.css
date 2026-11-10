@@ -298,11 +298,29 @@ body {
 @keyframes lg-beam-on { 0% { opacity: 0; } 15% { opacity: .3; } 25% { opacity: .05; } 45% { opacity: .28; } 60% { opacity: .1; } 100% { opacity: .22; } }
 html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; background: linear-gradient(to bottom, rgba(182,214,26,.6), rgba(182,214,26,0) 75%); }
 
+/* Carga: brillo en bloques y pelota que rebota */
+.skeleton { position: relative; overflow: hidden; background: var(--surface, rgba(128,128,128,.12)); }
+.skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 20%, rgba(182,214,26,.16) 45%, rgba(255,255,255,.18) 50%, transparent 80%);
+  animation: skeleton-sweep 1.5s ease-in-out infinite; }
+@keyframes skeleton-sweep { to { transform: translateX(100%); } }
+.loading-fade { animation: loading-fade .5s ease-out .15s both; }
+@keyframes loading-fade { from { opacity: 0; } to { opacity: 1; } }
+.ball-loader { position: relative; width: 44px; height: 52px; }
+.ball-loader-ball { position: absolute; left: 50%; top: 0; width: 28px; height: 28px; margin-left: -14px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 28%, #1a1a1a 30% 38%, #fff 40% 62%, #1a1a1a 64% 70%, #fff 72%);
+  border: 2px solid #111; box-shadow: inset -3px -4px 6px rgba(0,0,0,.18); animation: ball-hop .62s cubic-bezier(.33,0,.66,1) infinite alternate; }
+.ball-loader-shadow { position: absolute; left: 50%; bottom: 0; width: 26px; height: 6px; margin-left: -13px; border-radius: 50%; background: rgba(0,0,0,.35); filter: blur(2px); animation: ball-shadow .62s cubic-bezier(.33,0,.66,1) infinite alternate; }
+@keyframes ball-hop { from { transform: translateY(0) rotate(0); } 85% { transform: translateY(17px) rotate(300deg) scale(1,1); } to { transform: translateY(20px) rotate(360deg) scale(1.15,.82); } }
+@keyframes ball-shadow { from { transform: scale(.55); opacity: .2; } to { transform: scale(1.1); opacity: .5; } }
+.ball-loader-text { animation: text-breathe 1.4s ease-in-out infinite; }
+@keyframes text-breathe { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; filter: none !important; }
   .hero-fade { opacity: .07 !important; animation: none !important; }
-  .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
+  .skeleton::after, .ball-loader-ball, .ball-loader-shadow, .ball-loader-text, .loading-fade, .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
   .success-circle, .success-check { animation: none !important; stroke-dashoffset: 0 !important; }
   .confetti { display: none; }
 }

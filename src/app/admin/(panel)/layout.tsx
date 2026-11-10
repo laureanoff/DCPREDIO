@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BallLoader } from "@/components/ui/Loaders";
 import { Logo } from "@/components/brand/Logo";
 import { BRAND } from "@/config/brand";
 import { AdminNav } from "@/components/admin/AdminNav";
@@ -43,7 +44,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
 
 export default function PanelLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <Suspense fallback={<div className="flex-1 animate-pulse bg-background" />}>
+    <Suspense fallback={<div className="pitch-bg flex flex-1 items-center justify-center"><BallLoader label="Cargando panel…" /></div>}>
       <PanelShell>{children}</PanelShell>
     </Suspense>
   );

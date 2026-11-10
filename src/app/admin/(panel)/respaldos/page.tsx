@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { requireAdmin } from "@/lib/auth";
@@ -45,7 +46,7 @@ async function Backups() {
 
 export default function BackupsPage() {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-3xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Backups />
     </Suspense>
   );

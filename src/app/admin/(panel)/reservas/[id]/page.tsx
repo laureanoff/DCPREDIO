@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -160,7 +161,7 @@ function Info({ label, value }: { label: string; value: string }) {
 
 export default function BookingDetailPage(props: PageProps<"/admin/reservas/[id]">) {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-3xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Detail params={props.params} />
     </Suspense>
   );

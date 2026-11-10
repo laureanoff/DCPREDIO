@@ -1,5 +1,6 @@
 import { PushToggle } from "@/components/admin/PushToggle";
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { BellRing } from "lucide-react";
@@ -104,7 +105,7 @@ async function Inbox() {
 
 export default function AvisosPage() {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-3xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Inbox />
     </Suspense>
   );

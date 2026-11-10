@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const Map3D = dynamic(() => import("./Map3D").then((m) => m.Map3D), {
   ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse bg-surface" aria-hidden />,
+  loading: () => <div className="skeleton h-full w-full" aria-hidden />,
 });
 
 type Props = { lat: number | null; lng: number | null; title: string; fallbackSrc: string };

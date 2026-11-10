@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -144,7 +145,7 @@ function Tile({ label, value }: { label: string; value: string }) {
 
 export default function StatsPage(props: PageProps<"/admin/estadisticas">) {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-5xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Stats searchParams={props.searchParams as Promise<Params>} />
     </Suspense>
   );

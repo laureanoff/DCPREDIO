@@ -62,7 +62,7 @@ export function BookingCalendar({
         ))}
       </div>
 
-      <div className={cn("mt-1 grid grid-cols-7 gap-1.5", days === null && "animate-pulse")} aria-busy={days === null}>
+      <div className={cn("mt-1 grid grid-cols-7 gap-1.5", days === null && "calendar-loading")} aria-busy={days === null}>
         {cells.map((d, i) => {
           if (d === null) return <div key={`e${i}`} />;
           const key = dateKey(year, month, d);
@@ -100,7 +100,7 @@ export function BookingCalendar({
                 kind === "full" && "border-danger/30 bg-danger/10 text-danger/80",
                 kind === "closed" && "border-transparent bg-surface-2 text-muted/50",
                 kind === "past" && "border-transparent text-muted/30",
-                kind === "loading" && "border-transparent bg-surface-2 text-transparent",
+                kind === "loading" && "skeleton border-transparent bg-surface-2 text-transparent",
               )}
             >
               {d}

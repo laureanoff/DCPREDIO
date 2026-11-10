@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelLoading } from "@/components/ui/Loaders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -155,7 +156,7 @@ async function Bookings({ searchParams }: { searchParams: Promise<Params> }) {
 
 export default function BookingsPage(props: PageProps<"/admin/reservas">) {
   return (
-    <Suspense fallback={<div className="mx-auto h-64 max-w-5xl animate-pulse rounded-2xl bg-surface" />}>
+    <Suspense fallback={<PanelLoading />}>
       <Bookings searchParams={props.searchParams as Promise<Params>} />
     </Suspense>
   );
