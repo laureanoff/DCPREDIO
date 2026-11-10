@@ -10,7 +10,7 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
     <form action={action} className="flex w-full flex-col gap-4">
       <input type="hidden" name="next" value={next} />
 
-      <label className="flex flex-col gap-1.5 text-sm">
+      <label className="lg-rise lg-field flex flex-col gap-1.5 text-sm" style={{ "--d": "0.5s" } as React.CSSProperties}>
         <span className="text-muted">Usuario</span>
         <input
           name="username"
@@ -24,7 +24,7 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
         />
       </label>
 
-      <label className="flex flex-col gap-1.5 text-sm">
+      <label className="lg-rise lg-field flex flex-col gap-1.5 text-sm" style={{ "--d": "0.62s" } as React.CSSProperties}>
         <span className="text-muted">Contraseña</span>
         <input
           name="password"
@@ -36,8 +36,8 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
         />
       </label>
 
-      {state.error && (
-        <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+      {state.error && !pending && (
+        <p key={state.error} role="alert" className="lg-shake rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
           {state.error}
         </p>
       )}
@@ -45,9 +45,14 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
       <button
         type="submit"
         disabled={pending}
-        className="h-12 rounded-xl bg-lime font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:cursor-not-allowed disabled:opacity-60"
+        data-pending={pending || undefined}
+        style={{ "--d": "0.78s" } as React.CSSProperties}
+        className="lg-rise lg-btn relative h-12 overflow-hidden rounded-xl bg-lime font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark active:scale-[.98] disabled:cursor-not-allowed"
       >
-        {pending ? "Ingresando…" : "Ingresar"}
+        <span className="relative z-10 inline-flex items-center justify-center gap-2">
+          {pending && <span className="lg-ball" aria-hidden />}
+          {pending ? "Ingresando…" : "Ingresar"}
+        </span>
       </button>
     </form>
   );
