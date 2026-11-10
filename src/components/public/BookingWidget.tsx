@@ -638,11 +638,15 @@ function toKey(b64: string) {
 
 /** Botón para recibir una notificación en el celular cuando el predio confirme (aunque cierre la página). */
 function NotifyMe({ code, phone }: { code: string; phone: string }) {
-  const [state, setState] = useState<"hidden" | "off" | "busy" | "on" | "denied" | "error">("hidden");
+  const [state, setState] = useState<"hidden" | "off" | "busy" | "on" | "denied" | "error" | "ios" | "unsupported">("hidden");
   useEffect(() => {
     const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !!VAPID;
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     // Se muestra tras montar para no desajustar el HTML del servidor
-    const t = window.setTimeout(() => setState(!ok ? "hidden" : Notification.permission === "denied" ? "denied" : "off"), 0);
+    const t = window.setTimeout(
+      () => setState(!ok ? (ios ? "ios" : "unsupported") : Notification.permission === "denied" ? "denied" : "off"),
+      0,
+    );
     return () => window.clearTimeout(t);
   }, []);
   async function enable() {
@@ -661,6 +665,8 @@ function NotifyMe({ code, phone }: { code: string; phone: string }) {
   }
   if (state === "hidden") return null;
   if (state === "on") return <p className="mt-4 text-sm font-medium text-lime-ink" role="status">🔔 Listo: te avisamos al celular apenas el predio confirme.</p>;
+  if (state === "ios") return <p className="mt-4 max-w-sm text-sm text-muted">Para recibir el aviso en iPhone, abrí este sitio desde Safari, tocá Compartir → «Agregar a pantalla de inicio», abrilo desde ese ícono y volvé a reservar. Mientras tanto, dejá esta pantalla abierta: se actualiza sola.</p>;
+  if (state === "unsupported") return <p className="mt-4 max-w-sm text-sm text-muted">Este navegador no permite avisos al celular. Probá abrir el sitio en Chrome. Mientras tanto, dejá esta pantalla abierta: se actualiza sola.</p>;
   if (state === "denied") return <p className="mt-4 max-w-sm text-sm text-muted">Las notificaciones están bloqueadas en este navegador. Podés seguir esta pantalla abierta o consultar en «Mi reserva».</p>;
   return (
     <div className="mt-4">
