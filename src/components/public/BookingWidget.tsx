@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
 import { createBooking, joinWaitingList } from "@/app/reservar/actions";
 import { addDaysKey, addMonths, formatDateLong, formatDateShort, formatTime } from "@/lib/datetime";
@@ -11,6 +11,7 @@ import type { PublicVenue } from "@/queries/venue";
 import type { CreatedBooking } from "@/services/booking";
 import type { Database } from "@/types/database";
 import { BookingCalendar, type MonthDay } from "./BookingCalendar";
+import { scrollToEl } from "@/lib/scroll";
 
 type Slot = Database["public"]["Functions"]["get_day_availability"]["Returns"][number];
 type Step = "pick" | "details" | "confirm" | "done";
@@ -32,7 +33,20 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
 
   const [courtId, setCourtId] = useState(venue.courtId);
   const courtName = venue.courts.length > 1 ? (venue.courts.find((c) => c.id === courtId)?.name ?? null) : null;
-  const [step, setStep] = useState<Step>("pick");
+  const [step, setStepState] = useState<Step>("pick");
+  const [dir, setDir] = useState<"fwd" | "back">("fwd");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const firstStep = useRef(true);
+  const ORDER: Record<Step, number> = { pick: 0, details: 1, confirm: 2, done: 3 };
+  function setStep(next: Step) {
+    setDir(ORDER[next] >= ORDER[step] ? "fwd" : "back");
+    setStepState(next);
+  }
+  // Al cambiar de paso, el scroll lleva suavemente al inicio del formulario
+  useEffect(() => {
+    if (firstStep.current) { firstStep.current = false; return; }
+    scrollToEl(rootRef.current, -96);
+  }, [step]);
   const [view, setView] = useState({ year: ty, month: tm });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [slotStart, setSlotStart] = useState<string | null>(null);
@@ -186,9 +200,9 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   if (step === "done" && done) {
     const pending = done.status === "pending";
     return (
-      <div className="rounded-3xl border border-lime/40 bg-surface p-6 sm:p-8">
+      <div ref={rootRef} className="step-enter done-card rounded-3xl border border-lime/40 bg-surface p-6 sm:p-8">
         <div className="flex flex-col items-center text-center">
-          <CheckCircle2 size={56} className="text-lime-ink" />
+          <SuccessMark pending={pending} />
           <h3 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-extrabold uppercase">
             {pending ? "Reserva recibida" : "¡Reserva confirmada!"}
           </h3>
@@ -197,6 +211,11 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
               ? "Tu turno quedó pendiente: el predio te va a confirmar."
               : "Tu turno quedó guardado. ¡Te esperamos!"}
           </p>
+          {pending && (
+            <p className="wait-dots mt-4 inline-flex items-center gap-2 rounded-full bg-lime/15 px-4 py-2 text-sm font-semibold text-lime-ink" role="status">
+              <span className="wait-ball" aria-hidden /> Esperando la confirmación del predio<span aria-hidden className="wait-dot">.</span><span aria-hidden className="wait-dot">.</span><span aria-hidden className="wait-dot">.</span>
+            </p>
+          )}
           <div className="mt-6 rounded-2xl border border-dashed border-lime/50 bg-lime/10 px-8 py-4">
             <p className="text-xs uppercase tracking-widest text-muted">Código de reserva</p>
             <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-widest text-lime-ink">
@@ -250,20 +269,21 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   return (
-    <div className="rounded-3xl border border-border bg-surface p-5 sm:p-8">
+    <div ref={rootRef} data-dir={dir} className="rounded-3xl border border-border bg-surface p-5 sm:p-8">
       <ol className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
         {STEPS.map((s, i) => (
           <li key={s.id} className="flex flex-1 items-center gap-2">
             <span
               className={cn(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px]",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] transition-all duration-500",
                 i <= stepIndex ? "bg-lime text-black" : "bg-surface-2 text-muted",
+                i === stepIndex && "step-dot-active",
               )}
             >
               {i + 1}
             </span>
             <span className={cn("hidden sm:inline", i === stepIndex ? "text-foreground" : "text-muted")}>{s.label}</span>
-            {i < STEPS.length - 1 && <span className="h-px flex-1 bg-border" />}
+            {i < STEPS.length - 1 && <span className="step-line h-px flex-1 bg-border"><i style={{ transform: `scaleX(${i < stepIndex ? 1 : 0})` }} /></span>}
           </li>
         ))}
       </ol>
@@ -300,7 +320,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
       )}
 
       {step === "pick" && (
-        <div className="grid gap-8 md:grid-cols-2">
+        <div key="pick" className="step-enter grid gap-8 md:grid-cols-2">
           <div>
             <BookingCalendar
               year={view.year}
@@ -336,8 +356,8 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
 
             {slots && slots.length > 0 && (
               <>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {slots.map((s) => {
+                <div key={selectedDate} className="mt-4 grid grid-cols-2 gap-2">
+                  {slots.map((s, idx) => {
                     const bookable = s.state === "available";
                     const isSel = s.slot_start === slotStart;
                     const pending = bookable && s.has_pending;
@@ -348,8 +368,10 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                         disabled={!bookable && s.state !== "full"}
                         aria-pressed={isSel}
                         onClick={() => pickSlot(s)}
+                        style={{ "--i": idx } as React.CSSProperties}
                         className={cn(
-                          "flex h-16 flex-col items-center justify-center rounded-xl border px-2 text-center transition",
+                          "slot-in flex h-16 flex-col items-center justify-center rounded-xl border px-2 text-center transition duration-200 active:scale-95",
+                          isSel && "slot-sel",
                           bookable && !isSel && !pending && "border-lime/40 bg-lime/10 hover:bg-lime/25",
                           bookable && !isSel && pending && "border-warning/50 bg-warning/10 hover:bg-warning/20",
                           isSel && "border-lime bg-lime text-black",
@@ -411,7 +433,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
               type="button"
               disabled={!slot}
               onClick={goDetails}
-              className="mt-6 h-14 w-full rounded-2xl bg-lime font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black transition enabled:hover:bg-lime-dark disabled:cursor-not-allowed disabled:opacity-40"
+              className={cn("mt-6 h-14 w-full rounded-2xl bg-lime font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide text-black transition enabled:hover:bg-lime-dark disabled:cursor-not-allowed disabled:opacity-40", slot && "cta-ready")}
             >
               Continuar
             </button>
@@ -420,7 +442,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
       )}
 
       {step === "details" && slot && selectedDate && (
-        <div className="mx-auto max-w-lg">
+        <div key="details" className="step-enter mx-auto max-w-lg">
           <BackButton onClick={() => setStep("pick")} />
           <p className="mt-3 rounded-xl bg-lime/10 px-4 py-3 text-sm">
             <span className="font-semibold">{formatDateLong(selectedDate)}</span> · {range}
@@ -485,7 +507,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
       )}
 
       {step === "confirm" && slot && selectedDate && (
-        <div className="mx-auto max-w-lg">
+        <div key="confirm" className="step-enter mx-auto max-w-lg">
           <BackButton onClick={() => setStep("details")} />
           <h3 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold uppercase">Confirmá tu reserva</h3>
 
@@ -550,3 +572,24 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 
+
+
+function SuccessMark({ pending }: { pending: boolean }) {
+  return (
+    <div className="success-mark relative flex h-28 w-28 items-center justify-center" aria-hidden>
+      <span className="success-ring" />
+      <span className="success-ring" style={{ animationDelay: "0.7s" }} />
+      {!pending && Array.from({ length: 14 }, (_, i) => (
+        <span key={i} className="confetti" style={{ "--a": `${(360 / 14) * i}deg`, "--d": `${0.55 + (i % 4) * 0.08}s` } as React.CSSProperties} />
+      ))}
+      <svg viewBox="0 0 52 52" className="relative h-24 w-24 text-lime-ink">
+        <circle className="success-circle" cx="26" cy="26" r="23" fill="none" stroke="currentColor" strokeWidth="3" />
+        {pending ? (
+          <path className="success-check" d="M26 14 V27 L34 32" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        ) : (
+          <path className="success-check" d="M15 27 l7 7 l15 -16" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        )}
+      </svg>
+    </div>
+  );
+}

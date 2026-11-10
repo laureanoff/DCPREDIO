@@ -1,2 +1,2 @@
-/** Estado compartido entre ScrollFx (scroll) y la escena 3D de reflectores. */
-export const stageFx = { l1: 0, l2: 0, p: 0, visible: false };
+/** Estado compartido entre ScrollFx (scroll) y el video del escenario. */
+export const stageFx = { p: 0, visible: false };
