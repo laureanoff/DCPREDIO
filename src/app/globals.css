@@ -323,8 +323,9 @@ html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; backgro
 @keyframes page-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #b6d61a; box-shadow: 0 0 0 0 rgba(182,214,26,.7); animation: live-pulse 1.6s ease-out infinite; }
 @keyframes live-pulse { 70%, 100% { box-shadow: 0 0 0 10px rgba(182,214,26,0); } }
-.day-pitch { background:
-  repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 50%, rgba(0,0,0,.08) 50% 100%) , linear-gradient(#2d7a21, #246a1a); }
+.day-pitch { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 10%, rgba(0,0,0,.07) 10% 20%), linear-gradient(#2d7a21, #246a1a); }
+.player-paid { animation: player-pop .55s cubic-bezier(.3,1.7,.5,1) both; box-shadow: 0 0 0 0 var(--team), 0 4px 10px rgba(0,0,0,.35); }
+@keyframes player-pop { 0% { transform: scale(.6); box-shadow: 0 0 0 0 var(--team); } 60% { transform: scale(1.25); box-shadow: 0 0 0 14px transparent; } 100% { transform: scale(1); } }
 .pitch-slot { animation: slot-in .5s cubic-bezier(.2,.8,.2,1) both; color: #fff; }
 .pitch-free { background: rgba(182,214,26,.18); }
 .pitch-free:hover { background: rgba(182,214,26,.35); }
@@ -368,7 +369,7 @@ html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; backgro
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .hero-reveal { opacity: 1 !important; transform: none !important; animation: none !important; filter: none !important; }
   .hero-fade { opacity: .07 !important; animation: none !important; }
-  .title-grass, .hero-lamp, .media-card::after, .cal-grid, .cal-few, .grass-edge i, .today-badge, .page-enter, .live-dot, .pitch-slot, .bar-grow, .skeleton::after, .ball-loader-ball, .ball-loader-shadow, .ball-loader-text, .loading-fade, .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
+  .title-grass, .hero-lamp, .media-card::after, .cal-grid, .cal-few, .grass-edge i, .today-badge, .player-paid, .page-enter, .live-dot, .pitch-slot, .bar-grow, .skeleton::after, .ball-loader-ball, .ball-loader-shadow, .ball-loader-text, .loading-fade, .lg-card, .lg-logo, .lg-rise, .lg-shake, .lg-beam, .lg-btn::after, .lg-ball, .confirmed-banner, .confirmed-flash, .step-enter, .slot-in, .slot-sel, .cta-ready, .step-dot-active, .success-ring, .confetti, .wait-ball, .wait-dot { animation: none !important; }
   .success-circle, .success-check { animation: none !important; stroke-dashoffset: 0 !important; }
   .confetti { display: none; }
 }

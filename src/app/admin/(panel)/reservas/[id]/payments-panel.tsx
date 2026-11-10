@@ -3,7 +3,7 @@
 import { playGoal } from "@/lib/sfx";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, User } from "lucide-react";
+import { PitchLegend, PlayersPitch, TEAM_A, TEAM_B } from "./players-pitch";
 import { registerPayment, registerPlayerPayment, voidPayment } from "../payment-actions";
 import type { ActionResult } from "../actions";
 import { playerShare } from "@/business/payments";
@@ -98,59 +98,56 @@ export function PaymentsPanel({ bookingId, total, totalPaid, balance, players, c
         <span className="text-sm text-muted">{paidPlayers} de {players} pagaron</span>
       </div>
 
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {Array.from({ length: players }, (_, i) => i + 1).map((slot) => {
-          const paid = bySlot.get(slot);
-          const share = playerShare(total, players, slot);
-          const open = openSlot === slot;
-          return (
-            <li key={slot} className={cn("rounded-xl border p-2", paid ? "border-lime-ink/40 bg-lime/10" : "border-border bg-surface-2")}>
-              <button
-                type="button"
-                disabled={cancelled || pending || (!!paid && true)}
-                aria-expanded={open}
-                onClick={() => {
-                  setOpenSlot(open ? null : slot);
-                  setSlotNotes("");
-                }}
-                className="flex w-full flex-col items-start text-left disabled:cursor-default"
-              >
-                <span className="flex w-full items-center justify-between text-xs text-muted">
-                  <span className="flex items-center gap-1"><User size={12} aria-hidden /> Jugador {slot}</span>
-                  {paid && <Check size={14} className="text-lime-ink" aria-label="Pagó" />}
-                </span>
-                <span className={cn("mt-1 font-[family-name:var(--font-display)] text-xl font-bold", paid && "text-muted line-through")}>
-                  {formatMoney(paid ? paid.amount : share)}
-                </span>
-                <span className="text-xs text-muted">{paid ? `${METHODS[paid.method]} · pagó` : cancelled ? "—" : "Tocar para cobrar"}</span>
-              </button>
+      <PlayersPitch
+        players={Array.from({ length: players }, (_, i) => i + 1).map((slot) => ({ slot, paid: bySlot.has(slot), label: bySlot.has(slot) ? "pagó" : "falta cobrar" }))}
+        selected={openSlot}
+        disabled={cancelled || pending}
+        onPick={(slot) => {
+          setOpenSlot(openSlot === slot ? null : slot);
+          setSlotNotes("");
+        }}
+      />
+      <PitchLegend />
 
-              {paid && !cancelled && (
-                <button type="button" className="mt-1 text-xs text-danger hover:underline" onClick={() => { setVoiding(paid.id); setReason(""); }}>
-                  Anular
-                </button>
-              )}
-
-              {open && !paid && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <select className={cn(field, "h-10")} value={slotMethod} onChange={(e) => setSlotMethod(e.target.value as Method)} aria-label={`Medio de pago del jugador ${slot}`}>
-                    {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </select>
-                  <input className={cn(field, "h-10")} placeholder="Nombre / nota" value={slotNotes} onChange={(e) => setSlotNotes(e.target.value)} maxLength={300} aria-label={`Nota del jugador ${slot}`} />
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => run(() => registerPlayerPayment(bookingId, { slot, method: slotMethod, notes: slotNotes }), () => setOpenSlot(null))}
-                    className="h-10 rounded-xl bg-lime text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50"
-                  >
-                    Cobrar {formatMoney(share)}
+      {openSlot !== null && (() => {
+        const slot = openSlot;
+        const paid = bySlot.get(slot);
+        const share = playerShare(total, players, slot);
+        const teamA = slot <= Math.ceil(players / 2);
+        return (
+          <div className="mt-3 rounded-xl border border-border bg-surface-2 p-3">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <span className="h-3 w-3 rounded-full" style={{ background: teamA ? TEAM_A : TEAM_B }} />
+              Jugador {slot} · equipo {teamA ? "azul" : "naranja"} · {formatMoney(paid ? paid.amount : share)}
+            </p>
+            {paid ? (
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="text-muted">{METHODS[paid.method]} · pagó{paid.notes ? ` · ${paid.notes}` : ""}</span>
+                {!cancelled && (
+                  <button type="button" className="text-danger hover:underline" onClick={() => { setVoiding(paid.id); setReason(""); }}>
+                    Anular cobro
                   </button>
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                )}
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <select className={cn(field, "h-10 sm:w-44")} value={slotMethod} onChange={(e) => setSlotMethod(e.target.value as Method)} aria-label={`Medio de pago del jugador ${slot}`}>
+                  {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <input className={cn(field, "h-10 flex-1")} placeholder="Nombre / nota" value={slotNotes} onChange={(e) => setSlotNotes(e.target.value)} maxLength={300} aria-label={`Nota del jugador ${slot}`} />
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => run(() => registerPlayerPayment(bookingId, { slot, method: slotMethod, notes: slotNotes }), () => setOpenSlot(null))}
+                  className="h-10 rounded-xl bg-lime px-4 text-sm font-bold uppercase tracking-wide text-black disabled:opacity-50"
+                >
+                  Cobrar {formatMoney(share)}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {voiding && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-danger/40 p-3">
