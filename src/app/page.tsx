@@ -6,27 +6,32 @@ import { LocationSection } from "@/components/public/LocationSection";
 import { InfoSection } from "@/components/public/InfoSection";
 import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
 import { SiteFooter } from "@/components/public/SiteFooter";
+import { IntroGoal } from "@/components/public/IntroGoal";
+import { Reveal } from "@/components/public/Reveal";
+import { SmoothScroll } from "@/components/public/SmoothScroll";
 
 export default async function Home() {
   const venue = await getPublicVenue();
 
   return (
     <>
+      <IntroGoal />
+      <SmoothScroll />
       <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
       <main className="flex-1">
         <Hero venueName={venue.name} />
         <section id="reservar" className="scroll-mt-20 px-5 py-10">
-          <div className="mx-auto max-w-5xl">
+          <Reveal className="mx-auto max-w-5xl">
             <h2 className="mb-6 font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase sm:text-6xl">
               Reservar <span className="text-lime-ink">turno</span>
             </h2>
             <Suspense fallback={<BookingSkeleton />}>
               <BookingSection venue={venue} />
             </Suspense>
-          </div>
+          </Reveal>
         </section>
-        <InfoSection venue={venue} />
-        <LocationSection venue={venue} />
+        <Reveal><InfoSection venue={venue} /></Reveal>
+        <Reveal><LocationSection venue={venue} /></Reveal>
       </main>
       <SiteFooter name={venue.name} />
     </>

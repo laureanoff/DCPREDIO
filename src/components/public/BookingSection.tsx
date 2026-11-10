@@ -2,16 +2,11 @@ import { connection } from "next/server";
 import { todayKey } from "@/lib/datetime";
 import type { PublicVenue } from "@/queries/venue";
 import { BookingWidget } from "./BookingWidget";
-import { GoalReveal } from "./GoalReveal";
 
 /** Calcula "hoy" en el servidor, en el momento de cada request (la fecha no puede quedar congelada en el build). */
 export async function BookingSection({ venue }: { venue: PublicVenue }) {
   await connection();
-  return (
-    <GoalReveal>
-      <BookingWidget venue={venue} today={todayKey(venue.timezone)} />
-    </GoalReveal>
-  );
+  return <BookingWidget venue={venue} today={todayKey(venue.timezone)} />;
 }
 
 export function BookingSkeleton() {

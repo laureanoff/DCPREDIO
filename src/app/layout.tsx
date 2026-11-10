@@ -38,9 +38,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Aplica el tema guardado antes del primer pintado para evitar el parpadeo. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("dc-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("dc-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}try{if(matchMedia("(prefers-reduced-motion: reduce)").matches||sessionStorage.getItem("dc-intro")){document.documentElement.classList.add("intro-skip","intro-done")}}catch(e){}`,
           }}
         />
+        <noscript><style>{`.hero-reveal,.reveal{opacity:1!important;transform:none!important}.intro-overlay{display:none!important}`}</style></noscript>
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
