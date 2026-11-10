@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { stageFx } from "@/lib/stage-fx";
 
 /** Secuencia de encendido con parpadeo: determinista según el avance, así sube y baja igual que el scroll. */
 const FLICKER = [0, 0.9, 0.08, 0.7, 0.15, 1, 0.5, 1, 0.85, 1];
@@ -43,8 +44,12 @@ export function ScrollFx() {
       p = p < 0 ? target : p + (target - p) * 0.12;
       if (Math.abs(target - p) < 0.001) p = target;
       if (stage) {
-        stage.style.setProperty("--l1", String(ignite((p - 0.2) / 0.35)));
-        stage.style.setProperty("--l2", String(ignite((p - 0.5) / 0.35)));
+        const l1 = ignite((p - 0.2) / 0.35), l2 = ignite((p - 0.5) / 0.35);
+        stage.style.setProperty("--l1", String(l1));
+        stage.style.setProperty("--l2", String(l2));
+        stageFx.l1 = l1; stageFx.l2 = l2; stageFx.p = p;
+        const r = stage.getBoundingClientRect();
+        stageFx.visible = r.bottom > 0 && r.top < window.innerHeight;
       }
       raf = requestAnimationFrame(tick);
     };

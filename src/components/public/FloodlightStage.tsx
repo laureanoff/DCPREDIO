@@ -1,3 +1,5 @@
+import { StageCanvas } from "./StageCanvas";
+
 export function FloodlightStage({ children }: { children: React.ReactNode }) {
   return (
     <section id="reservar" data-stage className="stage scroll-mt-20 px-5 py-24 sm:py-32">
@@ -22,6 +24,7 @@ export function FloodlightStage({ children }: { children: React.ReactNode }) {
         <div className="stage-pool l" />
         <div className="stage-pool r" />
         <div className="stage-haze" />
+        <StageCanvas />
         <div className="lamp l"><span className="lamp-glow" /><div className="lamp-body">{Array.from({ length: 6 }, (_, i) => <i key={i} />)}</div></div>
         <div className="lamp r"><span className="lamp-glow" /><div className="lamp-body">{Array.from({ length: 6 }, (_, i) => <i key={i} />)}</div></div>
       </div>
