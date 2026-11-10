@@ -11,11 +11,14 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
       <input type="hidden" name="next" value={next} />
 
       <label className="flex flex-col gap-1.5 text-sm">
-        <span className="text-muted">Email</span>
+        <span className="text-muted">Usuario</span>
         <input
-          name="email"
-          type="email"
-          autoComplete="email"
+          name="username"
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           required
           className="h-12 rounded-xl border border-border bg-surface-2 px-4 text-base text-foreground outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30"
         />

@@ -92,12 +92,12 @@ Para dar de alta al administrador:
 1. Supabase → **Authentication → Users → Add user → Create new user** (email + contraseña, marcar *Auto Confirm User*).
 2. Supabase → **SQL Editor**:
 ```sql
-insert into public.profiles (id, full_name, role)
-select id, 'Diego', 'admin' from auth.users where email = 'EMAIL_DE_DIEGO';
+insert into public.profiles (id, full_name, username, role)
+select id, 'Diego', 'admin', 'admin' from auth.users where email = 'EMAIL_DE_DIEGO';
 ```
 3. Supabase → **Authentication → Sign In / Providers**: desactivar **"Allow new users to sign up"**.
 
-Ingreso: `/admin/login`. El panel está en `/admin` (protegido por `src/proxy.ts`, `requireStaff()` y RLS).
+Ingreso: `/admin/login` con **usuario** y contraseña (el email solo existe internamente en Supabase Auth). El panel está en `/admin` (protegido por `src/proxy.ts`, `requireStaff()` y RLS).
 
 ## Pruebas de base de datos
 

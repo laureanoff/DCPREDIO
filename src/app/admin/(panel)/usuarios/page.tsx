@@ -9,12 +9,10 @@ export const metadata: Metadata = { title: "Empleados" };
 
 async function Content() {
   await connection();
-  await requireAdmin();
+  const me = await requireAdmin();
   const admin = createAdminClient();
-  const { data: profiles } = await admin.from("profiles").select("id, full_name, role, is_active").eq("role", "staff").order("created_at");
-  const emails = new Map<string, string>();
-  const { data: users } = await admin.auth.admin.listUsers({ perPage: 200 });
-  for (const u of users?.users ?? []) emails.set(u.id, u.email ?? "");
+  const { data: profiles } = await admin.from("profiles").select("id, full_name, username, role, is_active").in("role", ["staff", "admin"]).order("created_at");
+  const mine = (profiles ?? []).find((p) => p.id === me.userId);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -22,7 +20,7 @@ async function Content() {
       <p className="text-sm text-muted">
         Los empleados pueden ver la agenda, cargar y confirmar reservas, cobrar, bloquear horarios y usar el buffet. No ven configuración, estadísticas, galería, respaldos ni esta sección.
       </p>
-      <EmployeesUI employees={(profiles ?? []).map((p) => ({ id: p.id, name: p.full_name, email: emails.get(p.id) ?? "", active: p.is_active }))} />
+      <EmployeesUI myId={me.userId} myUsername={mine?.username ?? ""} employees={(profiles ?? []).filter((p) => p.role === "staff").map((p) => ({ id: p.id, name: p.full_name, username: p.username, active: p.is_active }))} />
     </div>
   );
 }

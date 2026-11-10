@@ -4,25 +4,35 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { safeAdminPath } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type LoginState = { error?: string };
 
 const loginSchema = z.object({
-  email: z.string().trim().email().max(200),
+  username: z.string().trim().toLowerCase().min(3).max(30).regex(/^[a-z0-9._-]+$/),
   password: z.string().min(6).max(200),
 });
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: "Ingresá un email y una contraseña válidos." };
+  if (!parsed.success) return { error: "Ingresá tu usuario y contraseña." };
+
+  // El usuario se traduce al email interno de Auth; el cliente nunca ve ese email.
+  const BAD = "Usuario o contraseña incorrectos.";
+  const admin = createAdminClient();
+  const { data: prof } = await admin.from("profiles").select("id").eq("username", parsed.data.username).maybeSingle();
+  if (!prof) return { error: BAD };
+  const { data: authUser } = await admin.auth.admin.getUserById(prof.id);
+  const email = authUser?.user?.email;
+  if (!email) return { error: BAD };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
-  // Mensaje genérico: no revelar si el email existe.
-  if (error || !data.user) return { error: "Email o contraseña incorrectos." };
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
+  // Mensaje genérico: no revelar si el usuario existe.
+  if (error || !data.user) return { error: BAD };
 
   // Un usuario de Auth sin perfil activo NO tiene acceso al panel.
   const { data: profile } = await supabase

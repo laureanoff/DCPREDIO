@@ -32,7 +32,7 @@ Si una clave se pegó en un chat o se subió a Git: Supabase → Project Setting
 
 ## Empleados, buffet, bloqueos, canchas y avisos push
 
-- **Empleados** (`/admin/usuarios`, solo administrador): se crean con email y contraseña; el rol «staff» opera reservas, cobros, bloqueos y buffet, pero no ve configuración, estadísticas, galería, respaldos ni usuarios. Desactivar un empleado cierra su acceso al instante.
+- **Empleados** (`/admin/usuarios`, solo administrador): se crean con usuario y contraseña (se entra solo con el usuario, no con email); el rol «staff» opera reservas, cobros, bloqueos y buffet, pero no ve configuración, estadísticas, galería, respaldos ni usuarios. Desactivar un empleado cierra su acceso al instante.
 - **Reservas manuales** (`/admin/reservas/nueva`) usan la misma regla anti-doble-reserva que la web.
 - **Bloqueos** (`/admin/bloqueos`): lluvia, mantenimiento, torneo (todo el personal) y feriados/días especiales (solo administrador). No permite bloquear sobre reservas activas.
 - **Mi reserva** (`/mi-reserva`): el cliente consulta/cancela con código + teléfono. Se configura en Configuración (permitir cancelar y horas de anticipación). No se puede cancelar online si hay pagos registrados.
