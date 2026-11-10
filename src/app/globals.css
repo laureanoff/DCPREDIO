@@ -202,3 +202,98 @@ body {
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Crect x='20' y='20' width='360' height='560' rx='4'/%3E%3Cpath d='M20 300H380'/%3E%3Ccircle cx='200' cy='300' r='56'/%3E%3Ccircle cx='200' cy='300' r='4' fill='black'/%3E%3Cpath d='M110 20V110H290V20M110 580V490H290V580'/%3E%3Cpath d='M160 20V50H240V20M160 580V550H240V580'/%3E%3Cpath d='M160 110A44 44 0 0 0 240 110M160 490A44 44 0 0 1 240 490'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
   }
 }
+
+/* ============================================================
+   Escena de gol de la sección Reservar (GoalReveal)
+   Línea de tiempo: carrera 0–1.0 s · remate 1.25 s · gol 1.95 s
+   · festejo hasta ~3.1 s · el calendario aparece al final.
+   ============================================================ */
+.goal-stage { background: #0a0f05; }
+.goal-stage svg * { transform-box: fill-box; }
+
+/* Estado inicial (antes de empezar) */
+.goal-player { transform: translateX(-190px); }
+.goal-text { fill: #b6d61a; stroke: #0a0a0a; stroke-width: 6px; paint-order: stroke; opacity: 0; transform-origin: center; }
+.goal-flash { opacity: 0; transform-origin: center; }
+.goal-confetti { opacity: 0; transform-origin: center; }
+
+.goal-play .goal-player { animation: goal-run 1s cubic-bezier(.25,.6,.35,1) both; }
+.goal-play .goal-body { animation: goal-bob .25s ease-in-out 0s 4 alternate both; transform-origin: bottom center; }
+.goal-play .goal-leg-k { transform-origin: 50% 0; animation: goal-kick-thigh 1.6s linear both; }
+.goal-play .goal-shin-k { transform-origin: 50% 0; animation: goal-kick-shin 1.6s linear both; }
+.goal-play .goal-leg-a { transform-origin: 50% 0; animation: goal-sup-thigh 1.6s linear both; }
+.goal-play .goal-shin-a { transform-origin: 50% 0; animation: goal-sup-shin 1.6s linear both; }
+.goal-play .goal-arm-f { transform-origin: 50% 0; animation: goal-arm-front 1.6s linear both; }
+.goal-play .goal-arm-b { transform-origin: 50% 0; animation: goal-arm-back 1.6s linear both; }
+
+.goal-play .goal-ball-x { animation: goal-ball-x .7s linear 1.25s both; }
+.goal-play .goal-ball-y { animation: goal-ball-y .7s cubic-bezier(.15,.75,.4,1) 1.25s both; transform-origin: 180px 382px; }
+.goal-play .goal-ball-spin { animation: goal-ball-spin .7s linear 1.25s both; transform-origin: center; }
+.goal-play .goal-ball-shadow { animation: goal-shadow .3s ease-out 1.25s both; }
+.goal-play .goal-net { animation: goal-net .75s ease-out 1.95s both; transform-origin: 200px 72px; }
+.goal-play .goal-flash { animation: goal-flash .6s ease-out 1.95s both; }
+.goal-play .goal-text { animation: goal-text 1.15s cubic-bezier(.2,1.6,.4,1) 2s both; }
+.goal-play .goal-confetti { animation: goal-confetti .95s cubic-bezier(.1,.7,.3,1) 1.97s both; }
+.goal-play .goal-shake { animation: goal-shake .3s linear 1.95s both; }
+
+.goal-out { animation: goal-fade .55s ease-in both; pointer-events: none; }
+.goal-content-in { animation: goal-content .6s cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes goal-run { from { transform: translateX(-190px); } to { transform: translateX(0); } }
+@keyframes goal-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+/* 0–1.0 s carrera (0–62.5 %), 1.1 s armado, 1.25 s golpe (78 %), 1.45 s seguimiento */
+@keyframes goal-kick-thigh {
+  0% { transform: rotate(28deg); } 15.6% { transform: rotate(-28deg); } 31% { transform: rotate(28deg); }
+  47% { transform: rotate(-28deg); } 62.5% { transform: rotate(18deg); } 69% { transform: rotate(52deg); }
+  78% { transform: rotate(-45deg); } 90% { transform: rotate(-85deg); } 100% { transform: rotate(-55deg); }
+}
+@keyframes goal-kick-shin {
+  0% { transform: rotate(10deg); } 15.6% { transform: rotate(35deg); } 31% { transform: rotate(10deg); }
+  47% { transform: rotate(35deg); } 62.5% { transform: rotate(25deg); } 69% { transform: rotate(95deg); }
+  78% { transform: rotate(4deg); } 90% { transform: rotate(18deg); } 100% { transform: rotate(40deg); }
+}
+@keyframes goal-sup-thigh {
+  0% { transform: rotate(-28deg); } 15.6% { transform: rotate(28deg); } 31% { transform: rotate(-28deg); }
+  47% { transform: rotate(28deg); } 62.5% { transform: rotate(-4deg); } 78% { transform: rotate(8deg); } 100% { transform: rotate(14deg); }
+}
+@keyframes goal-sup-shin {
+  0% { transform: rotate(32deg); } 15.6% { transform: rotate(8deg); } 31% { transform: rotate(32deg); }
+  47% { transform: rotate(8deg); } 62.5% { transform: rotate(14deg); } 78% { transform: rotate(10deg); } 100% { transform: rotate(18deg); }
+}
+@keyframes goal-arm-front {
+  0% { transform: rotate(35deg); } 15.6% { transform: rotate(-35deg); } 31% { transform: rotate(35deg); }
+  47% { transform: rotate(-35deg); } 62.5% { transform: rotate(-20deg); } 78% { transform: rotate(40deg); } 100% { transform: rotate(55deg); }
+}
+@keyframes goal-arm-back {
+  0% { transform: rotate(-35deg); } 15.6% { transform: rotate(35deg); } 31% { transform: rotate(-35deg); }
+  47% { transform: rotate(35deg); } 62.5% { transform: rotate(30deg); } 78% { transform: rotate(-50deg); } 100% { transform: rotate(-60deg); }
+}
+/* Pelota: x lineal, y con arco, achicándose al alejarse */
+@keyframes goal-ball-x { from { transform: translateX(0); } to { transform: translateX(70px); } }
+@keyframes goal-ball-y { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-272px) scale(.4); } }
+@keyframes goal-ball-spin { from { transform: rotate(0); } to { transform: rotate(900deg); } }
+@keyframes goal-shadow { to { opacity: 0; } }
+@keyframes goal-net {
+  0% { transform: scale(1, 1); } 20% { transform: scale(1.06, 1.22) skewX(-4deg); } 45% { transform: scale(.98, .94) skewX(3deg); }
+  70% { transform: scale(1.01, 1.06) skewX(-1deg); } 100% { transform: scale(1, 1); }
+}
+@keyframes goal-flash { 0% { opacity: 0; transform: scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes goal-text {
+  0% { opacity: 0; transform: scale(.2) rotate(-8deg); } 35% { opacity: 1; transform: scale(1.18) rotate(2deg); }
+  60% { transform: scale(1) rotate(-1deg); } 100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes goal-confetti {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(.6); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 90px)) rotate(var(--rot)) scale(1); }
+}
+@keyframes goal-shake {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, -1px); } 80% { transform: translate(2px, 1px); } 100% { transform: translate(0, 0); }
+}
+@keyframes goal-fade { to { opacity: 0; transform: scale(1.04); } }
+@keyframes goal-content { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .goal-stage, .goal-content-in { animation: none !important; }
+}
