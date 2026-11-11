@@ -6,13 +6,72 @@ import { Phone } from "lucide-react";
 import { cn, formatMoney } from "@/lib/utils";
 import { ageFrom, BILLING_LABEL, ENROLLMENT_STATUS, WEEKDAYS, type Billing } from "@/lib/training";
 import { whatsappLink } from "@/business/confirmation-message";
-import { deleteEnrollment, saveEnrollmentNotes, setEnrollmentStatus } from "./actions";
+import { addTrainingPayment, deleteEnrollment, saveEnrollmentNotes, setEnrollmentStatus, voidTrainingPayment } from "./actions";
 
 export type EnrollmentRow = {
   id: string; activity: string; pack: string; daysPerWeek: number; billing: string; price: number; preferredDays: number[]; preferredTime: string; notes: string;
   status: string; startDate: string | null; staffNotes: string; createdAt: string;
   student: string; birthDate: string | null; guardian: string; phone: string; email: string; emergency: string; health: string;
+  payments: PaymentItem[];
 };
+export type PaymentItem = { id: string; amount: number; method: string; concept: string; paidAt: string; voided: boolean; voidReason: string };
+
+const METHOD: Record<string, string> = { cash: "Efectivo", transfer: "Transferencia", other: "Otro" };
+
+function Payments({ r }: { r: EnrollmentRow }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Cordoba" });
+  const [f, setF] = useState({ amount: String(r.price), method: "cash", concept: "", date: today });
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const total = r.payments.filter((p) => !p.voided).reduce((t, p) => t + p.amount, 0);
+  const inp = "h-10 min-w-0 rounded-xl border border-border bg-surface-2 px-3 text-base outline-none focus:border-lime";
+
+  function run(fn: () => Promise<{ ok: boolean; message?: string; error?: string }>, onOk?: () => void) {
+    setMsg(null);
+    start(async () => {
+      const x = await fn();
+      setMsg({ ok: x.ok, text: (x.ok ? x.message : x.error) ?? "" });
+      if (x.ok) { onOk?.(); router.refresh(); }
+    });
+  }
+
+  return (
+    <section aria-label="Cobros" className="rounded-xl border border-border bg-surface-2/50 p-3">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="font-semibold">Cobros</h3>
+        <span className="text-sm text-muted">Total cobrado: <strong className="text-foreground">{formatMoney(total)}</strong></span>
+      </div>
+      {r.payments.length > 0 && (
+        <ul className="mb-3 flex flex-col gap-1.5">
+          {r.payments.map((p) => (
+            <li key={p.id} className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-sm", p.voided && "text-muted line-through")}>
+              <span className="w-20 shrink-0 text-muted">{new Date(p.paidAt).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Cordoba", day: "2-digit", month: "2-digit", year: "2-digit" })}</span>
+              <strong className="w-24 shrink-0">{formatMoney(p.amount)}</strong>
+              <span className="min-w-0 flex-1 truncate">{METHOD[p.method]}{p.concept ? ` · ${p.concept}` : ""}{p.voided && p.voidReason ? ` · anulado: ${p.voidReason}` : ""}</span>
+              {!p.voided && (
+                <button type="button" disabled={pending} onClick={() => { const reason = prompt("Motivo de la anulación (opcional):"); if (reason !== null) run(() => voidTrainingPayment(p.id, reason)); }} className="text-xs text-muted underline underline-offset-2 hover:text-danger">Anular</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        className="grid gap-2 sm:grid-cols-[7rem_9rem_1fr_9rem_auto]"
+        onSubmit={(e) => { e.preventDefault(); run(() => addTrainingPayment(r.id, { amount: Number(f.amount.replace(",", ".")), method: f.method as "cash", concept: f.concept, date: f.date, notes: "" }), () => setF((s) => ({ ...s, concept: "" }))); }}
+      >
+        <input className={inp} inputMode="decimal" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} aria-label="Monto" placeholder="Monto" required />
+        <select className={inp} value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })} aria-label="Medio de pago">
+          <option value="cash">Efectivo</option><option value="transfer">Transferencia</option><option value="other">Otro</option>
+        </select>
+        <input className={inp} value={f.concept} maxLength={100} onChange={(e) => setF({ ...f, concept: e.target.value })} aria-label="Concepto" placeholder="Concepto (ej. Noviembre)" />
+        <input className={inp} type="date" value={f.date} max={today} onChange={(e) => setF({ ...f, date: e.target.value })} aria-label="Fecha del cobro" required />
+        <button type="submit" disabled={pending} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Registrar cobro</button>
+      </form>
+      {msg && <p role="status" className={`mt-2 text-sm ${msg.ok ? "text-lime-ink" : "text-danger"}`}>{msg.text}</p>}
+    </section>
+  );
+}
 
 const TONE: Record<string, string> = {
   pending: "border-warning/50 bg-warning/10 text-warning",
@@ -66,6 +125,8 @@ function Card({ r, isAdmin }: { r: EnrollmentRow; isAdmin: boolean }) {
           </dl>
           {r.health && <p className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2"><strong>Salud:</strong> {r.health}</p>}
           {r.notes && <p className="rounded-xl bg-surface-2 px-3 py-2"><strong>Comentarios de la familia:</strong> {r.notes}</p>}
+
+          {r.status !== "cancelled" && <Payments r={r} />}
 
           <label className="flex flex-col gap-1.5 font-medium">Notas internas
             <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder="Horario asignado, observaciones…" className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-base font-normal outline-none focus:border-lime" />

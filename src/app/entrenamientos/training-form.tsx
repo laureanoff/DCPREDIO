@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
-import { Check, Dumbbell, MapPin } from "lucide-react";
+import { Check, Dumbbell, MapPin, Send } from "lucide-react";
 import { cn, formatMoney } from "@/lib/utils";
 import { BILLING_LABEL, BILLING_ORDER, BILLING_SUFFIX, WEEKDAYS, type Billing } from "@/lib/training";
 import type { PublicActivity } from "@/queries/trainings";
 import { enroll } from "./actions";
 
-const input = "h-12 w-full rounded-xl border border-border bg-background px-3 text-base outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30";
+const input = "h-12 w-full rounded-xl glass-input px-3.5 text-base outline-none transition placeholder:text-muted/70 focus:border-lime focus:ring-2 focus:ring-lime/30";
 const label = "flex flex-col gap-1.5 text-sm font-medium";
 
 export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
@@ -60,8 +60,8 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
 
   if (done) {
     return (
-      <div ref={top} className="rounded-3xl border border-lime/50 bg-lime/10 p-8 text-center step-enter">
-        <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-lime text-black"><Check size={30} aria-hidden /></span>
+      <div ref={top} className="tr-hero glass glass-lime p-8 text-center step-enter sm:p-12">
+        <span className="slot-sel mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-lime text-black"><Check size={34} aria-hidden /></span>
         <h2 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">¡Solicitud enviada!</h2>
         <p className="mx-auto mt-2 max-w-md text-muted">
           Recibimos la inscripción de <strong className="text-foreground">{f.student}</strong>. Te vamos a contactar por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para
@@ -75,25 +75,35 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
   }
 
   if (!act) {
-    return <p className="rounded-2xl border border-dashed border-border px-5 py-10 text-center text-muted">Todavía no hay entrenamientos disponibles. Volvé a mirar pronto.</p>;
+    return <p className="glass rounded-2xl px-5 py-10 text-center text-muted">Todavía no hay entrenamientos disponibles. Volvé a mirar pronto.</p>;
   }
 
   return (
     <form ref={top as unknown as React.RefObject<HTMLFormElement>} onSubmit={submit} className="flex flex-col gap-10" noValidate>
+      <ol className="tr-steps -mb-4" aria-label="Pasos">
+        {["Actividad", "Pack", "Tus datos", "Días"].map((t, i) => (
+          <li key={t} data-on={i === 0 || (i === 1 && !!act) || (i >= 2 && !!pack)}>{t}</li>
+        ))}
+      </ol>
       <section aria-labelledby="t-act" className="scroll-mt-24">
         <h2 id="t-act" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">1 · ¿Qué querés entrenar?</h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          {catalog.map((a) => (
+          {catalog.map((a, i) => (
             <button
               key={a.id}
               type="button"
+              style={{ "--i": i } as React.CSSProperties}
               onClick={() => { setActId(a.id); setPackId(null); }}
               aria-pressed={a.id === act.id}
-              className={cn("rounded-2xl border p-4 text-left transition", a.id === act.id ? "border-lime bg-lime/10" : "border-border bg-surface hover:border-lime/60")}
+              className="glass tr-card tr-in flex items-start gap-4 p-5 text-left"
             >
-              <span className="flex items-center gap-2 font-[family-name:var(--font-display)] text-xl font-bold uppercase"><Dumbbell size={18} aria-hidden className="text-lime-ink" />{a.name}</span>
-              {a.location && <span className="mt-0.5 flex items-center gap-1 text-xs text-muted"><MapPin size={12} aria-hidden />{a.location}</span>}
-              {a.description && <span className="mt-2 block text-sm text-muted">{a.description}</span>}
+              <span className="glass-ico shrink-0"><Dumbbell size={22} aria-hidden /></span>
+              <span className="min-w-0">
+                <span className="block font-[family-name:var(--font-display)] text-2xl font-bold uppercase leading-tight">{a.name}</span>
+                {a.location && <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-lime-ink"><MapPin size={12} aria-hidden />{a.location}</span>}
+                {a.description && <span className="mt-2 block text-sm text-muted">{a.description}</span>}
+              </span>
+              <span className="tr-check" aria-hidden><Check size={15} strokeWidth={3} /></span>
             </button>
           ))}
         </div>
@@ -102,7 +112,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
       <section aria-labelledby="t-pack" className="scroll-mt-24">
         <h2 id="t-pack" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">2 · Elegí tu pack</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {act.packs.map((p) => {
+          {act.packs.map((p, i) => {
             const sel = p.id === packId;
             const first = BILLING_ORDER.find((b) => p.prices[b] !== undefined)!;
             const shown = p.prices.monthly !== undefined ? "monthly" : first;
@@ -110,16 +120,24 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
               <button
                 key={p.id}
                 type="button"
+                style={{ "--i": i } as React.CSSProperties}
                 onClick={() => { setPackId(p.id); setBilling(null); }}
                 aria-pressed={sel}
-                className={cn("flex flex-col gap-1 rounded-2xl border p-4 text-left transition", sel ? "border-lime bg-lime/10" : "border-border bg-surface hover:border-lime/60")}
+                className="glass tr-card tr-in flex flex-col gap-3 p-5 text-left"
               >
-                <span className="text-xs font-semibold uppercase tracking-wide text-lime-ink">{p.daysPerWeek} {p.daysPerWeek === 1 ? "día" : "días"} por semana</span>
-                <span className="font-[family-name:var(--font-display)] text-xl font-bold uppercase">{p.name}</span>
-                {p.description && <span className="text-sm text-muted">{p.description}</span>}
-                <span className="mt-1 text-lg font-bold">
-                  {formatMoney(p.prices[shown]!)} <span className="text-sm font-normal text-muted">{BILLING_SUFFIX[shown]}</span>
+                <span className="flex items-end gap-3">
+                  <span className="tr-days">{p.daysPerWeek}</span>
+                  <span className="pb-1 text-xs font-bold uppercase leading-tight tracking-wide text-muted">{p.daysPerWeek === 1 ? "día" : "días"}<br />por semana</span>
                 </span>
+                <span>
+                  <span className="block font-[family-name:var(--font-display)] text-xl font-bold uppercase leading-tight">{p.name}</span>
+                  {p.description && <span className="mt-1 block text-sm text-muted">{p.description}</span>}
+                </span>
+                <span className="mt-auto border-t border-border pt-3">
+                  <span className="font-[family-name:var(--font-display)] text-3xl font-extrabold">{formatMoney(p.prices[shown]!)}</span>{" "}
+                  <span className="text-sm text-muted">{BILLING_SUFFIX[shown]}</span>
+                </span>
+                <span className="tr-check" aria-hidden><Check size={15} strokeWidth={3} /></span>
               </button>
             );
           })}
@@ -135,7 +153,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
                   type="button"
                   onClick={() => setBilling(b)}
                   aria-pressed={b === effBilling}
-                  className={cn("rounded-xl border px-4 py-2.5 text-sm font-medium transition", b === effBilling ? "border-lime bg-lime/15 text-lime-ink" : "border-border bg-surface hover:border-lime/60")}
+                  className={cn("rounded-xl border px-4 py-2.5 text-sm font-medium transition", b === effBilling ? "slot-sel border-lime bg-lime text-black" : "glass hover:border-lime/60")}
                 >
                   {BILLING_LABEL[b]} · <strong>{formatMoney(pack.prices[b]!)}</strong>
                 </button>
@@ -147,11 +165,11 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
       </section>
 
       {pack && (
-        <section aria-labelledby="t-data" className="flex flex-col gap-4 step-enter scroll-mt-24">
+        <section aria-labelledby="t-data" className="flex flex-col gap-4 glass rounded-[2rem] p-5 step-enter scroll-mt-24 sm:p-8">
           <h2 id="t-data" className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase">3 · Datos</h2>
           <div className="flex gap-2" role="group" aria-label="¿Quién entrena?">
             {([["child", "Mi hijo/a"], ["self", "Yo"]] as const).map(([k, t]) => (
-              <button key={k} type="button" aria-pressed={forWho === k} onClick={() => setForWho(k)} className={cn("h-11 rounded-xl border px-5 text-sm font-medium transition", forWho === k ? "border-lime bg-lime/15 text-lime-ink" : "border-border bg-surface hover:border-lime/60")}>
+              <button key={k} type="button" aria-pressed={forWho === k} onClick={() => setForWho(k)} className={cn("h-11 rounded-xl border px-5 text-sm font-medium transition", forWho === k ? "border-lime bg-lime/15 text-lime-ink" : "glass hover:border-lime/60")}>
                 {t}
               </button>
             ))}
@@ -171,15 +189,15 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
       )}
 
       {pack && (
-        <section aria-labelledby="t-days" className="flex flex-col gap-4 step-enter scroll-mt-24">
+        <section aria-labelledby="t-days" className="flex flex-col gap-4 glass rounded-[2rem] p-5 step-enter scroll-mt-24 sm:p-8">
           <h2 id="t-days" className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase">4 · ¿Qué días te quedan cómodos?</h2>
           <p className="-mt-2 text-sm text-muted">Elegí al menos {need} {need === 1 ? "día" : "días"}. Los horarios los confirmamos con vos.</p>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Días preferidos">
             {WEEKDAYS.map((d, i) => {
               const on = days.includes(i);
               return (
-                <button key={d} type="button" aria-pressed={on} onClick={() => setDays((s) => (on ? s.filter((x) => x !== i) : [...s, i].sort()))} className={cn("h-11 min-w-24 rounded-xl border px-4 text-sm font-medium transition", on ? "border-lime bg-lime text-black" : "border-border bg-surface hover:border-lime/60")}>
-                  {d}
+                <button key={d} type="button" aria-pressed={on} onClick={() => setDays((s) => (on ? s.filter((x) => x !== i) : [...s, i].sort()))} className={cn("tr-day h-12 min-w-[4.25rem] flex-1 rounded-xl border px-3 text-sm font-semibold sm:min-w-24 sm:flex-none", on ? "border-lime bg-lime text-black" : "glass hover:border-lime/60")}>
+                  <span className="sm:hidden">{d.slice(0, 3)}</span><span className="hidden sm:inline">{d}</span>
                 </button>
               );
             })}
@@ -193,13 +211,13 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
 
           {error && <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-surface p-4">
+          <div className="tr-bar glass glass-lime flex flex-wrap items-center gap-4 rounded-2xl p-4">
             <p className="min-w-0 flex-1 text-sm">
               <strong>{act.name} · {pack.name}</strong>
               <span className="block text-muted">{price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : ""}</span>
             </p>
             <button type="submit" disabled={pending} className="h-12 rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:opacity-60">
-              {pending ? "Enviando…" : "Enviar inscripción"}
+              <span className="inline-flex items-center gap-2"><Send size={18} aria-hidden />{pending ? "Enviando…" : "Enviar inscripción"}</span>
             </button>
           </div>
         </section>

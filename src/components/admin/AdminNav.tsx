@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, ClipboardList, Clock, Coffee, Database, Dumbbell, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Clock, Coffee, Database, Dumbbell, Film, Lock, MessageCircle, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
@@ -17,13 +17,12 @@ const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: s
   { href: "/admin/galeria", label: "Galería", Icon: Film, match: (p: string) => p.startsWith("/admin/galeria"), adminOnly: true },
   { href: "/admin/respaldos", label: "Respaldos", Icon: Database, match: (p: string) => p.startsWith("/admin/respaldos"), adminOnly: true },
   { href: "/admin/usuarios", label: "Empleados", Icon: Users, match: (p: string) => p.startsWith("/admin/usuarios"), adminOnly: true },
-  { href: "/admin/configuracion", label: "Configuración", Icon: Settings, match: (p: string) => p.startsWith("/admin/configuracion"), adminOnly: true },
 ];
 
 export function AdminNav({ isAdmin, pendingCount = 0 }: { isAdmin: boolean; pendingCount?: number }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Secciones del panel" className="panel-nav flex gap-1 overflow-x-auto border-b border-border px-3">
+    <nav aria-label="Secciones del panel" className="panel-nav flex gap-x-1 overflow-x-auto border-b border-border px-3 lg:flex-wrap lg:overflow-visible">
       {ITEMS.filter((i) => !i.adminOnly || isAdmin).map(({ href, label, Icon, match }) => {
         const active = match(pathname);
         return (

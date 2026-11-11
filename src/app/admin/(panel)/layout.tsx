@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import { BallLoader } from "@/components/ui/Loaders";
 import { Logo } from "@/components/brand/Logo";
 import { AdminNav } from "@/components/admin/AdminNav";
@@ -20,6 +22,11 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 text-sm sm:gap-3">
           <SfxToggle />
           <ThemeToggle />
+          {staff.role === "admin" && (
+            <Link href="/admin/configuracion" aria-label="Configuración" title="Configuración" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:border-lime hover:text-lime-ink">
+              <Settings size={17} aria-hidden />
+            </Link>
+          )}
           <span className="hidden text-muted sm:inline">
             {staff.fullName} · {staff.role === "admin" ? "Administrador" : "Personal"}
           </span>

@@ -5,9 +5,9 @@ import type { PublicVenue } from "@/queries/venue";
 
 function Card({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-border bg-surface p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime/15 text-lime-ink">{icon}</span>
+    <div className="glass glass-lift glass-sheen rounded-[1.75rem] p-6 sm:p-7">
+      <div className="mb-5 flex items-center gap-3">
+        <span className="glass-ico">{icon}</span>
         <h2 className="font-[family-name:var(--font-display)] text-xl font-bold uppercase tracking-wide">{title}</h2>
       </div>
       {children}
@@ -21,7 +21,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
   const hasContact = venue.address || venue.contactPhone || venue.contactEmail || whatsappDigits;
 
   return (
-    <section className="px-5 py-10">
+    <section className="px-5 py-14">
       <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
         <Card icon={<Banknote size={20} />} title="Precios">
           <dl className="space-y-3 text-sm">
@@ -29,7 +29,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
               <dt className="text-muted">Turno de cancha
                 <span className="block text-xs">hasta {venue.maxPlayers} jugadores</span>
               </dt>
-              <dd className="font-[family-name:var(--font-display)] text-3xl font-bold text-lime-ink">
+              <dd className="font-[family-name:var(--font-display)] text-4xl font-bold text-lime-ink drop-shadow-[0_0_22px_rgba(182,214,26,.45)]">
                 {formatMoney(venue.priceGroup, venue.currency)}
               </dd>
             </div>

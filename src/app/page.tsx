@@ -11,6 +11,7 @@ import { BookingSection, BookingSkeleton } from "@/components/public/BookingSect
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { ScrollFx } from "@/components/public/ScrollFx";
 import { FloodlightStage } from "@/components/public/FloodlightStage";
+import { Ambient } from "@/components/public/Ambient";
 import { Reveal } from "@/components/public/Reveal";
 import { SmoothScroll } from "@/components/public/SmoothScroll";
 
@@ -18,20 +19,25 @@ async function TrainingsTeaser() {
   const catalog = await getTrainingCatalog();
   if (catalog.length === 0) return null;
   return (
-    <section className="px-5 py-16">
-      <div className="mx-auto flex max-w-5xl flex-col items-start gap-4 rounded-3xl border border-border bg-surface p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10">
-        <div>
-          <h2 className="font-[family-name:var(--font-display)] text-4xl font-extrabold uppercase">
-            Entre<span className="text-lime">namientos</span>
+    <section className="px-5 pb-6 pt-24">
+      <Reveal className="mx-auto max-w-5xl">
+        <div className="glass glass-lime glass-sheen relative overflow-hidden rounded-[2rem] p-7 sm:p-11">
+          <span aria-hidden className="tr-ring" style={{ position: "absolute", right: -60, bottom: -80, width: 280, height: 280, borderRadius: "50%", border: "3px solid rgba(182,214,26,.28)", zIndex: -1 }} />
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Clases y entrenamiento personal</p>
+          <h2 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-6xl">
+            Entre<span className="title-grass">namientos</span>
           </h2>
-          <p className="mt-2 max-w-xl text-muted">
-            {catalog.map((a) => a.name).join(" · ")}. Clases para chicos y adultos: elegí tu pack e inscribite online.
-          </p>
+          <p className="mt-4 max-w-xl text-muted sm:text-lg">Para chicos y adultos. Elegí tu pack según los días que quieras entrenar e inscribite online; el pago se hace en el predio.</p>
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {catalog.map((a) => (
+              <li key={a.id} className="glass rounded-full px-4 py-1.5 text-sm font-medium">{a.name}</li>
+            ))}
+          </ul>
+          <Link href="/entrenamientos" className="cta-sheen relative mt-7 inline-flex h-12 items-center gap-3 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">
+            <span className="cta-ball" aria-hidden /> Ver packs
+          </Link>
         </div>
-        <Link href="/entrenamientos" className="inline-flex h-12 shrink-0 items-center rounded-xl bg-lime px-6 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark">
-          Ver packs
-        </Link>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -61,9 +67,12 @@ export default async function Home() {
             </Suspense>
           </Reveal>
         </FloodlightStage>
-        <Suspense fallback={null}><TrainingsTeaser /></Suspense>
-        <Reveal><InfoSection venue={venue} /></Reveal>
-        <Reveal><LocationSection venue={venue} /></Reveal>
+        <div className="ambient">
+          <Ambient />
+          <Suspense fallback={null}><TrainingsTeaser /></Suspense>
+          <Reveal><InfoSection venue={venue} /></Reveal>
+          <Reveal><LocationSection venue={venue} /></Reveal>
+        </div>
       </main>
       <SiteFooter name={venue.name} />
     </>

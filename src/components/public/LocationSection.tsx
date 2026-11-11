@@ -12,7 +12,7 @@ export async function LocationSection({ venue }: { venue: PublicVenue }) {
 
   const q = encodeURIComponent(venue.address ?? "");
   return (
-    <section id="ubicacion" className="scroll-mt-20 px-5 py-10">
+    <section id="ubicacion" className="scroll-mt-20 px-5 pb-20 pt-10">
       <div className="mx-auto flex max-w-5xl flex-col gap-4">
         {media.length > 0 && <MediaCarousel items={media} />}
 
@@ -32,14 +32,14 @@ export async function LocationSection({ venue }: { venue: PublicVenue }) {
               </a>
             </div>
             <p className="-mt-2 text-sm text-muted">{venue.address}</p>
-            <div className="h-80 overflow-hidden rounded-3xl border border-border bg-surface sm:h-[28rem]">
+            <div className="glass rounded-[2rem] p-2"><div className="h-80 overflow-hidden rounded-3xl sm:h-[28rem]">
               <MapLoader
                 lat={venue.latitude}
                 lng={venue.longitude}
                 title={venue.address ?? venue.name}
                 fallbackSrc={`https://www.google.com/maps?q=${q}&z=16&output=embed`}
               />
-            </div>
+            </div></div>
           </>
         )}
       </div>

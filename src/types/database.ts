@@ -201,6 +201,12 @@ export type Database = {
         Update: { price?: number };
         Relationships: [];
       };
+      training_payments: {
+        Row: { amount: number; concept: string | null; created_at: string; created_by: string | null; enrollment_id: string; id: string; is_voided: boolean; method: Database["public"]["Enums"]["payment_method"]; notes: string | null; paid_at: string; void_reason: string | null; voided_at: string | null };
+        Insert: { amount: number; concept?: string | null; created_at?: string; created_by?: string | null; enrollment_id: string; id?: string; is_voided?: boolean; method: Database["public"]["Enums"]["payment_method"]; notes?: string | null; paid_at?: string; void_reason?: string | null; voided_at?: string | null };
+        Update: { is_voided?: boolean; void_reason?: string | null; voided_at?: string | null };
+        Relationships: [{ foreignKeyName: "training_payments_enrollment_id_fkey"; columns: ["enrollment_id"]; isOneToOne: false; referencedRelation: "training_enrollments"; referencedColumns: ["id"] }];
+      };
       training_students: {
         Row: { birth_date: string | null; created_at: string; email: string | null; emergency_contact: string | null; full_name: string; guardian_name: string; health_notes: string | null; id: string; phone: string };
         Insert: { birth_date?: string | null; created_at?: string; email?: string | null; emergency_contact?: string | null; full_name: string; guardian_name: string; health_notes?: string | null; id?: string; phone: string };

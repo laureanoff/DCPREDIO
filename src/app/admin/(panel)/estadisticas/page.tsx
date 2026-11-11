@@ -75,6 +75,29 @@ async function Stats({ searchParams }: { searchParams: Promise<Params> }) {
     supabase.rpc("buffet_summary", { p_from: from, p_to: to }),
     supabase.rpc("buffet_top_products", { p_from: from, p_to: to }),
   ]);
+  const nextDay = new Date(`${to}T00:00:00-03:00`);
+  nextDay.setDate(nextDay.getDate() + 1);
+  let tq = supabase
+    .from("training_payments")
+    .select("amount, method, training_enrollments(activity_name, training_students(full_name))")
+    .eq("is_voided", false)
+    .gte("paid_at", `${from}T00:00:00-03:00`)
+    .lt("paid_at", nextDay.toISOString())
+    .limit(5000);
+  if (method) tq = tq.eq("method", method);
+  const trainingPays = (await tq).data ?? [];
+  const tAgg = { total: 0, count: trainingPays.length, byActivity: new Map<string, number>(), byStudent: new Map<string, number>(), byMethod: new Map<string, number>() };
+  for (const x of trainingPays) {
+    const amount = Number(x.amount);
+    const enr = Array.isArray(x.training_enrollments) ? x.training_enrollments[0] : x.training_enrollments;
+    const stu = enr ? (Array.isArray(enr.training_students) ? enr.training_students[0] : enr.training_students) : null;
+    tAgg.total += amount;
+    tAgg.byActivity.set(enr?.activity_name ?? "—", (tAgg.byActivity.get(enr?.activity_name ?? "—") ?? 0) + amount);
+    tAgg.byStudent.set(stu?.full_name ?? "—", (tAgg.byStudent.get(stu?.full_name ?? "—") ?? 0) + amount);
+    tAgg.byMethod.set(x.method, (tAgg.byMethod.get(x.method) ?? 0) + amount);
+  }
+  const top = (m: Map<string, number>, n = 8) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
+  const METHOD_LABEL: Record<string, string> = { cash: "Efectivo", transfer: "Transferencia", other: "Otro" };
   const buffet = buffetSum.data?.[0];
   const topProducts = (buffetTop.data ?? []).slice(0, 5);
 
@@ -121,6 +144,22 @@ async function Stats({ searchParams }: { searchParams: Promise<Params> }) {
         )}
       </section>
 
+      <section className="rounded-2xl border border-border bg-surface p-4">
+        <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">Entrenamientos · {month ? monthLabel(year, month) : year}</h2>
+        <p className="mt-1 text-2xl font-bold">
+          {formatMoney(tAgg.total)} <span className="text-sm font-normal text-muted">· {tAgg.count} {tAgg.count === 1 ? "cobro" : "cobros"} de alumnos (aparte de los cobros de canchas)</span>
+        </p>
+        {tAgg.count === 0 ? (
+          <p className="mt-2 text-sm text-muted">No hay cobros de entrenamientos en este período.</p>
+        ) : (
+          <div className="mt-4 grid gap-5 sm:grid-cols-3">
+            <Breakdown title="Por actividad" rows={top(tAgg.byActivity)} total={tAgg.total} />
+            <Breakdown title="Por alumno" rows={top(tAgg.byStudent)} total={tAgg.total} />
+            <Breakdown title="Por medio de pago" rows={top(tAgg.byMethod).map(([k, v]) => [METHOD_LABEL[k] ?? k, v] as [string, number])} total={tAgg.total} />
+          </div>
+        )}
+      </section>
+
       {count === 0 ? (
         <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-muted">No hay cobros registrados en este período.</p>
       ) : (
@@ -130,6 +169,22 @@ async function Stats({ searchParams }: { searchParams: Promise<Params> }) {
           unitLabel={month ? "Pesos argentinos (ARS) por día." : "Pesos argentinos (ARS) por mes. Tocá una barra para ver el detalle por día."}
         />
       )}
+    </div>
+  );
+}
+
+function Breakdown({ title, rows, total }: { title: string; rows: [string, number][]; total: number }) {
+  return (
+    <div>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{title}</h3>
+      <ul className="flex flex-col gap-2">
+        {rows.map(([name, value]) => (
+          <li key={name} className="text-sm">
+            <div className="flex justify-between gap-2"><span className="truncate">{name}</span><strong>{formatMoney(value)}</strong></div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden><div className="h-full rounded-full bg-lime" style={{ width: `${total ? Math.max(3, (value / total) * 100) : 0}%` }} /></div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

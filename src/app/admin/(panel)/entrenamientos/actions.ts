@@ -50,3 +50,51 @@ export async function deleteEnrollment(id: string): Promise<ActionResult> {
   refresh();
   return { ok: true, message: "Inscripción borrada." };
 }
+
+const paySchema = z.object({
+  amount: z.number().positive("Ingresá un monto mayor a cero.").max(100_000_000),
+  method: z.enum(["cash", "transfer", "other"]),
+  concept: z.string().trim().max(100),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha no es válida."),
+  notes: z.string().trim().max(500),
+});
+
+/** Registra un cobro de una inscripción (se cobró en el predio). */
+export async function addTrainingPayment(enrollmentId: string, raw: z.input<typeof paySchema>): Promise<ActionResult> {
+  await requireStaff();
+  const p = paySchema.safeParse(raw);
+  if (!idSchema.safeParse(enrollmentId).success || !p.success) return { ok: false, error: p.success ? "Inscripción inválida." : p.error.issues[0].message };
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Cordoba" }).format(new Date());
+  if (p.data.date > today) return { ok: false, error: "La fecha del cobro no puede ser futura." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("training_payments").insert({
+    enrollment_id: enrollmentId,
+    amount: p.data.amount,
+    method: p.data.method,
+    concept: p.data.concept || null,
+    notes: p.data.notes || null,
+    paid_at: p.data.date === today ? new Date().toISOString() : `${p.data.date}T12:00:00-03:00`,
+  });
+  if (error) {
+    console.error("[entrenamientos] cobro", error.code, error.message);
+    return { ok: false, error: "No se pudo registrar el cobro." };
+  }
+  refresh();
+  return { ok: true, message: "Cobro registrado." };
+}
+
+export async function voidTrainingPayment(id: string, reason: string): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Cobro inválido." };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("training_payments")
+    .update({ is_voided: true, voided_at: new Date().toISOString(), void_reason: reason.trim().slice(0, 300) || null })
+    .eq("id", id)
+    .eq("is_voided", false)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) return { ok: false, error: "No se pudo anular el cobro." };
+  refresh();
+  return { ok: true, message: "Cobro anulado." };
+}

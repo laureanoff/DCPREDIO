@@ -38,6 +38,11 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     supabase.from("training_enrollments").select("status"),
   ]);
 
+  const ids = (rows.data ?? []).map((e) => e.id);
+  const pays = ids.length
+    ? (await supabase.from("training_payments").select("id, enrollment_id, amount, method, concept, paid_at, is_voided, void_reason").in("enrollment_id", ids).order("paid_at", { ascending: false })).data ?? []
+    : [];
+
   const count = (s: string) => (counts.data ?? []).filter((r) => r.status === s).length;
   const enrollments: EnrollmentRow[] = (rows.data ?? []).map((e) => {
     const s = Array.isArray(e.training_students) ? e.training_students[0] : e.training_students;
@@ -62,6 +67,9 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
       email: s?.email ?? "",
       emergency: s?.emergency_contact ?? "",
       health: s?.health_notes ?? "",
+      payments: pays
+        .filter((x) => x.enrollment_id === e.id)
+        .map((x) => ({ id: x.id, amount: Number(x.amount), method: x.method, concept: x.concept ?? "", paidAt: x.paid_at, voided: x.is_voided, voidReason: x.void_reason ?? "" })),
     };
   });
 
