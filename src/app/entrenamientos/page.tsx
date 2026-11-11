@@ -5,7 +5,7 @@ import { getCoach, getTrainingCatalog, getTrainingSessions } from "@/queries/tra
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { TrainingCuts } from "@/components/public/TrainingCuts";
 import { CoachSection } from "@/components/public/CoachSection";
-import { BallStrike } from "@/components/public/BallStrike";
+import { PitchDivider } from "@/components/public/PitchDivider";
 import { Audience, Benefits, Faq, HowItWorks, Schedule } from "@/components/public/TrainingLanding";
 import { Ambient } from "@/components/public/Ambient";
 import { SiteFooter } from "@/components/public/SiteFooter";
@@ -62,7 +62,7 @@ export default async function EntrenamientosPage() {
           </ul>
         </div>
         </div>
-        <BallStrike />
+        <PitchDivider />
         <Benefits />
         <Audience />
         <HowItWorks />
