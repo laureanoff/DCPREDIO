@@ -17,7 +17,7 @@ export function DayPitch({ courts, bookings }: { courts: DayPitchCourt[]; bookin
         {courts.map((c) => (
           <div key={c.id}>
             {courts.length > 1 && <p className="mb-1 text-sm font-semibold text-muted">{c.name}</p>}
-            <div className="day-pitch relative aspect-[2/1] min-h-56 w-full overflow-hidden rounded-2xl border-[3px] border-white/80">
+            <div className="day-pitch relative min-h-56 w-full sm:aspect-[2/1] overflow-hidden rounded-2xl border-[3px] border-white/80">
               <svg aria-hidden viewBox="0 0 200 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="0.9" vectorEffect="non-scaling-stroke">
                 <line x1="100" y1="0" x2="100" y2="100" />
                 <circle cx="100" cy="50" r="14" />
@@ -26,7 +26,7 @@ export function DayPitch({ courts, bookings }: { courts: DayPitchCourt[]; bookin
                 <rect x="0" y="38" width="8" height="24" />
                 <rect x="192" y="38" width="8" height="24" />
               </svg>
-              <ol className="relative grid h-full content-center gap-2 p-3 sm:p-5 [grid-template-columns:repeat(auto-fit,minmax(5.75rem,1fr))]">
+              <ol className="relative grid h-full content-center gap-2 p-3 sm:p-5 max-sm:py-4 [grid-template-columns:repeat(auto-fit,minmax(5.75rem,1fr))]">
                 {c.slots.map((s, i) => {
                   const who = live.find((b) => b.start_at <= s.start && s.start < b.end_at)?.customer_name;
                   const kind = s.state === "available" ? (s.hasPending ? "pending" : "free") : s.state === "full" ? "busy" : s.state;
