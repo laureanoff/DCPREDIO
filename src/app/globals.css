@@ -586,3 +586,19 @@ html.lenis, html.lenis body { height: auto; }
 :root[data-theme="light"] .glass-clear { background: linear-gradient(145deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .15)), rgba(255, 255, 255, .1); }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .glass-clear { background: linear-gradient(145deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .15)), rgba(255, 255, 255, .1); } }
 .coach-photo { background: radial-gradient(90% 80% at 50% 100%, rgba(182, 214, 26, .35), transparent 70%), linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)); }
+
+/* Inscripción animada */
+.price-swap { animation: price-swap .5s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes price-swap { from { opacity: 0; transform: translateY(10px) scale(.92); filter: blur(4px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.tr-card[aria-pressed="true"]::after { content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none; border: 2px solid rgba(182, 214, 26, .65); animation: tr-ring 2.4s ease-out infinite; }
+@keyframes tr-ring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.06); opacity: 0; } }
+.tr-steps li[data-on="true"]::before { animation: slot-pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+.tr-steps li[data-on="true"] { animation: price-swap .5s ease both; }
+.tr-bar[data-ready="true"] { animation: bar-glow 2.6s ease-out infinite; }
+@keyframes bar-glow { 0% { box-shadow: 0 0 0 0 rgba(182, 214, 26, .45), var(--glass-shadow); } 100% { box-shadow: 0 0 0 18px rgba(182, 214, 26, 0), var(--glass-shadow); } }
+.tr-bar[data-ready="true"] .tr-send::after { animation: send-sheen 3.4s ease-in-out infinite; transition: none; }
+@keyframes send-sheen { 0%, 55% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+.tr-bar[data-ready="false"] .tr-send { opacity: .85; }
+.tr-days { transition: transform .35s cubic-bezier(.3,1.6,.5,1), text-shadow .35s; }
+.tr-card:hover .tr-days, .tr-card[aria-pressed="true"] .tr-days { transform: scale(1.1) rotate(-3deg); transform-origin: left bottom; }
+@media (prefers-reduced-motion: reduce) { .price-swap, .tr-card::after, .tr-steps li, .tr-steps li::before, .tr-bar, .tr-send::after { animation: none !important; } }

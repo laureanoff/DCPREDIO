@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Check, Dumbbell, MapPin, Send } from "lucide-react";
+import { CountUp } from "@/components/public/CountUp";
+import { Reveal } from "@/components/public/Reveal";
 import { SuccessMark } from "@/components/public/SuccessMark";
 import { cn, formatMoney } from "@/lib/utils";
 import { BILLING_LABEL, BILLING_ORDER, BILLING_SUFFIX, WEEKDAYS, type Billing } from "@/lib/training";
@@ -121,7 +123,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
           <li key={t} data-on={i === 0 || (i === 1 && !!act) || (i >= 2 && !!pack)}>{t}</li>
         ))}
       </ol>
-      <section aria-labelledby="t-act" className="scroll-mt-24">
+      <Reveal><section aria-labelledby="t-act" className="scroll-mt-24">
         <h2 id="t-act" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">1 · ¿Qué querés entrenar?</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {catalog.map((a, i) => (
@@ -143,7 +145,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
             </button>
           ))}
         </div>
-      </section>
+      </section></Reveal>
 
       <section aria-labelledby="t-pack" className="scroll-mt-24">
         <h2 id="t-pack" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">2 · Elegí tu pack</h2>
@@ -170,7 +172,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
                   {p.description && <span className="mt-1 block text-sm text-muted">{p.description}</span>}
                 </span>
                 <span className="mt-auto border-t border-border pt-3">
-                  <span className="font-[family-name:var(--font-display)] text-3xl font-extrabold">{formatMoney(p.prices[shown]!)}</span>{" "}
+                  <span key={`${p.id}-${shown}`} className="price-swap font-[family-name:var(--font-display)] text-3xl font-extrabold">{formatMoney(p.prices[shown]!)}</span>{" "}
                   <span className="text-sm text-muted">{BILLING_SUFFIX[shown]}</span>
                 </span>
                 <span className="tr-check" aria-hidden><Check size={15} strokeWidth={3} /></span>
@@ -183,15 +185,16 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
           <fieldset className="mt-4 step-enter">
             <legend className="mb-2 text-sm font-medium">¿Cómo preferís pagar?</legend>
             <div className="flex flex-wrap gap-2">
-              {offered.map((b) => (
+              {offered.map((b, bi) => (
                 <button
                   key={b}
+                  style={{ "--i": bi } as React.CSSProperties}
                   type="button"
                   onClick={() => setBilling(b)}
                   aria-pressed={b === effBilling}
-                  className={cn("rounded-xl border px-4 py-2.5 text-sm font-medium transition", b === effBilling ? "slot-sel border-lime bg-lime text-black" : "glass hover:border-lime/60")}
+                  className={cn("tr-in rounded-xl border px-4 py-2.5 text-sm font-medium transition", b === effBilling ? "slot-sel border-lime bg-lime text-black" : "glass hover:border-lime/60")}
                 >
-                  {BILLING_LABEL[b]} · <strong>{formatMoney(pack.prices[b]!)}</strong>
+                  {BILLING_LABEL[b]} · <strong><CountUp value={pack.prices[b]!} ms={700} /></strong>
                 </button>
               ))}
             </div>
@@ -227,7 +230,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
       {pack && (
         <section aria-labelledby="t-days" className="flex flex-col gap-4 glass rounded-[2rem] p-5 step-enter scroll-mt-24 sm:p-8">
           <h2 id="t-days" className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase">4 · ¿Qué días te quedan cómodos?</h2>
-          <p className="-mt-2 text-sm text-muted">Elegí al menos {need} {need === 1 ? "día" : "días"}. Los horarios los confirmamos con vos.</p>
+          <p className="-mt-2 text-sm text-muted">Elegí al menos {need} {need === 1 ? "día" : "días"}. Los horarios los confirmamos con vos. <strong key={days.length} className={cn("price-swap inline-block", days.length >= need ? "text-lime-ink" : "text-muted")}>{days.length >= need ? "✓ Listo" : `Elegidos: ${days.length}/${need}`}</strong></p>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Días preferidos">
             {WEEKDAYS.map((d, i) => {
               const on = days.includes(i);
@@ -247,12 +250,12 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
 
           {error && <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
-          <div className="tr-bar glass glass-lime flex flex-wrap items-center gap-4 rounded-2xl p-4">
+          <div data-ready={days.length >= need} className="tr-bar glass glass-lime flex flex-wrap items-center gap-4 rounded-2xl p-4">
             <p className="min-w-0 flex-1 text-sm">
               <strong>{act.name} · {pack.name}</strong>
-              <span className="block text-muted">{price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : ""}</span>
+              <span key={`${effBilling}-${price}`} className="price-swap block text-muted">{price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : ""}</span>
             </p>
-            <button type="submit" disabled={pending} className="h-12 rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:opacity-60">
+            <button type="submit" disabled={pending} className="tr-send cta-sheen relative h-12 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Send size={18} aria-hidden />{pending ? "Enviando…" : "Enviar inscripción"}</span>
             </button>
           </div>
