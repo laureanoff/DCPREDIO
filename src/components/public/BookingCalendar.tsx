@@ -38,7 +38,7 @@ export function BookingCalendar({
           onClick={onPrev}
           disabled={!canPrev}
           aria-label="Mes anterior"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
+          className="glass-cell flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
         >
           <ChevronLeft size={20} />
         </button>
@@ -50,7 +50,7 @@ export function BookingCalendar({
           onClick={onNext}
           disabled={!canNext}
           aria-label="Mes siguiente"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
+          className="glass-cell flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 transition enabled:hover:border-lime enabled:hover:text-lime-ink disabled:opacity-30"
         >
           <ChevronRight size={20} />
         </button>
@@ -94,14 +94,14 @@ export function BookingCalendar({
               aria-pressed={isSelected}
               onClick={() => onSelect(key)}
               className={cn(
-                "flex aspect-square flex-col items-center justify-center rounded-xl border text-base font-semibold transition",
-                kind === "open" && !isSelected && !(info && info.free_slots <= 2) && "border-lime/40 bg-lime/10 text-lime-ink hover:bg-lime/25",
-                kind === "open" && !isSelected && info && info.free_slots <= 2 && "cal-few border-warning/60 bg-warning/15 text-warning hover:bg-warning/30",
+                "glass-cell flex aspect-square flex-col items-center justify-center rounded-xl border text-base font-semibold transition duration-200",
+                kind === "open" && !isSelected && !(info && info.free_slots <= 2) && "border-lime/45 bg-gradient-to-br from-lime/30 to-lime/5 text-lime-ink hover:from-lime/45",
+                kind === "open" && !isSelected && info && info.free_slots <= 2 && "cal-few border-warning/60 bg-gradient-to-br from-warning/30 to-warning/5 text-warning hover:from-warning/45",
                 kind === "open" && isSelected && "border-lime bg-lime text-black",
                 kind === "full" && "border-danger/30 bg-danger/10 text-danger/80",
-                kind === "closed" && "border-transparent bg-surface-2 text-muted/50",
+                kind === "closed" && "border-white/5 bg-white/[0.04] text-muted/50",
                 kind === "past" && "border-transparent text-muted/30",
-                kind === "loading" && "skeleton border-transparent bg-surface-2 text-transparent",
+                kind === "loading" && "skeleton border-transparent bg-white/10 text-transparent",
               )}
             >
               {d}

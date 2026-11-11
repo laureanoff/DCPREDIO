@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getPublicVenue } from "@/queries/venue";
 import { getTrainingCatalog } from "@/queries/trainings";
 import { SiteHeader } from "@/components/public/SiteHeader";
+import { CutOut } from "@/components/public/CutOut";
 import { Ambient } from "@/components/public/Ambient";
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { TrainingForm } from "./training-form";
@@ -30,8 +31,10 @@ export default async function EntrenamientosPage() {
       <div className="ambient flex-1">
       <Ambient />
       <main className="mx-auto w-full max-w-5xl px-5 py-12 sm:py-16">
-        <div className="tr-hero glass glass-lime mb-10 p-7 sm:p-12">
-          <span aria-hidden className="tr-ring" />
+        <div className="tr-hero glass glass-lime mb-12 mt-20 p-7 pt-40 sm:mt-28 sm:pt-12 sm:p-12 sm:pr-[26rem]">
+          <span className="tr-clip"><span className="tr-ring" /></span>
+          <CutOut src="/trainings/kid-squat.webp" delay={0.5} from={-60} className="hidden w-[12rem] sm:block sm:-top-10 sm:right-[13.5rem]" />
+          <CutOut src="/trainings/kid-barbell.webp" delay={0.9} from={60} className="-top-14 right-4 w-[5.5rem] sm:-top-24 sm:right-12 sm:w-[12rem]" />
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-lime-ink">Clases y entrenamiento personal</p>
           <h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-7xl">
             Entre<span className="title-grass">namientos</span>

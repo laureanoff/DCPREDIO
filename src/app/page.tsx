@@ -12,6 +12,7 @@ import { SiteFooter } from "@/components/public/SiteFooter";
 import { ScrollFx } from "@/components/public/ScrollFx";
 import { FloodlightStage } from "@/components/public/FloodlightStage";
 import { Ambient } from "@/components/public/Ambient";
+import { CutOut } from "@/components/public/CutOut";
 import { Reveal } from "@/components/public/Reveal";
 import { SmoothScroll } from "@/components/public/SmoothScroll";
 
@@ -19,10 +20,12 @@ async function TrainingsTeaser() {
   const catalog = await getTrainingCatalog();
   if (catalog.length === 0) return null;
   return (
-    <section className="px-5 pb-6 pt-24">
+    <section className="px-5 pb-6 pt-28 sm:pt-32">
       <Reveal className="mx-auto max-w-5xl">
-        <div className="glass glass-lime glass-sheen relative overflow-hidden rounded-[2rem] p-7 sm:p-11">
-          <span aria-hidden className="tr-ring" style={{ position: "absolute", right: -60, bottom: -80, width: 280, height: 280, borderRadius: "50%", border: "3px solid rgba(182,214,26,.28)", zIndex: -1 }} />
+        <div className="glass glass-lime relative rounded-[2rem] p-7 pt-40 sm:p-11 sm:pt-11 sm:pr-[24rem]">
+          <span className="tr-clip"><span className="tr-ring" /></span>
+          <CutOut src="/trainings/kid-squat.webp" delay={0.35} from={-50} className="hidden w-[12.5rem] sm:block sm:-top-10 sm:right-[11.5rem]" />
+          <CutOut src="/trainings/kid-barbell.webp" delay={0.7} from={50} className="-top-14 right-4 w-[5.5rem] sm:-top-24 sm:right-12 sm:w-[11rem]" />
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Clases y entrenamiento personal</p>
           <h2 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-6xl">
             Entre<span className="title-grass">namientos</span>
@@ -69,8 +72,8 @@ export default async function Home() {
         </FloodlightStage>
         <div className="ambient">
           <Ambient />
-          <Suspense fallback={null}><TrainingsTeaser /></Suspense>
           <Reveal><InfoSection venue={venue} /></Reveal>
+          <Suspense fallback={null}><TrainingsTeaser /></Suspense>
           <Reveal><LocationSection venue={venue} /></Reveal>
         </div>
       </main>

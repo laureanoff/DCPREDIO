@@ -17,7 +17,7 @@ type Slot = Database["public"]["Functions"]["get_day_availability"]["Returns"][n
 type Step = "pick" | "details" | "confirm" | "done";
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-border bg-surface-2 px-4 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-lime focus:ring-2 focus:ring-lime/30";
+  "h-12 w-full rounded-xl glass-input px-4 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-lime focus:ring-2 focus:ring-lime/30";
 
 const STEPS: { id: Step; label: string }[] = [
   { id: "pick", label: "Fecha y hora" },
@@ -224,7 +224,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
     const pending = done.status === "pending";
     const cancelled = done.status === "cancelled";
     return (
-      <div ref={rootRef} className={cn("step-enter done-card rounded-3xl border bg-surface p-6 sm:p-8", cancelled ? "border-danger/40" : "border-lime/40", justConfirmed && "confirmed-flash")}>
+      <div ref={rootRef} className={cn("step-enter done-card glass rounded-[2rem] p-6 sm:p-8", cancelled ? "glass-danger" : "glass-lime", justConfirmed && "confirmed-flash")}>
         {justConfirmed && (
           <p role="status" className="confirmed-banner mb-5 rounded-xl bg-lime px-4 py-3 text-center font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black">
             ¡El predio confirmó tu turno!
@@ -301,14 +301,14 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   return (
-    <div ref={rootRef} data-dir={dir} className="rounded-3xl border border-border bg-surface p-5 sm:p-8">
+    <div ref={rootRef} data-dir={dir} className="glass rounded-[2rem] p-5 sm:p-8">
       <ol className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
         {STEPS.map((s, i) => (
           <li key={s.id} className="flex flex-1 items-center gap-2">
             <span
               className={cn(
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] transition-all duration-500",
-                i <= stepIndex ? "bg-lime text-black" : "bg-surface-2 text-muted",
+                i <= stepIndex ? "bg-lime text-black" : "bg-white/10 text-muted",
                 i === stepIndex && "step-dot-active",
               )}
             >
@@ -402,9 +402,9 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                         onClick={() => pickSlot(s)}
                         style={{ "--i": idx } as React.CSSProperties}
                         className={cn(
-                          "slot-in flex h-16 flex-col items-center justify-center rounded-xl border px-2 text-center transition duration-200 active:scale-95",
+                          "slot-in glass-cell flex h-16 flex-col items-center justify-center rounded-xl border px-2 text-center transition duration-200 active:scale-95",
                           isSel && "slot-sel",
-                          bookable && !isSel && !pending && "border-lime/40 bg-lime/10 hover:bg-lime/25",
+                          bookable && !isSel && !pending && "border-lime/45 bg-gradient-to-br from-lime/30 to-lime/5 hover:from-lime/45",
                           bookable && !isSel && pending && "border-warning/50 bg-warning/10 hover:bg-warning/20",
                           isSel && "border-lime bg-lime text-black",
                           s.state === "full" && "border-danger/30 bg-danger/10 text-danger/80",
@@ -430,7 +430,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                   if (!ws) return null;
                   return (
                     <form
-                      className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface-2 p-4"
+                      className="glass-soft mt-4 flex flex-col gap-3 rounded-2xl p-4"
                       onSubmit={async (e) => {
                         e.preventDefault();
                         setWBusy(true);
@@ -442,8 +442,8 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
                       }}
                     >
                       <p className="text-sm">Turno <strong>{formatTime(ws.slot_start, tz)} a {formatTime(ws.slot_end, tz)}</strong> ocupado. Dejá tus datos y, si se libera, te avisamos.</p>
-                      <input className="h-12 rounded-xl border border-border bg-background px-3 text-base" placeholder="Nombre y apellido" value={wName} onChange={(e) => setWName(e.target.value)} maxLength={100} required />
-                      <input className="h-12 rounded-xl border border-border bg-background px-3 text-base" type="tel" inputMode="tel" placeholder="WhatsApp (con código de área)" value={wPhone} onChange={(e) => setWPhone(e.target.value)} required />
+                      <input className="h-12 rounded-xl glass-input px-3 text-base" placeholder="Nombre y apellido" value={wName} onChange={(e) => setWName(e.target.value)} maxLength={100} required />
+                      <input className="h-12 rounded-xl glass-input px-3 text-base" type="tel" inputMode="tel" placeholder="WhatsApp (con código de área)" value={wPhone} onChange={(e) => setWPhone(e.target.value)} required />
                       {wMsg && <p role={wMsg.ok ? "status" : "alert"} className={cn("text-sm", wMsg.ok ? "text-lime-ink" : "text-danger")}>{wMsg.text}</p>}
                       <div className="flex gap-2">
                         <button type="submit" disabled={wBusy} className="h-11 flex-1 rounded-xl bg-lime font-semibold text-black disabled:opacity-60">{wBusy ? "Anotando…" : "Anotarme en la lista de espera"}</button>
@@ -480,7 +480,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
             <span className="font-semibold">{formatDateLong(selectedDate)}</span> · {range}
           </p>
 
-          <div className="mt-5 rounded-2xl border border-border bg-surface-2 p-4 text-sm">
+          <div className="glass-soft mt-5 rounded-2xl p-4 text-sm">
             <p className="font-semibold">Turno completo de la cancha</p>
             <p className="mt-1 text-muted">
               Reservás para todo el grupo (hasta {venue.maxPlayers} jugadores). Precio del turno{" "}
@@ -543,7 +543,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
           <BackButton onClick={() => setStep("details")} />
           <h3 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold uppercase">Confirmá tu reserva</h3>
 
-          <dl className="mt-4 space-y-3 rounded-2xl border border-border bg-surface-2 p-5 text-sm">
+          <dl className="glass-soft mt-4 space-y-3 rounded-2xl p-5 text-sm">
             <Row label="Responsable" value={name.trim()} />
             <Row label="Teléfono" value={normalizePhone(phone)} />
             <Row label="Fecha" value={formatDateLong(selectedDate)} />

@@ -1,6 +1,7 @@
 import { Banknote, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { summarizeHours } from "@/business/hours";
 import { formatMoney } from "@/lib/utils";
+import { CountUp } from "./CountUp";
 import type { PublicVenue } from "@/queries/venue";
 
 function Card({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
@@ -22,7 +23,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
 
   return (
     <section className="px-5 py-14">
-      <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
+      <div className="info-grid mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
         <Card icon={<Banknote size={20} />} title="Precios">
           <dl className="space-y-3 text-sm">
             <div className="flex items-baseline justify-between gap-3">
@@ -30,7 +31,7 @@ export function InfoSection({ venue }: { venue: PublicVenue }) {
                 <span className="block text-xs">hasta {venue.maxPlayers} jugadores</span>
               </dt>
               <dd className="font-[family-name:var(--font-display)] text-4xl font-bold text-lime-ink drop-shadow-[0_0_22px_rgba(182,214,26,.45)]">
-                {formatMoney(venue.priceGroup, venue.currency)}
+                <CountUp value={venue.priceGroup} currency={venue.currency} />
               </dd>
             </div>
             {venue.maxPlayers > 1 && (
