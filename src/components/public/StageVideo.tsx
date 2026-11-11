@@ -5,7 +5,8 @@ import { stageFx } from "@/lib/stage-fx";
 
 /**
  * Video de la cancha controlado por el scroll: al bajar, los reflectores se encienden;
- * al subir, el video corre hacia atrás hasta apagarse. Los archivos están codificados
+ * al subir, el video corre hacia atrás hasta apagarse. Con los reflectores ya encendidos, la cámara
+ * sigue moviéndose sola (un vaivén lento) para que la escena nunca quede quieta. Los archivos están codificados
  * con todos los cuadros clave para que el avance/retroceso sea fluido.
  */
 export function StageVideo() {
@@ -40,7 +41,10 @@ export function StageVideo() {
       const p = stageFx.p;
       w.style.transform = `translate3d(0, ${(0.5 - p) * 90}px, 0) scale(${1.08 - p * 0.06})`;
       if (!v.duration || v.readyState < 2 || v.seeking) return;
-      const t = Math.min(p, 1) * (v.duration - 0.05);
+      const dur = v.duration - 0.05;
+      const lit = Math.min(1, Math.max(0, (p - 0.35) / 0.3)); // 0 = apagado, 1 = encendido
+      const drift = 0.5 + 0.5 * Math.sin(performance.now() / 3800); // vaivén lento entre 0 y 1
+      const t = Math.min(p, 1) * dur * (1 - 0.3 * lit) + lit * dur * 0.3 * drift + (1 - lit) * dur * 0.05 * drift;
       if (Math.abs(t - shown) > 0.015) { v.currentTime = t; shown = t; }
     };
     raf = requestAnimationFrame(loop);

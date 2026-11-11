@@ -557,3 +557,32 @@ html.lenis, html.lenis body { height: auto; }
   .k-ball  { width: calc(var(--k) * 14.5rem); top: calc(var(--k) * -6.5rem); right: calc(var(--k) * -.5rem); }
   .k-diego { width: 13rem; top: -11rem; left: 1.5rem; margin-left: 0; }
 }
+
+/* Decoración de línea: pesas, pelotas, arcos */
+.deco { position: absolute; color: var(--lime); opacity: .3; pointer-events: none; animation: deco-float 7s ease-in-out infinite alternate; filter: drop-shadow(0 0 14px rgba(182, 214, 26, .35)); }
+@keyframes deco-float { from { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); } to { transform: translate3d(0, -14px, 0) rotate(calc(var(--r, 0deg) + 7deg)); } }
+.deco-set { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.deco-set > .deco:nth-child(1) { left: 2%; top: 7%; }
+.deco-set > .deco:nth-child(2) { right: 5%; top: 16%; }
+.deco-set > .deco:nth-child(3) { right: 3%; top: 52%; }
+.deco-set > .deco:nth-child(4) { left: 3%; top: 60%; }
+.deco-set > .deco:nth-child(5) { left: 8%; bottom: 6%; }
+.tr-cuts > .deco { opacity: .42; }
+.tr-cuts > .deco:nth-child(1) { top: -2.6rem; right: 1.2rem; }
+.tr-cuts > .deco:nth-child(2) { top: -1.8rem; left: 1rem; }
+.tr-cuts > .deco:nth-child(3) { bottom: -1.6rem; left: 1rem; }
+.tr-cuts > .deco:nth-child(4) { bottom: -1.5rem; right: 1.2rem; }
+@media (min-width: 640px) {
+  .tr-cuts > .deco:nth-child(1) { top: -3.4rem; right: 3rem; width: 15rem; }
+  .tr-cuts > .deco:nth-child(2) { top: 2rem; left: auto; right: 21rem; width: 6.5rem; }
+  .tr-cuts > .deco:nth-child(3) { bottom: 2.4rem; left: auto; right: 3.5rem; width: 12rem; }
+  .tr-cuts > .deco:nth-child(4) { top: 6.5rem; bottom: auto; right: 12rem; width: 6.5rem; }
+}
+@media (max-width: 639px) { .deco-set > .deco { opacity: .18; } .deco-set > .deco:nth-child(n+4) { display: none; } }
+@media (prefers-reduced-motion: reduce) { .deco { animation: none; } }
+/* vidrio casi transparente (calendario de reservas): se alcanza a ver el arco de atrás */
+.glass-clear { -webkit-backdrop-filter: blur(5px) saturate(150%); backdrop-filter: blur(5px) saturate(150%);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .01) 55%, transparent), rgba(10, 16, 8, .24); }
+:root[data-theme="light"] .glass-clear { background: linear-gradient(145deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .15)), rgba(255, 255, 255, .1); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .glass-clear { background: linear-gradient(145deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .15)), rgba(255, 255, 255, .1); } }
+.coach-photo { background: radial-gradient(90% 80% at 50% 100%, rgba(182, 214, 26, .35), transparent 70%), linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)); }

@@ -116,39 +116,39 @@ function ActivityItem({ a }: { a: ActivityRow }) {
   );
 }
 
-export type CoachRow = { name: string; title: string; bio: string; show: boolean };
+export type CoachRow = { name: string; title: string; bio: string; story: string; show: boolean };
 
-function CoachEditor({ coach }: { coach: CoachRow }) {
+export function CoachEditor({ coach }: { coach: CoachRow }) {
   const { pending, msg, run } = useRun();
   const [c, setC] = useState(coach);
   return (
-    <div className="mb-5 rounded-xl border border-border bg-surface-2 p-3">
-      <h3 className="mb-2 text-sm font-bold uppercase tracking-wide">Profe (se muestra en «Entrenamientos»)</h3>
+    <div className="rounded-2xl border border-border bg-surface p-4">
+      <h3 className="mb-2 text-sm font-bold uppercase tracking-wide">Profe y su historia (se muestra en la web, sección «Entrenamientos»)</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         <input className={field} placeholder="Nombre" value={c.name} maxLength={80} onChange={(e) => setC({ ...c, name: e.target.value })} aria-label="Nombre del profe" />
         <input className={field} placeholder="Título (ej. Profe y dueño)" value={c.title} maxLength={120} onChange={(e) => setC({ ...c, title: e.target.value })} aria-label="Título del profe" />
         <textarea className={`${field} h-20 py-2 sm:col-span-2`} placeholder="Presentación breve (opcional)" value={c.bio} maxLength={500} onChange={(e) => setC({ ...c, bio: e.target.value })} aria-label="Presentación del profe" />
+        <textarea className={`${field} h-48 py-2 sm:col-span-2`} placeholder="Cómo surgió la idea de los entrenamientos (historia en tus palabras; los saltos de línea arman párrafos)" value={c.story} maxLength={3000} onChange={(e) => setC({ ...c, story: e.target.value })} aria-label="Cómo surgió la idea" />
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={c.show} onChange={(e) => setC({ ...c, show: e.target.checked })} /> Mostrar</label>
-        <button type="button" disabled={pending} onClick={() => run(() => saveCoach({ name: c.name, title: c.title, bio: c.bio, show: c.show }))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-50">Guardar</button>
+        <button type="button" disabled={pending} onClick={() => run(() => saveCoach({ name: c.name, title: c.title, bio: c.bio, story: c.story, show: c.show }))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-50">Guardar</button>
         {msg && <span className={msg.ok ? "text-sm text-lime-ink" : "text-sm text-danger"} role="status">{msg.text}</span>}
       </div>
     </div>
   );
 }
 
-export function TrainingManager({ activities, coach }: { activities: ActivityRow[]; coach: CoachRow }) {
+export function TrainingManager({ activities }: { activities: ActivityRow[] }) {
   const { pending, msg, run } = useRun();
   const [f, setF] = useState({ name: "", description: "", location: "", isActive: true });
   return (
-    <section id="entrenamientos" className="scroll-mt-20 rounded-2xl border border-border bg-surface p-4">
+    <section className="rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">Entrenamientos</h2>
       <p className="mb-4 text-sm text-muted">
         Actividades y packs que se ofrecen en la web (sección «Entrenamientos»). Cada pack tiene sus días por semana y hasta tres precios: por clase, mensual y trimestral;
         los que dejes vacíos no se ofrecen. Se aplica al instante.
       </p>
-      <CoachEditor coach={coach} />
       <ul className="flex flex-col gap-4">{activities.map((a) => <ActivityItem key={a.id} a={a} />)}</ul>
       <form
         className="mt-4 flex flex-col gap-2 border-t border-border pt-4"

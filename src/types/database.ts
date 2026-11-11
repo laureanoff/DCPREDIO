@@ -213,10 +213,16 @@ export type Database = {
         Update: { birth_date?: string | null; email?: string | null; emergency_contact?: string | null; full_name?: string; guardian_name?: string; health_notes?: string | null; phone?: string };
         Relationships: [];
       };
+      training_sessions: {
+        Row: { activity_id: string | null; created_at: string; details: string | null; end_time: string | null; id: string; is_active: boolean; start_time: string; title: string; weekday: number };
+        Insert: { activity_id?: string | null; created_at?: string; details?: string | null; end_time?: string | null; id?: string; is_active?: boolean; start_time: string; title: string; weekday: number };
+        Update: { activity_id?: string | null; details?: string | null; end_time?: string | null; is_active?: boolean; start_time?: string; title?: string; weekday?: number };
+        Relationships: [];
+      };
       training_settings: {
-        Row: { coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
-        Insert: { coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
-        Update: { coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
+        Row: { coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
+        Insert: { coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
+        Update: { coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
         Relationships: [];
       };
       training_enrollments: {

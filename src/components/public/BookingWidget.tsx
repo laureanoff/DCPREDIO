@@ -301,7 +301,7 @@ export function BookingWidget({ venue, today }: { venue: PublicVenue; today: str
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   return (
-    <div ref={rootRef} data-dir={dir} className="glass rounded-[2rem] p-5 sm:p-8">
+    <div ref={rootRef} data-dir={dir} className="glass glass-clear rounded-[2rem] p-5 sm:p-8">
       <ol className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
         {STEPS.map((s, i) => (
           <li key={s.id} className="flex flex-1 items-center gap-2">

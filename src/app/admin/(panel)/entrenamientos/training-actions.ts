@@ -2,7 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "../reservas/actions";
 
@@ -138,6 +138,7 @@ const coachSchema = z.object({
   name: z.string().trim().max(80),
   title: z.string().trim().max(120),
   bio: z.string().trim().max(500),
+  story: z.string().trim().max(3000),
   show: z.boolean(),
 });
 
@@ -147,11 +148,47 @@ export async function saveCoach(raw: z.input<typeof coachSchema>): Promise<Actio
   if (!p.success) return { ok: false, error: p.error.issues[0].message };
   if (p.data.show && !p.data.name) return { ok: false, error: "Poné el nombre del profe o desmarcá «Mostrar»." };
   const supabase = await createClient();
-  const { error } = await supabase.from("training_settings").update({ coach_name: p.data.name, coach_title: p.data.title, coach_bio: p.data.bio, show_coach: p.data.show, updated_at: new Date().toISOString() }).eq("id", true);
+  const { error } = await supabase.from("training_settings").update({ coach_name: p.data.name, coach_title: p.data.title, coach_bio: p.data.bio, coach_story: p.data.story, show_coach: p.data.show, updated_at: new Date().toISOString() }).eq("id", true);
   if (error) {
     console.error("[entrenamientos] profe", error.code, error.message);
     return { ok: false, error: "No se pudo guardar." };
   }
   refresh();
   return { ok: true, message: "Datos del profe guardados." };
+}
+
+const sesSchema = z.object({
+  weekday: z.number().int().min(0).max(6),
+  start: z.string().regex(/^\d{2}:\d{2}$/, "Poné la hora de inicio."),
+  end: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal("")),
+  title: z.string().trim().min(1, "Poné qué entrenamiento es.").max(80),
+  details: z.string().trim().max(500),
+  isActive: z.boolean(),
+});
+
+export async function saveSession(id: string | null, raw: z.input<typeof sesSchema>): Promise<ActionResult> {
+  await requireStaff();
+  const p = sesSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  if (p.data.end && p.data.end <= p.data.start) return { ok: false, error: "La hora de fin tiene que ser posterior a la de inicio." };
+  if (id !== null && !idSchema.safeParse(id).success) return { ok: false, error: "Horario inválido." };
+  const row = { weekday: p.data.weekday, start_time: p.data.start, end_time: p.data.end || null, title: p.data.title, details: p.data.details || null, is_active: p.data.isActive };
+  const supabase = await createClient();
+  const { error } = id ? await supabase.from("training_sessions").update(row).eq("id", id) : await supabase.from("training_sessions").insert(row);
+  if (error) {
+    console.error("[entrenamientos] horario", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar el horario." };
+  }
+  refresh();
+  return { ok: true, message: id ? "Horario actualizado." : "Horario agregado." };
+}
+
+export async function deleteSession(id: string): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Horario inválido." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("training_sessions").delete().eq("id", id);
+  if (error) return { ok: false, error: "No se pudo borrar el horario." };
+  refresh();
+  return { ok: true, message: "Horario borrado." };
 }

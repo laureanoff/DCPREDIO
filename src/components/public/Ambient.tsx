@@ -1,3 +1,5 @@
+import { DecoSet } from "./Deco";
+
 /** Fondo ambiental: luces, líneas de cancha y puntos suaves. Va dentro de un contenedor con la clase "ambient". */
 export function Ambient() {
   return (
@@ -10,6 +12,7 @@ export function Ambient() {
       <i className="amb-cone l" />
       <i className="amb-cone r" />
       <i className="amb-grain" />
+      <DecoSet />
     </div>
   );
 }

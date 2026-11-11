@@ -39,7 +39,7 @@ export async function getTrainingCatalog(): Promise<PublicActivity[]> {
     .filter((a) => a.packs.length > 0);
 }
 
-export type Coach = { name: string; title: string; bio: string };
+export type Coach = { name: string; title: string; bio: string; story: string };
 
 /** Datos del profe (se editan en Configuración). null si está oculto o sin nombre. */
 export async function getCoach(): Promise<Coach | null> {
@@ -47,7 +47,23 @@ export async function getCoach(): Promise<Coach | null> {
   cacheLife("minutes");
   cacheTag("trainings");
 
-  const { data, error } = await createAnonClient().from("training_settings").select("coach_name, coach_title, coach_bio, show_coach").maybeSingle();
+  const { data, error } = await createAnonClient().from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach").maybeSingle();
   if (error || !data || !data.show_coach || !data.coach_name.trim()) return null;
-  return { name: data.coach_name, title: data.coach_title, bio: data.coach_bio };
+  return { name: data.coach_name, title: data.coach_title, bio: data.coach_bio, story: data.coach_story };
+}
+
+export type PublicSession = { id: string; weekday: number; start: string; end: string | null; title: string; details: string | null };
+
+/** Horarios de entrenamientos marcados como visibles (se cargan en el panel, «Días y horarios»). */
+export async function getTrainingSessions(): Promise<PublicSession[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("trainings");
+
+  const { data, error } = await createAnonClient().from("training_sessions").select("id, weekday, start_time, end_time, title, details").eq("is_active", true).order("weekday").order("start_time");
+  if (error) {
+    console.error("[entrenamientos] horarios", error.message);
+    return [];
+  }
+  return (data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? null, title: x.title, details: x.details }));
 }
