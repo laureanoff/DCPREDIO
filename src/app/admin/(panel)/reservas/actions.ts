@@ -214,3 +214,52 @@ export async function createManualBooking(raw: z.input<typeof newSchema>): Promi
   refresh();
   return { ok: true, message: `Reserva ${data.code} cargada.`, id: data.id };
 }
+
+/** Marca el comienzo real del turno (ahora). No modifica el horario reservado. */
+export async function startTurn(id: string): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Reserva inválida." };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ started_at: new Date().toISOString(), finished_at: null })
+    .eq("id", id)
+    .neq("status", "cancelled")
+    .is("started_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) return fail(error, "No se pudo iniciar el turno.");
+  if (!data) return { ok: false, error: "El turno ya fue iniciado o no se puede iniciar." };
+  refresh();
+  return { ok: true, message: "Turno iniciado." };
+}
+
+/** Marca el fin real del turno (ahora). */
+export async function finishTurn(id: string): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Reserva inválida." };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ finished_at: new Date().toISOString() })
+    .eq("id", id)
+    .not("started_at", "is", null)
+    .is("finished_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) return fail(error, "No se pudo finalizar el turno.");
+  if (!data) return { ok: false, error: "El turno no está en juego." };
+  refresh();
+  return { ok: true, message: "Turno finalizado." };
+}
+
+/** Deshace un inicio marcado por error. */
+export async function resetTurn(id: string): Promise<ActionResult> {
+  await requireStaff();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Reserva inválida." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("bookings").update({ started_at: null, finished_at: null }).eq("id", id);
+  if (error) return fail(error, "No se pudo deshacer.");
+  refresh();
+  return { ok: true, message: "Inicio deshecho." };
+}

@@ -128,7 +128,7 @@ async function Agenda({ searchParams }: { searchParams: Promise<{ fecha?: string
                 </span>
               </span>
               {date === today && b.status !== "cancelled" && (
-                <span className="w-full sm:w-auto sm:min-w-56"><TurnTimer startAt={b.start_at} endAt={b.end_at} /></span>
+                <span className="w-full sm:w-auto sm:min-w-56"><TurnTimer startAt={b.start_at} endAt={b.end_at} startedAt={b.started_at} finishedAt={b.finished_at} /></span>
               )}
               <span className="flex items-center gap-2">
                 <StatusBadge status={b.status} />

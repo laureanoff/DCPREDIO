@@ -75,6 +75,8 @@ export type Database = {
         Row: {
           booking_date: string | null;
           cancel_reason: string | null;
+          started_at: string | null;
+          finished_at: string | null;
           cancelled_at: string | null;
           code: string;
           court_id: string;
@@ -97,6 +99,8 @@ export type Database = {
         Insert: {
           booking_date?: string | null;
           cancel_reason?: string | null;
+          started_at?: string | null;
+          finished_at?: string | null;
           cancelled_at?: string | null;
           code: string;
           court_id: string;
@@ -119,6 +123,8 @@ export type Database = {
         Update: {
           booking_date?: string | null;
           cancel_reason?: string | null;
+          started_at?: string | null;
+          finished_at?: string | null;
           cancelled_at?: string | null;
           code?: string;
           court_id?: string;
