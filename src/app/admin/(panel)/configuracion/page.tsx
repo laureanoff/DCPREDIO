@@ -16,12 +16,13 @@ async function Settings() {
   await connection();
   await requireAdmin();
   const supabase = await createClient();
-  const [settings, courts, acts, packs, prices] = await Promise.all([
+  const [settings, courts, acts, packs, prices, coachRow] = await Promise.all([
     getVenueSettingsForm(),
     supabase.from("courts").select("id, name, is_active").order("sort_order").order("created_at"),
     supabase.from("training_activities").select("id, name, description, location, is_active").order("sort_order").order("created_at"),
     supabase.from("training_packs").select("id, activity_id, name, description, days_per_week, is_active").order("sort_order").order("days_per_week"),
     supabase.from("training_pack_prices").select("pack_id, billing, price"),
+    supabase.from("training_settings").select("coach_name, coach_title, coach_bio, show_coach").maybeSingle(),
   ]);
   const activities: ActivityRow[] = (acts.data ?? []).map((a) => ({
     id: a.id, name: a.name, description: a.description ?? "", location: a.location ?? "", isActive: a.is_active,
@@ -37,7 +38,7 @@ async function Settings() {
         <p className="text-sm text-muted">Lo que cambies acá se refleja en la web pública al guardar.</p>
       </div>
       <CourtsManager courts={(courts.data ?? []).map((c) => ({ id: c.id, name: c.name, isActive: c.is_active }))} />
-      <TrainingManager activities={activities} />
+      <TrainingManager activities={activities} coach={{ name: coachRow.data?.coach_name ?? "", title: coachRow.data?.coach_title ?? "", bio: coachRow.data?.coach_bio ?? "", show: coachRow.data?.show_coach ?? true }} />
       <SettingsForm initial={settings} />
     </div>
   );

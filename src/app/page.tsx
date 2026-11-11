@@ -12,7 +12,7 @@ import { SiteFooter } from "@/components/public/SiteFooter";
 import { ScrollFx } from "@/components/public/ScrollFx";
 import { FloodlightStage } from "@/components/public/FloodlightStage";
 import { Ambient } from "@/components/public/Ambient";
-import { CutOut } from "@/components/public/CutOut";
+import { TrainingCuts } from "@/components/public/TrainingCuts";
 import { Reveal } from "@/components/public/Reveal";
 import { SmoothScroll } from "@/components/public/SmoothScroll";
 
@@ -22,10 +22,10 @@ async function TrainingsTeaser() {
   return (
     <section className="px-5 pb-6 pt-28 sm:pt-32">
       <Reveal className="mx-auto max-w-5xl">
-        <div className="glass glass-lime relative rounded-[2rem] p-7 pt-40 sm:p-11 sm:pt-11 sm:pr-[24rem]">
+        <div className="tr-stage is-sm">
+        <TrainingCuts delay={0.2} />
+        <div className="tr-card glass glass-peek glass-lime rounded-[2rem] p-7 pt-36 sm:p-11 sm:pr-[29rem]">
           <span className="tr-clip"><span className="tr-ring" /></span>
-          <CutOut src="/trainings/kid-squat.webp" delay={0.35} from={-50} className="hidden w-[12.5rem] sm:block sm:-top-10 sm:right-[11.5rem]" />
-          <CutOut src="/trainings/kid-barbell.webp" delay={0.7} from={50} className="-top-14 right-4 w-[5.5rem] sm:-top-24 sm:right-12 sm:w-[11rem]" />
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Clases y entrenamiento personal</p>
           <h2 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-6xl">
             Entre<span className="title-grass">namientos</span>
@@ -39,6 +39,7 @@ async function TrainingsTeaser() {
           <Link href="/entrenamientos" className="cta-sheen relative mt-7 inline-flex h-12 items-center gap-3 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">
             <span className="cta-ball" aria-hidden /> Ver packs
           </Link>
+        </div>
         </div>
       </Reveal>
     </section>

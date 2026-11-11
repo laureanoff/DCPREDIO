@@ -38,3 +38,16 @@ export async function getTrainingCatalog(): Promise<PublicActivity[]> {
     }))
     .filter((a) => a.packs.length > 0);
 }
+
+export type Coach = { name: string; title: string; bio: string };
+
+/** Datos del profe (se editan en Configuración). null si está oculto o sin nombre. */
+export async function getCoach(): Promise<Coach | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("trainings");
+
+  const { data, error } = await createAnonClient().from("training_settings").select("coach_name, coach_title, coach_bio, show_coach").maybeSingle();
+  if (error || !data || !data.show_coach || !data.coach_name.trim()) return null;
+  return { name: data.coach_name, title: data.coach_title, bio: data.coach_bio };
+}

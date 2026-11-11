@@ -133,3 +133,25 @@ export async function deletePack(id: string): Promise<ActionResult> {
   refresh();
   return { ok: true, message: "Pack borrado." };
 }
+
+const coachSchema = z.object({
+  name: z.string().trim().max(80),
+  title: z.string().trim().max(120),
+  bio: z.string().trim().max(500),
+  show: z.boolean(),
+});
+
+export async function saveCoach(raw: z.input<typeof coachSchema>): Promise<ActionResult> {
+  await requireAdmin();
+  const p = coachSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  if (p.data.show && !p.data.name) return { ok: false, error: "Poné el nombre del profe o desmarcá «Mostrar»." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("training_settings").update({ coach_name: p.data.name, coach_title: p.data.title, coach_bio: p.data.bio, show_coach: p.data.show, updated_at: new Date().toISOString() }).eq("id", true);
+  if (error) {
+    console.error("[entrenamientos] profe", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar." };
+  }
+  refresh();
+  return { ok: true, message: "Datos del profe guardados." };
+}

@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Check, Dumbbell, MapPin, Send } from "lucide-react";
+import { SuccessMark } from "@/components/public/SuccessMark";
 import { cn, formatMoney } from "@/lib/utils";
 import { BILLING_LABEL, BILLING_ORDER, BILLING_SUFFIX, WEEKDAYS, type Billing } from "@/lib/training";
 import type { PublicActivity } from "@/queries/trainings";
-import { enroll } from "./actions";
+import { checkEnrollmentStatus, enroll, type EnrollmentLive } from "./actions";
 
 const input = "h-12 w-full rounded-xl glass-input px-3.5 text-base outline-none transition placeholder:text-muted/70 focus:border-lime focus:ring-2 focus:ring-lime/30";
 const label = "flex flex-col gap-1.5 text-sm font-medium";
@@ -21,6 +22,8 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
   const [days, setDays] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [enrollId, setEnrollId] = useState<string | null>(null);
+  const [live, setLive] = useState<EnrollmentLive>("pending");
   const [pending, start] = useTransition();
   const top = useRef<HTMLDivElement>(null);
 
@@ -52,21 +55,54 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
         website: f.website || undefined,
       });
       if (r.ok) {
+        setEnrollId(r.id);
+        setLive("pending");
         setDone(true);
         top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       } else setError(r.error);
     });
   }
 
+  // Mientras la pantalla de "enviada" está abierta, se consulta el estado y se actualiza sola cuando el predio acepta o rechaza.
+  useEffect(() => {
+    if (!done || !enrollId || live === "active" || live === "cancelled") return;
+    let stop = false;
+    const tick = async () => {
+      if (document.hidden) return;
+      const st = await checkEnrollmentStatus(enrollId).catch(() => "unknown" as const);
+      if (!stop && (st === "active" || st === "cancelled" || st === "paused")) setLive(st);
+    };
+    const t = setInterval(tick, 6000);
+    const onVis = () => { if (!document.hidden) void tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop = true; clearInterval(t); document.removeEventListener("visibilitychange", onVis); };
+  }, [done, enrollId, live]);
+
   if (done) {
+    const ok = live === "active" || live === "paused";
+    const no = live === "cancelled";
     return (
       <div ref={top} className="tr-hero glass glass-lime p-8 text-center step-enter sm:p-12">
-        <span className="slot-sel mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-lime text-black"><Check size={34} aria-hidden /></span>
-        <h2 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">¡Solicitud enviada!</h2>
-        <p className="mx-auto mt-2 max-w-md text-muted">
-          Recibimos la inscripción de <strong className="text-foreground">{f.student}</strong>. Te vamos a contactar por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para
-          confirmar los días y horarios. El pago se hace en el predio.
-        </p>
+        <div key={live} className="step-enter">
+          <SuccessMark kind={ok ? "ok" : no ? "no" : "pending"} />
+          <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">
+            {ok ? "¡Inscripción aceptada!" : no ? "No pudimos aceptarla" : "¡Solicitud enviada!"}
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-muted">
+            {ok ? (
+              <>La inscripción de <strong className="text-foreground">{f.student}</strong> quedó confirmada. Te vamos a escribir por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para pasarte los días y horarios. El pago se hace en el predio.</>
+            ) : no ? (
+              <>Por ahora no pudimos aceptar la inscripción de <strong className="text-foreground">{f.student}</strong>. Escribinos por WhatsApp al predio y lo vemos juntos.</>
+            ) : (
+              <>Recibimos la inscripción de <strong className="text-foreground">{f.student}</strong>. Te vamos a contactar por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para confirmar los días y horarios. El pago se hace en el predio.</>
+            )}
+          </p>
+          {!ok && !no && (
+            <p className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full glass-soft px-4 py-1.5 text-sm text-muted">
+              <span className="live-dot" aria-hidden /> Esperando confirmación del predio. Esta pantalla se actualiza sola.
+            </p>
+          )}
+        </div>
         <button type="button" onClick={() => { setDone(false); setPackId(null); setDays([]); setF({ student: "", birth: "", guardian: "", phone: "", email: "", emergency: "", health: "", time: "", notes: "", website: "" }); }} className="mt-6 h-11 rounded-xl border border-border px-5 font-medium transition hover:border-lime">
           Inscribir a otra persona
         </button>

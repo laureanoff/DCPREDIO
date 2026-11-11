@@ -213,6 +213,12 @@ export type Database = {
         Update: { birth_date?: string | null; email?: string | null; emergency_contact?: string | null; full_name?: string; guardian_name?: string; health_notes?: string | null; phone?: string };
         Relationships: [];
       };
+      training_settings: {
+        Row: { coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
+        Insert: { coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
+        Update: { coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
+        Relationships: [];
+      };
       training_enrollments: {
         Row: {
           activity_name: string; billing: string; created_at: string; days_per_week: number; id: string; notes: string | null; pack_id: string | null; pack_name: string;

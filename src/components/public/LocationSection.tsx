@@ -2,9 +2,9 @@ import { MapPin } from "lucide-react";
 import { getPublicGallery } from "@/queries/gallery";
 import type { PublicVenue } from "@/queries/venue";
 import { MapLoader } from "./MapLoader";
-import { MediaCarousel } from "./MediaCarousel";
+import { MediaGallery } from "./MediaGallery";
 
-/** Carrusel de video arriba y mapa 3D abajo (la dirección sale de Configuración en el panel). */
+/** Galería de video arriba y mapa 3D abajo (la dirección sale de Configuración en el panel). */
 export async function LocationSection({ venue }: { venue: PublicVenue }) {
   const media = await getPublicGallery();
   const hasMap = Boolean(venue.address);
@@ -14,7 +14,7 @@ export async function LocationSection({ venue }: { venue: PublicVenue }) {
   return (
     <section id="ubicacion" className="scroll-mt-20 px-5 pb-20 pt-10">
       <div className="mx-auto flex max-w-5xl flex-col gap-4">
-        {media.length > 0 && <MediaCarousel items={media} />}
+        {media.length > 0 && <MediaGallery items={media} />}
 
         {hasMap && (
           <>

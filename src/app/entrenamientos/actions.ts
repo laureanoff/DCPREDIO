@@ -30,7 +30,7 @@ const ERR: Record<string, string> = {
   DC034: "Elegí al menos tantos días como incluye el pack.",
 };
 
-export type EnrollResult = { ok: true } | { ok: false; error: string };
+export type EnrollResult = { ok: true; id: string } | { ok: false; error: string };
 
 export async function enroll(input: unknown): Promise<EnrollResult> {
   const parsed = schema.safeParse(input);
@@ -41,7 +41,7 @@ export async function enroll(input: unknown): Promise<EnrollResult> {
   if (Number.isNaN(birth.getTime()) || birth > new Date() || birth.getFullYear() < 1920) return { ok: false, error: "La fecha de nacimiento no es válida." };
 
   const supabase = createAdminClient();
-  const { error } = await supabase.rpc("create_training_enrollment", {
+  const { data: enrollmentId, error } = await supabase.rpc("create_training_enrollment", {
     p_pack_id: v.packId,
     p_billing: v.billing,
     p_student_name: v.studentName,
@@ -60,5 +60,15 @@ export async function enroll(input: unknown): Promise<EnrollResult> {
     return { ok: false, error: (error.code && ERR[error.code]) || "No pudimos enviar la solicitud. Probá de nuevo en unos minutos." };
   }
   after(() => notifyStaff({ title: "Nueva inscripción a entrenamientos", body: `${v.studentName} · solicitud por revisar`, url: "/admin/entrenamientos", tag: "training" }));
-  return { ok: true };
+  return { ok: true, id: String(enrollmentId) };
+}
+
+export type EnrollmentLive = "pending" | "active" | "paused" | "cancelled" | "unknown";
+
+/** Estado de una solicitud (solo el estado; el id es un uuid que solo conoce quien la envió). */
+export async function checkEnrollmentStatus(id: string): Promise<EnrollmentLive> {
+  if (!z.string().uuid().safeParse(id).success) return "unknown";
+  const supabase = createAdminClient();
+  const { data } = await supabase.from("training_enrollments").select("status").eq("id", id).maybeSingle();
+  return (data?.status as EnrollmentLive | undefined) ?? "unknown";
 }
