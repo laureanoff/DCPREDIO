@@ -602,3 +602,16 @@ html.lenis, html.lenis body { height: auto; }
 .tr-days { transition: transform .35s cubic-bezier(.3,1.6,.5,1), text-shadow .35s; }
 .tr-card:hover .tr-days, .tr-card[aria-pressed="true"] .tr-days { transform: scale(1.1) rotate(-3deg); transform-origin: left bottom; }
 @media (prefers-reduced-motion: reduce) { .price-swap, .tr-card::after, .tr-steps li, .tr-steps li::before, .tr-bar, .tr-send::after { animation: none !important; } }
+
+/* Transición: la pelota viene hacia vos al bajar */
+.ball-strike { position: relative; height: 260vh; margin: 0 calc(50% - 50vw); }
+.ball-strike-stick { position: sticky; top: 0; height: 100vh; overflow: hidden; background: radial-gradient(70% 60% at 50% 55%, rgba(182, 214, 26, .12), transparent 70%); }
+.ball-strike-ball { position: absolute; left: 50%; top: 50%; width: min(34vmin, 15rem); height: min(34vmin, 15rem); margin: calc(min(34vmin, 15rem) / -2) 0 0 calc(min(34vmin, 15rem) / -2); will-change: transform, filter, opacity; opacity: 0; }
+.ball-strike-lines { position: absolute; inset: -30%; opacity: 0; pointer-events: none; will-change: transform, opacity;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(182, 214, 26, .5) 0 .6deg, transparent .6deg 7deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 60%); mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 60%); }
+.ball-strike-shock { position: absolute; left: 50%; top: 50%; width: 60vmin; height: 60vmin; border-radius: 50%; border: 6px solid rgba(182, 214, 26, .8); opacity: 0; pointer-events: none; }
+.ball-strike-veil { position: absolute; inset: 0; background: var(--background, #0a0a0a); opacity: 0; pointer-events: none; }
+.ball-strike-text { position: absolute; left: 0; right: 0; top: 16%; text-align: center; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: clamp(1.8rem, 6vw, 3.4rem); letter-spacing: .02em; opacity: 0; color: var(--foreground); text-shadow: 0 0 40px rgba(182, 214, 26, .5); }
+.ball-strike-static { display: none; justify-content: center; padding: 2rem 0; }
+@media (prefers-reduced-motion: reduce) { .ball-strike { height: auto; } .ball-strike-stick { display: none; } .ball-strike-static { display: flex; } }
