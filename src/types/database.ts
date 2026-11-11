@@ -183,6 +183,42 @@ export type Database = {
           { foreignKeyName: "buffet_sale_items_sale_id_fkey"; columns: ["sale_id"]; isOneToOne: false; referencedRelation: "buffet_sales"; referencedColumns: ["id"] },
         ];
       };
+      training_activities: {
+        Row: { created_at: string; description: string | null; id: string; is_active: boolean; location: string | null; name: string; sort_order: number };
+        Insert: { created_at?: string; description?: string | null; id?: string; is_active?: boolean; location?: string | null; name: string; sort_order?: number };
+        Update: { description?: string | null; is_active?: boolean; location?: string | null; name?: string; sort_order?: number };
+        Relationships: [];
+      };
+      training_packs: {
+        Row: { activity_id: string; created_at: string; days_per_week: number; description: string | null; id: string; is_active: boolean; name: string; sort_order: number };
+        Insert: { activity_id: string; created_at?: string; days_per_week: number; description?: string | null; id?: string; is_active?: boolean; name: string; sort_order?: number };
+        Update: { days_per_week?: number; description?: string | null; is_active?: boolean; name?: string; sort_order?: number };
+        Relationships: [];
+      };
+      training_pack_prices: {
+        Row: { billing: string; pack_id: string; price: number };
+        Insert: { billing: string; pack_id: string; price: number };
+        Update: { price?: number };
+        Relationships: [];
+      };
+      training_students: {
+        Row: { birth_date: string | null; created_at: string; email: string | null; emergency_contact: string | null; full_name: string; guardian_name: string; health_notes: string | null; id: string; phone: string };
+        Insert: { birth_date?: string | null; created_at?: string; email?: string | null; emergency_contact?: string | null; full_name: string; guardian_name: string; health_notes?: string | null; id?: string; phone: string };
+        Update: { birth_date?: string | null; email?: string | null; emergency_contact?: string | null; full_name?: string; guardian_name?: string; health_notes?: string | null; phone?: string };
+        Relationships: [];
+      };
+      training_enrollments: {
+        Row: {
+          activity_name: string; billing: string; created_at: string; days_per_week: number; id: string; notes: string | null; pack_id: string | null; pack_name: string;
+          preferred_days: number[]; preferred_time: string | null; price: number; staff_notes: string | null; start_date: string | null; status: string; student_id: string; updated_at: string;
+        };
+        Insert: {
+          activity_name: string; billing: string; days_per_week: number; id?: string; notes?: string | null; pack_id?: string | null; pack_name: string;
+          preferred_days?: number[]; preferred_time?: string | null; price: number; staff_notes?: string | null; start_date?: string | null; status?: string; student_id: string;
+        };
+        Update: { notes?: string | null; staff_notes?: string | null; start_date?: string | null; status?: string };
+        Relationships: [{ foreignKeyName: "training_enrollments_student_id_fkey"; columns: ["student_id"]; isOneToOne: false; referencedRelation: "training_students"; referencedColumns: ["id"] }];
+      };
       waitlist_entries: {
         Row: { court_id: string; created_at: string; customer_name: string; customer_phone: string; end_at: string; id: string; start_at: string };
         Insert: { court_id: string; created_at?: string; customer_name: string; customer_phone: string; end_at: string; id?: string; start_at: string };
@@ -467,6 +503,13 @@ export type Database = {
       };
     };
     Functions: {
+      create_training_enrollment: {
+        Args: {
+          p_pack_id: string; p_billing: string; p_student_name: string; p_birth_date: string | null; p_guardian_name: string; p_phone: string; p_email: string | null;
+          p_emergency: string | null; p_health: string | null; p_days: number[]; p_time: string | null; p_notes: string | null;
+        };
+        Returns: string;
+      };
       income_summary: {
         Args: {
           p_from: string;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, ClipboardList, Clock, Coffee, Database, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Clock, Coffee, Database, Dumbbell, Film, Lock, MessageCircle, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: string) => boolean; adminOnly?: boolean }[] = [
@@ -12,6 +12,7 @@ const ITEMS: { href: string; label: string; Icon: typeof BarChart3; match: (p: s
   { href: "/admin/espera", label: "Espera", Icon: Clock, match: (p: string) => p.startsWith("/admin/espera") },
   { href: "/admin/bloqueos", label: "Bloqueos", Icon: Lock, match: (p: string) => p.startsWith("/admin/bloqueos") },
   { href: "/admin/buffet", label: "Buffet", Icon: Coffee, match: (p: string) => p.startsWith("/admin/buffet") },
+  { href: "/admin/entrenamientos", label: "Entrenamientos", Icon: Dumbbell, match: (p: string) => p.startsWith("/admin/entrenamientos") },
   { href: "/admin/estadisticas", label: "Estadísticas", Icon: BarChart3, match: (p: string) => p.startsWith("/admin/estadisticas"), adminOnly: true },
   { href: "/admin/galeria", label: "Galería", Icon: Film, match: (p: string) => p.startsWith("/admin/galeria"), adminOnly: true },
   { href: "/admin/respaldos", label: "Respaldos", Icon: Database, match: (p: string) => p.startsWith("/admin/respaldos"), adminOnly: true },
