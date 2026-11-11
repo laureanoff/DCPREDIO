@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BILLING_LABEL, BILLING_ORDER, type Billing } from "@/lib/training";
-import { saveCoach, addActivity, addPack, deleteActivity, deletePack, updateActivity, updatePack } from "./training-actions";
+import { createClient } from "@/lib/supabase/browser";
+import { CoachPhoto, type CoachPhotoData } from "@/components/public/CoachPhoto";
+import { removeCoachPhoto, saveCoachPhoto, saveCoach, addActivity, addPack, deleteActivity, deletePack, updateActivity, updatePack } from "./training-actions";
 
 export type PackRow = { id: string; name: string; description: string; daysPerWeek: number; isActive: boolean; prices: Partial<Record<Billing, number>> };
 export type ActivityRow = { id: string; name: string; description: string; location: string; isActive: boolean; packs: PackRow[] };
@@ -116,12 +118,82 @@ function ActivityItem({ a }: { a: ActivityRow }) {
   );
 }
 
-export type CoachRow = { name: string; title: string; bio: string; story: string; show: boolean };
+export type CoachRow = { name: string; title: string; bio: string; story: string; show: boolean; photo: CoachPhotoData };
+
+const PHOTO_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+function PhotoEditor({ initial }: { initial: CoachPhotoData }) {
+  const { pending, msg, run } = useRun();
+  const [saved, setSaved] = useState(initial);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [zoom, setZoom] = useState(initial?.zoom ?? 1);
+  const [x, setX] = useState(initial?.x ?? 50);
+  const [y, setY] = useState(initial?.y ?? 50);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const shown: CoachPhotoData = preview ? { url: preview, zoom, x, y } : saved ? { ...saved, zoom, x, y } : null;
+
+  function pick(f: File | null) {
+    setErr(null);
+    if (!f) return;
+    if (!PHOTO_EXT[f.type]) return setErr("Usá una foto JPG, PNG o WebP.");
+    if (f.size > 8 * 1048576) return setErr("La foto pesa más de 8 MB. Usá una más liviana.");
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  }
+
+  async function save() {
+    setErr(null);
+    setBusy(true);
+    try {
+      let path: string | null = null;
+      if (file) {
+        path = `coach-${crypto.randomUUID()}.${PHOTO_EXT[file.type]}`;
+        const { error } = await createClient().storage.from("gallery").upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+        if (error) throw new Error("No se pudo subir la foto. Revisá tu conexión e intentá de nuevo.");
+      }
+      run(() => saveCoachPhoto({ path, zoom, x, y }), () => { setFile(null); });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "No se pudo subir la foto.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const range = "w-full accent-[var(--lime)]";
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-4">
+      <h3 className="mb-1 text-sm font-bold uppercase tracking-wide">Foto del profe</h3>
+      <p className="mb-3 text-sm text-muted">Subí una foto y ubicala con los controles: así se ve en la web (vista previa a la izquierda). Sin foto subida se usa la imagen por defecto.</p>
+      <div className="grid gap-4 sm:grid-cols-[13rem_1fr]">
+        <CoachPhoto photo={shown} alt="Vista previa" className="mx-auto h-72 w-52 sm:w-full" />
+        <div className="flex flex-col gap-3 text-sm">
+          <label className="flex flex-col gap-1">
+            <span className="font-medium">Elegir foto</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => pick(e.target.files?.[0] ?? null)} className="text-sm file:mr-3 file:h-10 file:rounded-xl file:border-0 file:bg-lime file:px-4 file:font-semibold file:text-black" />
+          </label>
+          <label className="flex flex-col gap-1">Zoom ({zoom.toFixed(1)}×)<input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className={range} disabled={!shown} /></label>
+          <label className="flex flex-col gap-1">Horizontal ({x}%)<input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} className={range} disabled={!shown} /></label>
+          <label className="flex flex-col gap-1">Vertical ({y}%)<input type="range" min={0} max={100} value={y} onChange={(e) => setY(Number(e.target.value))} className={range} disabled={!shown} /></label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" disabled={busy || pending || (!file && !saved)} onClick={save} className="h-10 rounded-xl bg-lime px-4 font-semibold text-black disabled:opacity-50">{busy ? "Subiendo…" : "Guardar foto"}</button>
+            {saved && <button type="button" disabled={pending} onClick={() => { if (confirm("¿Volver a la foto por defecto?")) run(() => removeCoachPhoto(), () => { setSaved(null); setFile(null); setPreview(null); setZoom(1); setX(50); setY(50); }); }} className="h-10 rounded-xl border border-border px-4 font-semibold">Quitar foto</button>}
+          </div>
+          {(err || msg) && <p role="status" className={err || !msg?.ok ? "text-danger" : "text-lime-ink"}>{err ?? msg?.text}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function CoachEditor({ coach }: { coach: CoachRow }) {
   const { pending, msg, run } = useRun();
   const [c, setC] = useState(coach);
   return (
+    <div className="flex flex-col gap-4">
+    <PhotoEditor initial={coach.photo} />
     <div className="rounded-2xl border border-border bg-surface p-4">
       <h3 className="mb-2 text-sm font-bold uppercase tracking-wide">Profe y su historia (se muestra en la web, sección «Entrenamientos»)</h3>
       <div className="grid gap-2 sm:grid-cols-2">
@@ -135,6 +207,7 @@ export function CoachEditor({ coach }: { coach: CoachRow }) {
         <button type="button" disabled={pending} onClick={() => run(() => saveCoach({ name: c.name, title: c.title, bio: c.bio, story: c.story, show: c.show }))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-50">Guardar</button>
         {msg && <span className={msg.ok ? "text-sm text-lime-ink" : "text-sm text-danger"} role="status">{msg.text}</span>}
       </div>
+    </div>
     </div>
   );
 }

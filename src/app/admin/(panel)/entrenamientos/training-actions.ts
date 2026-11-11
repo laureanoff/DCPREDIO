@@ -192,3 +192,48 @@ export async function deleteSession(id: string): Promise<ActionResult> {
   refresh();
   return { ok: true, message: "Horario borrado." };
 }
+
+const photoSchema = z.object({
+  path: z.string().regex(/^coach-[0-9a-f-]{36}\.(jpg|jpeg|png|webp)$/i, "Archivo inválido.").nullable(),
+  zoom: z.number().min(1).max(3),
+  x: z.number().int().min(0).max(100),
+  y: z.number().int().min(0).max(100),
+});
+
+/** Guarda la foto del profe (ya subida por el navegador al almacenamiento) y cómo se ubica. path=null mantiene la foto actual. */
+export async function saveCoachPhoto(raw: z.input<typeof photoSchema>): Promise<ActionResult> {
+  await requireAdmin();
+  const p = photoSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  const supabase = await createClient();
+  const patch: { coach_photo_zoom: number; coach_photo_x: number; coach_photo_y: number; updated_at: string; coach_photo_url?: string; coach_photo_path?: string } = {
+    coach_photo_zoom: p.data.zoom, coach_photo_x: p.data.x, coach_photo_y: p.data.y, updated_at: new Date().toISOString(),
+  };
+  let oldPath: string | null = null;
+  if (p.data.path) {
+    const { data: cur } = await supabase.from("training_settings").select("coach_photo_path").eq("id", true).maybeSingle();
+    oldPath = cur?.coach_photo_path ?? null;
+    patch.coach_photo_path = p.data.path;
+    patch.coach_photo_url = supabase.storage.from("gallery").getPublicUrl(p.data.path).data.publicUrl;
+  }
+  const { error } = await supabase.from("training_settings").update(patch).eq("id", true);
+  if (error) {
+    console.error("[entrenamientos] foto profe", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar la foto." };
+  }
+  if (oldPath && oldPath !== p.data.path) await supabase.storage.from("gallery").remove([oldPath]);
+  refresh();
+  return { ok: true, message: "Foto guardada." };
+}
+
+/** Vuelve a la foto por defecto. */
+export async function removeCoachPhoto(): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { data: cur } = await supabase.from("training_settings").select("coach_photo_path").eq("id", true).maybeSingle();
+  const { error } = await supabase.from("training_settings").update({ coach_photo_url: null, coach_photo_path: null, coach_photo_zoom: 1, coach_photo_x: 50, coach_photo_y: 50 }).eq("id", true);
+  if (error) return { ok: false, error: "No se pudo quitar la foto." };
+  if (cur?.coach_photo_path) await supabase.storage.from("gallery").remove([cur.coach_photo_path]);
+  refresh();
+  return { ok: true, message: "Se volvió a la foto por defecto." };
+}

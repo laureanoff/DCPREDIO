@@ -39,7 +39,7 @@ export async function getTrainingCatalog(): Promise<PublicActivity[]> {
     .filter((a) => a.packs.length > 0);
 }
 
-export type Coach = { name: string; title: string; bio: string; story: string };
+export type Coach = { name: string; title: string; bio: string; story: string; photo: { url: string; zoom: number; x: number; y: number } | null };
 
 /** Datos del profe (se editan en Configuración). null si está oculto o sin nombre. */
 export async function getCoach(): Promise<Coach | null> {
@@ -47,9 +47,9 @@ export async function getCoach(): Promise<Coach | null> {
   cacheLife("minutes");
   cacheTag("trainings");
 
-  const { data, error } = await createAnonClient().from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach").maybeSingle();
+  const { data, error } = await createAnonClient().from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y").maybeSingle();
   if (error || !data || !data.show_coach || !data.coach_name.trim()) return null;
-  return { name: data.coach_name, title: data.coach_title, bio: data.coach_bio, story: data.coach_story };
+  return { name: data.coach_name, title: data.coach_title, bio: data.coach_bio, story: data.coach_story, photo: data.coach_photo_url ? { url: data.coach_photo_url, zoom: Number(data.coach_photo_zoom), x: data.coach_photo_x, y: data.coach_photo_y } : null };
 }
 
 export type PublicSession = { id: string; weekday: number; start: string; end: string | null; title: string; details: string | null };

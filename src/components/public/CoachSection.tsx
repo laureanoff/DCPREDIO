@@ -1,4 +1,5 @@
 import type { Coach } from "@/queries/trainings";
+import { CoachPhoto } from "./CoachPhoto";
 import { TrainingVideo } from "./TrainingVideo";
 
 /** «Tu profe»: retrato, cómo surgió la idea (se edita en el panel) y el video del entrenamiento dentro del vidrio. */
@@ -7,10 +8,7 @@ export function CoachSection({ coach }: { coach: Coach }) {
   return (
     <section aria-labelledby="coach-title" className="mb-14">
       <div className="glass glass-lime grid gap-7 rounded-[2rem] p-6 sm:p-9 lg:grid-cols-[13rem_1fr_15rem] lg:items-start">
-        <div className="coach-photo mx-auto flex h-60 w-52 items-end justify-center overflow-hidden rounded-3xl border border-white/10 lg:h-72 lg:w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/trainings/diego.webp" alt={coach.name} className="h-full w-full object-contain object-bottom" />
-        </div>
+        <CoachPhoto photo={coach.photo} alt={coach.name} className="mx-auto h-60 w-52 lg:h-72 lg:w-full" />
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Tu profe</p>
           <h2 id="coach-title" className="font-[family-name:var(--font-display)] text-4xl font-extrabold uppercase leading-none sm:text-5xl">{coach.name}</h2>

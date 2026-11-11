@@ -90,7 +90,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     isAdmin ? supabase.from("training_activities").select("id, name, description, location, is_active").order("sort_order").order("created_at") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_packs").select("id, activity_id, name, description, days_per_week, is_active").order("sort_order").order("days_per_week") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_pack_prices").select("pack_id, billing, price") : Promise.resolve({ data: [] }),
-    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach").maybeSingle() : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y").maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("training_enrollments").select("activity_name, status, preferred_days, training_students(full_name)").eq("status", "active"),
   ]);
   const sessions: SessionRow[] = (sesRes.data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? "", title: x.title, details: x.details ?? "", isActive: x.is_active }));
@@ -106,7 +106,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
       prices: Object.fromEntries((priceRes.data ?? []).filter((x) => x.pack_id === p.id).map((x) => [x.billing, Number(x.price)])) as Partial<Record<Billing, number>>,
     })),
   }));
-  const coach = { name: coachRes.data?.coach_name ?? "", title: coachRes.data?.coach_title ?? "", bio: coachRes.data?.coach_bio ?? "", story: coachRes.data?.coach_story ?? "", show: coachRes.data?.show_coach ?? true };
+  const coach = { name: coachRes.data?.coach_name ?? "", title: coachRes.data?.coach_title ?? "", bio: coachRes.data?.coach_bio ?? "", story: coachRes.data?.coach_story ?? "", show: coachRes.data?.show_coach ?? true, photo: coachRes.data?.coach_photo_url ? { url: coachRes.data.coach_photo_url, zoom: Number(coachRes.data.coach_photo_zoom), x: coachRes.data.coach_photo_x, y: coachRes.data.coach_photo_y } : null };
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-5">
