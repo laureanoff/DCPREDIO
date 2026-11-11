@@ -19,7 +19,7 @@ export default async function Home() {
     <>
       <ScrollFx />
       <SmoothScroll />
-      <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
+      <SiteHeader name={venue.name} />
       <main className="flex-1">
         <Hero venueName={venue.name} badge={<Suspense fallback={null}><TodayBadge venue={venue} /></Suspense>} />
         <FloodlightStage>

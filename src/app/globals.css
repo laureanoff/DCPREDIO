@@ -318,6 +318,15 @@ html[data-theme="light"] .lg-beam { opacity: .1; mix-blend-mode: normal; backgro
 .ball-loader-text { animation: text-breathe 1.4s ease-in-out infinite; }
 @keyframes text-breathe { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 
+/* Logo: versión según el tema */
+.logo-onlight { display: none; }
+:root[data-theme="light"] .logo-ondark { display: none; }
+:root[data-theme="light"] .logo-onlight { display: block; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .logo-ondark { display: none; }
+  :root:not([data-theme="dark"]) .logo-onlight { display: block; }
+}
+
 /* Panel: transiciones, próximo turno, vista de cancha, gráficos */
 .page-enter { animation: page-enter .45s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes page-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

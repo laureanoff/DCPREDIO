@@ -25,7 +25,7 @@ export default function LoginPage(props: PageProps<"/admin/login">) {
       <div aria-hidden className="lg-beam r" />
       <div className="lg-card relative flex w-full max-w-sm flex-col items-center gap-8 rounded-3xl border border-border bg-surface p-8">
         <div className="lg-logo">
-          <Logo variant="full" className="h-32 w-auto text-surface" />
+          <Logo variant="full" className="h-36" />
         </div>
         <div className="lg-rise text-center" style={{ "--d": "0.35s" } as React.CSSProperties}>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold uppercase tracking-wide">

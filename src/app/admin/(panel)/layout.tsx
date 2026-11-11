@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { BallLoader } from "@/components/ui/Loaders";
 import { Logo } from "@/components/brand/Logo";
-import { BRAND } from "@/config/brand";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { NewBookingAlerts } from "@/components/admin/NewBookingAlerts";
 import { SfxToggle } from "@/components/admin/SfxToggle";
@@ -16,10 +15,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
     <div className="pitch-bg flex flex-1 flex-col">
       <header className="panel-header sticky top-0 z-10 flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <Logo variant="mark" className="h-8 w-auto text-background" />
-          <span className="font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide">
-            {BRAND.name}
-          </span>
+          <Logo variant="horizontal" className="h-7" />
         </div>
         <div className="flex items-center gap-2 text-sm sm:gap-3">
           <SfxToggle />

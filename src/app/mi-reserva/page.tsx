@@ -11,7 +11,7 @@ async function Shell() {
   const venue = await getPublicVenue();
   return (
     <>
-      <SiteHeader name={venue.name} logoUrl={venue.logoUrl} />
+      <SiteHeader name={venue.name} />
       <main className="mx-auto w-full max-w-md px-5 py-10">
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase">Mi reserva</h1>
         <p className="mt-2 text-sm text-muted">Ingresá el código que te dimos al reservar y el teléfono con el que lo hiciste.</p>

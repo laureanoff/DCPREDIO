@@ -8,7 +8,6 @@ export const BRAND = {
   shortMark: "DC",
   tagline: "PREDIO",
   description: "Reservá tu cancha de fútbol 5 online en DC Predio.",
-  logoPath: "/brand/dc-predio-logo.svg",
   colors: {
     lime: "#B6D61A",
     black: "#0A0A0A",
