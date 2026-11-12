@@ -6,7 +6,7 @@ export type GalleryMedia =
   | { id: string; type: "image"; src: string; title: string };
 
 /** Galería pública (solo lo activo), en el orden definido en el panel. Se refresca sola y al guardar cambios. */
-export async function getPublicGallery(): Promise<GalleryMedia[]> {
+export async function getPublicGallery(placement: "home" | "trainings" = "home"): Promise<GalleryMedia[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("gallery");
@@ -15,6 +15,7 @@ export async function getPublicGallery(): Promise<GalleryMedia[]> {
   const { data, error } = await supabase
     .from("gallery_items")
     .select("id, kind, url, poster_url, title")
+    .eq("placement", placement)
     .order("sort_order")
     .order("created_at");
   if (error) {

@@ -220,15 +220,15 @@ export type Database = {
         Relationships: [];
       };
       training_testimonials: {
-        Row: { author: string; body: string; created_at: string; detail: string | null; id: string; is_active: boolean; placement: string; rating: number; sort_order: number };
-        Insert: { author: string; body: string; created_at?: string; detail?: string | null; id?: string; is_active?: boolean; placement?: string; rating?: number; sort_order?: number };
+        Row: { author: string; body: string; created_at: string; detail: string | null; id: string; is_active: boolean; placement: string; rating: number; sort_order: number; source: string };
+        Insert: { author: string; body: string; created_at?: string; detail?: string | null; id?: string; is_active?: boolean; placement?: string; rating?: number; sort_order?: number; source?: string };
         Update: { author?: string; body?: string; detail?: string | null; is_active?: boolean; placement?: string; rating?: number; sort_order?: number };
         Relationships: [];
       };
       training_settings: {
-        Row: { benefits: Json; benefits_title: string; hero_tagline: string; hero_text: string; proposals: Json; proposals_title: string; show_prices: boolean; show_schedule: boolean; coach_photo_path: string | null; coach_photo_url: string | null; coach_photo_x: number; coach_photo_y: number; coach_photo_zoom: number; coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
-        Insert: { benefits?: Json; benefits_title?: string; hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
-        Update: { benefits?: Json; benefits_title?: string; hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
+        Row: { stats: Json; benefits: Json; benefits_title: string; hero_tagline: string; hero_text: string; proposals: Json; proposals_title: string; show_prices: boolean; show_schedule: boolean; coach_photo_path: string | null; coach_photo_url: string | null; coach_photo_x: number; coach_photo_y: number; coach_photo_zoom: number; coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
+        Insert: { stats?: Json; benefits?: Json; benefits_title?: string; hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
+        Update: { stats?: Json; benefits?: Json; benefits_title?: string; hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
         Relationships: [];
       };
       training_enrollments: {
@@ -268,6 +268,7 @@ export type Database = {
           id: string;
           is_active: boolean;
           kind: string;
+          placement: string;
           poster_storage_path: string | null;
           poster_url: string | null;
           sort_order: number;
@@ -281,6 +282,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           kind: string;
+          placement?: string;
           poster_storage_path?: string | null;
           poster_url?: string | null;
           sort_order?: number;
@@ -294,6 +296,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           kind?: string;
+          placement?: string;
           poster_storage_path?: string | null;
           poster_url?: string | null;
           sort_order?: number;
@@ -437,6 +440,7 @@ export type Database = {
           address: string | null;
           booking_window_days: number;
           contact_email: string | null;
+          instagram_url: string | null;
           contact_phone: string | null;
           contact_whatsapp: string | null;
           currency: string;
@@ -463,6 +467,7 @@ export type Database = {
           address?: string | null;
           booking_window_days?: number;
           contact_email?: string | null;
+          instagram_url?: string | null;
           contact_phone?: string | null;
           contact_whatsapp?: string | null;
           currency?: string;
@@ -489,6 +494,7 @@ export type Database = {
           address?: string | null;
           booking_window_days?: number;
           contact_email?: string | null;
+          instagram_url?: string | null;
           contact_phone?: string | null;
           contact_whatsapp?: string | null;
           currency?: string;

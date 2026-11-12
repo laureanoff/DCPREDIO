@@ -16,7 +16,7 @@ async function Shell() {
       <SiteHeader name={venue.name} />
       <div className="ambient flex-1">
         <Ambient />
-        <main className="mx-auto w-full max-w-lg px-5 py-12 sm:py-16">
+        <main id="contenido" className="mx-auto w-full max-w-lg px-5 py-12 sm:py-16">
           <div className="glass glass-lime step-enter relative mb-6 overflow-hidden rounded-[2rem] p-7 sm:p-9">
             <span className="tr-clip"><span className="tr-ring" /></span>
             <span className="glass-ico mb-4 inline-flex"><Ticket size={24} aria-hidden /></span>

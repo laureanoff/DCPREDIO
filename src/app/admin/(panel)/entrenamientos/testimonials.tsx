@@ -6,7 +6,7 @@ import { Star } from "lucide-react";
 import { deleteTestimonial, saveTestimonial } from "./training-actions";
 
 export type Placement = "courts" | "trainings";
-export type TestimonialRow = { id: string; author: string; detail: string; body: string; rating: number; isActive: boolean; placement: Placement };
+export type TestimonialRow = { id: string; author: string; detail: string; body: string; rating: number; isActive: boolean; placement: Placement; fromPublic: boolean };
 
 const field = "h-10 min-w-0 rounded-xl border border-border bg-surface-2 px-3 text-base outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30";
 type Form = { author: string; detail: string; body: string; rating: number; isActive: boolean; placement: Placement };
@@ -52,8 +52,15 @@ function Row({ id, initial, onDone, onDelete }: { id: string | null; initial: Fo
 function Item({ t }: { t: TestimonialRow }) {
   const router = useRouter();
   const [, start] = useTransition();
+  const pendingReview = t.fromPublic && !t.isActive;
   return (
-    <li>
+    <li className={pendingReview ? "rounded-xl ring-2 ring-lime/60" : ""}>
+      {pendingReview && (
+        <div className="flex flex-wrap items-center gap-3 rounded-t-xl bg-lime/15 px-3 py-2 text-sm">
+          <strong className="text-lime-ink">Opinión nueva del público · sin publicar</strong>
+          <button type="button" onClick={() => start(async () => { await saveTestimonial(t.id, { author: t.author, detail: t.detail, body: t.body, rating: t.rating, isActive: true, placement: t.placement }); router.refresh(); })} className="ml-auto h-9 rounded-lg bg-lime px-4 font-semibold text-black">Aprobar y publicar</button>
+        </div>
+      )}
       <Row id={t.id} initial={{ author: t.author, detail: t.detail, body: t.body, rating: t.rating, isActive: t.isActive, placement: t.placement }}
         onDelete={() => { if (confirm(`¿Borrar el testimonio de "${t.author}"?`)) start(async () => { await deleteTestimonial(t.id); router.refresh(); }); }} />
     </li>

@@ -249,7 +249,13 @@ const benefitSchema = z.object({
   title: z.string().trim().min(1, "Cada beneficio necesita un título.").max(60),
   text: z.string().trim().max(300),
 });
+const statSchema = z.object({
+  value: z.number().min(0, "Las cifras no pueden ser negativas.").max(1_000_000),
+  suffix: z.string().trim().max(10),
+  label: z.string().trim().min(1, "Cada cifra necesita un texto (ej. alumnos).").max(40),
+});
 const contentSchema = z.object({
+  stats: z.array(statSchema).max(4, "Hasta 4 cifras."),
   benefitsTitle: z.string().trim().min(1, "Poné un título para «Lo que vas a lograr».").max(100),
   benefits: z.array(benefitSchema).max(12, "Hasta 12 beneficios."),
   tagline: z.string().trim().max(140),
@@ -268,7 +274,7 @@ export async function savePageContent(raw: z.input<typeof contentSchema>): Promi
   const supabase = await createClient();
   const { error } = await supabase
     .from("training_settings")
-    .update({ benefits_title: p.data.benefitsTitle, benefits: p.data.benefits, hero_tagline: p.data.tagline, hero_text: p.data.text, proposals_title: p.data.proposalsTitle, proposals: p.data.proposals, show_prices: p.data.showPrices, show_schedule: p.data.showSchedule, updated_at: new Date().toISOString() })
+    .update({ stats: p.data.stats, benefits_title: p.data.benefitsTitle, benefits: p.data.benefits, hero_tagline: p.data.tagline, hero_text: p.data.text, proposals_title: p.data.proposalsTitle, proposals: p.data.proposals, show_prices: p.data.showPrices, show_schedule: p.data.showSchedule, updated_at: new Date().toISOString() })
     .eq("id", true);
   if (error) {
     console.error("[entrenamientos] textos", error.code, error.message);

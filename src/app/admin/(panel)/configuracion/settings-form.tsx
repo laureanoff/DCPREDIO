@@ -129,6 +129,9 @@ export function SettingsForm({ initial }: { initial: VenueSettingsForm }) {
         <Field label="WhatsApp de contacto (se muestra en la web)">
           <input className={field} inputMode="tel" value={f.contactWhatsapp} onChange={(e) => set("contactWhatsapp", e.target.value)} />
         </Field>
+        <Field label="Instagram (link o @usuario, se muestra en la web)" wide>
+          <input className={field} value={f.instagramUrl} onChange={(e) => set("instagramUrl", e.target.value)} maxLength={200} placeholder="https://www.instagram.com/dcpredio/" />
+        </Field>
         <Field label="Email de contacto" wide>
           <input className={field} type="email" value={f.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} maxLength={200} />
         </Field>

@@ -44,7 +44,7 @@ function makePoster(file: File): Promise<Blob | null> {
   });
 }
 
-export function GalleryUploader() {
+export function GalleryUploader({ placement = "home" }: { placement?: "home" | "trainings" }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
@@ -84,7 +84,7 @@ export function GalleryUploader() {
         throw new Error(upErr.message.includes("exceeded") ? "El archivo supera el máximo permitido (50 MB)." : "No se pudo subir el archivo. Revisá tu conexión e intentá de nuevo.");
       }
       setStatus("Publicando…");
-      const r = await addGalleryItem({ kind: isVideo ? "video" : "image", path, posterPath, title });
+      const r = await addGalleryItem({ kind: isVideo ? "video" : "image", path, posterPath, title, placement });
       if (!r.ok) {
         await supabase.storage.from("gallery").remove([path, ...(posterPath ? [posterPath] : [])]);
         throw new Error(r.error);
@@ -104,7 +104,7 @@ export function GalleryUploader() {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-semibold">Agregar video o foto</h2>
-      <p className="mb-3 text-sm text-muted">Se publica solo en el carrusel de la web. Formatos: MP4, WebM, MOV, JPG, PNG, WebP. Máximo 50 MB. Ideal: video vertical.</p>
+      <p className="mb-3 text-sm text-muted">Se publica solo en {placement === "trainings" ? "la galería de la página de Entrenamientos" : "la galería de la página de inicio"}. Formatos: MP4, WebM, MOV, JPG, PNG, WebP. Máximo 50 MB. Ideal: video vertical.</p>
       <div className="flex flex-wrap items-center gap-3">
         <input
           value={title}

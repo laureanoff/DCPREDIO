@@ -56,9 +56,27 @@ async function HeaderWithTrainings({ name }: { name: string }) {
 async function CourtReviews() {
   return (
     <div className="mx-auto max-w-5xl px-5">
-      <Testimonials items={await getTestimonials("courts")} title="Lo que dicen quienes juegan acá" />
+      <Testimonials items={await getTestimonials("courts")} title="Lo que dicen quienes juegan acá" placement="courts" />
     </div>
   );
+}
+
+/** Datos estructurados para Google (negocio local): dirección, horarios, contacto y redes. */
+function LocalBusinessJsonLd({ venue }: { venue: Awaited<ReturnType<typeof getPublicVenue>> }) {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    name: venue.name,
+    description: "Canchas de fútbol 5 con reserva online y entrenamientos para niños, jóvenes y adultos.",
+    ...(venue.address ? { address: { "@type": "PostalAddress", streetAddress: venue.address, addressCountry: "AR" } } : {}),
+    ...(venue.latitude !== null && venue.longitude !== null ? { geo: { "@type": "GeoCoordinates", latitude: venue.latitude, longitude: venue.longitude } } : {}),
+    ...(venue.contactPhone ? { telephone: venue.contactPhone } : {}),
+    ...(venue.contactEmail ? { email: venue.contactEmail } : {}),
+    ...(venue.instagramUrl ? { sameAs: [venue.instagramUrl] } : {}),
+    openingHoursSpecification: venue.hours.filter((h) => h.isOpen).map((h) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: days[h.weekday], opens: h.open, closes: h.close })),
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
 export default async function Home() {
@@ -66,10 +84,11 @@ export default async function Home() {
 
   return (
     <>
+      <LocalBusinessJsonLd venue={venue} />
       <ScrollFx />
       <SmoothScroll />
       <Suspense fallback={<SiteHeader name={venue.name} />}><HeaderWithTrainings name={venue.name} /></Suspense>
-      <main className="flex-1">
+      <main id="contenido" className="flex-1">
         <Hero venueName={venue.name} badge={<Suspense fallback={null}><TodayBadge venue={venue} /></Suspense>} />
         <FloodlightStage>
           <Reveal className="mx-auto max-w-5xl">

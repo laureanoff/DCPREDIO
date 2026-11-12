@@ -6,11 +6,13 @@ import { connection } from "next/server";
 import { getStaff, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { EnrollmentList, type EnrollmentRow } from "./enrollment-list";
+import { GalleryList } from "../galeria/gallery-list";
+import { GalleryUploader } from "../galeria/uploader";
 import { TestimonialsManager, type TestimonialRow } from "./testimonials";
 import { Agenda, type DayStudent, type SessionRow } from "./agenda";
 import { CoachEditor, TrainingManager, type ActivityRow, type ContentRow } from "./training-manager";
 import type { Billing } from "@/lib/training";
-import { parseBenefits, parseProposals } from "@/queries/trainings";
+import { parseBenefits, parseProposals, parseStats } from "@/queries/trainings";
 
 export const metadata: Metadata = { title: "Entrenamientos" };
 
@@ -28,6 +30,7 @@ const VIEWS = [
   ["packs", "Actividades y opciones", true],
   ["web", "Textos y profe", true],
   ["testimonios", "Testimonios", true],
+  ["fotos", "Fotos y videos", true],
 ] as const;
 
 async function Content({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string }> }) {
@@ -88,14 +91,15 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     };
   });
 
-  const [sesRes, actRes, packRes, priceRes, coachRes, actives, tesRes] = await Promise.all([
+  const [sesRes, actRes, packRes, priceRes, coachRes, actives, galRes, tesRes] = await Promise.all([
     supabase.from("training_sessions").select("id, weekday, start_time, end_time, title, details, is_active").order("weekday").order("start_time"),
     isAdmin ? supabase.from("training_activities").select("id, name, description, location, is_active").order("sort_order").order("created_at") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_packs").select("id, activity_id, name, description, days_per_week, is_active").order("sort_order").order("days_per_week") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_pack_prices").select("pack_id, billing, price") : Promise.resolve({ data: [] }),
-    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y, hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits").maybeSingle() : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y, hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits, stats").maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("training_enrollments").select("activity_name, status, preferred_days, training_students(full_name)").eq("status", "active"),
-    isAdmin ? supabase.from("training_testimonials").select("id, author, detail, body, rating, is_active, placement").order("sort_order").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from("gallery_items").select("id, kind, url, poster_url, title, is_active").eq("placement", "trainings").order("sort_order").order("created_at") : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from("training_testimonials").select("id, author, detail, body, rating, is_active, placement, source").order("sort_order").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
   ]);
   const sessions: SessionRow[] = (sesRes.data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? "", title: x.title, details: x.details ?? "", isActive: x.is_active }));
   const byDay: Record<number, DayStudent[]> = {};
@@ -103,7 +107,8 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     const st = Array.isArray(e.training_students) ? e.training_students[0] : e.training_students;
     for (const d of e.preferred_days ?? []) (byDay[d] ??= []).push({ name: st?.full_name ?? "(sin nombre)", activity: e.activity_name, status: e.status });
   }
-  const testimonials: TestimonialRow[] = (tesRes.data ?? []).map((t) => ({ id: t.id, author: t.author, detail: t.detail ?? "", body: t.body, rating: t.rating, isActive: t.is_active, placement: t.placement === "courts" ? "courts" : "trainings" }));
+  const testimonials: TestimonialRow[] = (tesRes.data ?? []).map((t) => ({ id: t.id, author: t.author, detail: t.detail ?? "", body: t.body, rating: t.rating, isActive: t.is_active, placement: t.placement === "courts" ? "courts" : "trainings", fromPublic: t.source === "public" }));
+  const pendingReviews = testimonials.filter((t) => t.fromPublic && !t.isActive).length;
   const activities: ActivityRow[] = (actRes.data ?? []).map((a) => ({
     id: a.id, name: a.name, description: a.description ?? "", location: a.location ?? "", isActive: a.is_active,
     packs: (packRes.data ?? []).filter((p) => p.activity_id === a.id).map((p) => ({
@@ -114,6 +119,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
   const coach = { name: coachRes.data?.coach_name ?? "", title: coachRes.data?.coach_title ?? "", bio: coachRes.data?.coach_bio ?? "", story: coachRes.data?.coach_story ?? "", show: coachRes.data?.show_coach ?? true, photo: coachRes.data?.coach_photo_url ? { url: coachRes.data.coach_photo_url, zoom: Number(coachRes.data.coach_photo_zoom), x: coachRes.data.coach_photo_x, y: coachRes.data.coach_photo_y } : null };
 
   const content: ContentRow = {
+    stats: parseStats(coachRes.data?.stats).map((s) => ({ value: String(s.value), suffix: s.suffix, label: s.label })),
     benefitsTitle: coachRes.data?.benefits_title ?? "", benefits: parseBenefits(coachRes.data?.benefits),
     tagline: coachRes.data?.hero_tagline ?? "", text: coachRes.data?.hero_text ?? "", proposalsTitle: coachRes.data?.proposals_title ?? "",
     proposals: parseProposals(coachRes.data?.proposals).map((p) => ({ ...p, tags: p.tags.join(", ") })),
@@ -132,12 +138,19 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
       <nav aria-label="Secciones" className="flex flex-wrap gap-2 border-b border-border pb-3">
         {VIEWS.filter(([, , adm]) => !adm || isAdmin).map(([k, label]) => (
           <Link key={k} href={`/admin/entrenamientos?vista=${k}`} aria-current={view === k ? "page" : undefined}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${view === k ? "bg-lime text-black" : "border border-border text-muted hover:text-foreground"}`}>{label}</Link>
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${view === k ? "bg-lime text-black" : "border border-border text-muted hover:text-foreground"}`}>{label}{k === "testimonios" && pendingReviews > 0 && <span className="ml-2 rounded-full bg-black/80 px-2 py-0.5 text-xs text-lime">{pendingReviews}</span>}</Link>
         ))}
       </nav>
 
       {view === "agenda" && <Agenda sessions={sessions} students={byDay} />}
       {view === "packs" && <TrainingManager activities={activities} />}
+      {view === "fotos" && (
+        <div className="flex flex-col gap-5">
+          <p className="text-sm text-muted">Fotos y videos de las clases: se ven en la sección «Así se entrena» de la página de Entrenamientos. Mientras no haya ninguno, la sección no aparece.</p>
+          <GalleryUploader placement="trainings" />
+          <GalleryList items={(galRes.data ?? []).map((g) => ({ id: g.id, kind: g.kind, url: g.url, posterUrl: g.poster_url, title: g.title, isActive: g.is_active }))} />
+        </div>
+      )}
       {view === "testimonios" && <TestimonialsManager items={testimonials} />}
       {view === "web" && <CoachEditor coach={coach} content={content} />}
       {view === "inscripciones" && (<>

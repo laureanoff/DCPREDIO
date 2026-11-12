@@ -1,6 +1,7 @@
 import { Activity, Dumbbell, Flame, HeartPulse, Medal, ShieldCheck, Smile, Target, Timer, Trophy, Users, Zap, type LucideIcon } from "lucide-react";
 import { WEEKDAYS } from "@/lib/training";
-import type { Benefit, Proposal, PublicSession } from "@/queries/trainings";
+import type { Benefit, Proposal, PublicSession, Stat } from "@/queries/trainings";
+import { CountNumber } from "./CountNumber";
 import { Reveal } from "./Reveal";
 
 const STEPS = [
@@ -19,6 +20,25 @@ const FAQ = [
 ];
 
 const H2 = "font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl";
+
+/** Cifras destacadas (se cargan en el panel). Sin ninguna, no se muestra. */
+export function Stats({ items }: { items: Stat[] }) {
+  if (items.length === 0) return null;
+  return (
+    <section aria-label="En números" className="mb-14">
+      <Reveal>
+        <dl className="info-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {items.map((s, i) => (
+            <div key={`${s.label}-${i}`} style={{ "--i": i } as React.CSSProperties} className="glass glass-lime glass-lift rounded-3xl p-5 text-center">
+              <dd className="font-[family-name:var(--font-display)] text-5xl font-extrabold leading-none text-lime-ink drop-shadow-[0_0_22px_rgba(182,214,26,.45)] sm:text-6xl"><CountNumber value={s.value} />{s.suffix}</dd>
+              <dt className="mt-2 text-sm font-semibold uppercase tracking-wide text-muted">{s.label}</dt>
+            </div>
+          ))}
+        </dl>
+      </Reveal>
+    </section>
+  );
+}
 
 const BENEFIT_ICON_MAP: Record<string, LucideIcon> = { dumbbell: Dumbbell, zap: Zap, heart: HeartPulse, shield: ShieldCheck, medal: Medal, smile: Smile, users: Users, activity: Activity, target: Target, flame: Flame, trophy: Trophy, timer: Timer };
 

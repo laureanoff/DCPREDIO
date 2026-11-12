@@ -120,7 +120,8 @@ function ActivityItem({ a }: { a: ActivityRow }) {
 
 export type ProposalRow = { title: string; subtitle: string; text: string; tags: string };
 export type BenefitRow = { icon: string; title: string; text: string };
-export type ContentRow = { benefitsTitle: string; benefits: BenefitRow[]; tagline: string; text: string; proposalsTitle: string; proposals: ProposalRow[]; showPrices: boolean; showSchedule: boolean };
+export type StatRow = { value: string; suffix: string; label: string };
+export type ContentRow = { stats: StatRow[]; benefitsTitle: string; benefits: BenefitRow[]; tagline: string; text: string; proposalsTitle: string; proposals: ProposalRow[]; showPrices: boolean; showSchedule: boolean };
 
 /** Textos de la página pública: lema, presentación, propuestas por edad y qué se muestra (precios, horarios). */
 export function ContentEditor({ content }: { content: ContentRow }) {
@@ -144,6 +145,7 @@ export function ContentEditor({ content }: { content: ContentRow }) {
   });
   const toInput = () => ({
     benefitsTitle: c.benefitsTitle, benefits: c.benefits,
+    stats: c.stats.map((s) => ({ value: Number(s.value.replace(",", ".")) || 0, suffix: s.suffix, label: s.label })),
     tagline: c.tagline, text: c.text, proposalsTitle: c.proposalsTitle, showPrices: c.showPrices, showSchedule: c.showSchedule,
     proposals: c.proposals.map((p) => ({ title: p.title, subtitle: p.subtitle, text: p.text, tags: p.tags.split(",").map((t) => t.trim()).filter(Boolean) })),
   });
@@ -181,6 +183,20 @@ export function ContentEditor({ content }: { content: ContentRow }) {
       {c.proposals.length < 8 && (
         <button type="button" onClick={() => setC((s) => ({ ...s, proposals: [...s.proposals, { title: "", subtitle: "", text: "", tags: "" }] }))} className="mt-3 h-10 rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar propuesta</button>
       )}
+
+      <h4 className="mb-1 mt-6 text-sm font-semibold uppercase tracking-wide text-muted">Cifras destacadas ({c.stats.length}/4)</h4>
+      <p className="mb-2 text-sm text-muted">Números reales con contador animado (ej. 8 · años de trayectoria, +120 · alumnos). Si no cargás ninguna, no se muestra.</p>
+      <ul className="flex flex-col gap-2">
+        {c.stats.map((s, i) => (
+          <li key={i} className="grid grid-cols-[5.5rem_4.5rem_1fr_auto] gap-2">
+            <input className={field} inputMode="numeric" placeholder="120" value={s.value} onChange={(e) => setC((p) => ({ ...p, stats: p.stats.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)) }))} aria-label="Número" />
+            <input className={field} placeholder="+" maxLength={10} value={s.suffix} onChange={(e) => setC((p) => ({ ...p, stats: p.stats.map((x, j) => (j === i ? { ...x, suffix: e.target.value } : x)) }))} aria-label="Símbolo al final (ej. + o %)" />
+            <input className={field} placeholder="alumnos" maxLength={40} value={s.label} onChange={(e) => setC((p) => ({ ...p, stats: p.stats.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) }))} aria-label="Texto" />
+            <button type="button" onClick={() => setC((p) => ({ ...p, stats: p.stats.filter((_, j) => j !== i) }))} className="h-10 rounded-xl border border-border px-3 text-sm text-danger transition hover:border-danger">Quitar</button>
+          </li>
+        ))}
+      </ul>
+      {c.stats.length < 4 && <button type="button" onClick={() => setC((p) => ({ ...p, stats: [...p.stats, { value: "", suffix: "", label: "" }] }))} className="mt-2 h-10 rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar cifra</button>}
 
       <h4 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-muted">«Lo que vas a lograr» ({c.benefits.length}/12)</h4>
       <input className={`${field} mb-3 w-full`} placeholder="Título (ej. Entrená mejor, sentite mejor)" value={c.benefitsTitle} maxLength={100} onChange={(e) => setC({ ...c, benefitsTitle: e.target.value })} aria-label="Título de lo que vas a lograr" />

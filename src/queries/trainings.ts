@@ -70,9 +70,11 @@ export async function getTrainingSessions(): Promise<PublicSession[]> {
 
 export type Proposal = { title: string; subtitle: string; text: string; tags: string[] };
 export type Benefit = { icon: string; title: string; text: string };
-export type PageContent = { benefitsTitle: string; benefits: Benefit[]; tagline: string; text: string; proposalsTitle: string; proposals: Proposal[]; showPrices: boolean; showSchedule: boolean };
+export type Stat = { value: number; suffix: string; label: string };
+export type PageContent = { stats: Stat[]; benefitsTitle: string; benefits: Benefit[]; tagline: string; text: string; proposalsTitle: string; proposals: Proposal[]; showPrices: boolean; showSchedule: boolean };
 
 export const DEFAULT_CONTENT: PageContent = {
+  stats: [],
   benefitsTitle: "Entrená mejor, sentite mejor",
   benefits: [],
   tagline: "Entrená. Desarrollá tus capacidades. Evolucioná.",
@@ -95,6 +97,18 @@ export function parseProposals(raw: unknown): Proposal[] {
     .filter((p) => p.title !== "");
 }
 
+export function parseStats(raw: unknown): Stat[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((x) => {
+      const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+      const value = typeof o.value === "number" && Number.isFinite(o.value) ? o.value : NaN;
+      return { value, suffix: typeof o.suffix === "string" ? o.suffix.trim() : "", label: typeof o.label === "string" ? o.label.trim() : "" };
+    })
+    .filter((s) => Number.isFinite(s.value) && s.value >= 0 && s.label !== "")
+    .slice(0, 4);
+}
+
 export function parseBenefits(raw: unknown): Benefit[] {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -112,9 +126,9 @@ export async function getPageContent(): Promise<PageContent> {
   cacheLife("minutes");
   cacheTag("trainings");
 
-  const { data, error } = await createAnonClient().from("training_settings").select("hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits").maybeSingle();
+  const { data, error } = await createAnonClient().from("training_settings").select("hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits, stats").maybeSingle();
   if (error || !data) return DEFAULT_CONTENT;
-  return { benefitsTitle: data.benefits_title, benefits: parseBenefits(data.benefits), tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
+  return { stats: parseStats(data.stats), benefitsTitle: data.benefits_title, benefits: parseBenefits(data.benefits), tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
 }
 
 export type Testimonial = { id: string; author: string; detail: string | null; body: string; rating: number };

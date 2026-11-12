@@ -180,6 +180,7 @@ export type VenueSettingsForm = {
   contactPhone: string;
   contactEmail: string;
   contactWhatsapp: string;
+  instagramUrl: string;
   priceTurn: number;
   maxPlayers: number;
   slotDurationMinutes: number;
@@ -208,6 +209,7 @@ export async function getVenueSettingsForm(): Promise<VenueSettingsForm> {
     contactPhone: s.contact_phone ?? "",
     contactEmail: s.contact_email ?? "",
     contactWhatsapp: s.contact_whatsapp ?? "",
+    instagramUrl: s.instagram_url ?? "",
     priceTurn: Number(s.price_group),
     maxPlayers: s.max_players,
     slotDurationMinutes: s.slot_duration_minutes,

@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getPublicVenue } from "@/queries/venue";
+import { getPublicGallery } from "@/queries/gallery";
+import { MediaGallery } from "@/components/public/MediaGallery";
 import { getCoach, getPageContent, getTestimonials, getTrainingCatalog, getTrainingSessions } from "@/queries/trainings";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { TrainingCuts } from "@/components/public/TrainingCuts";
 import { CoachSection } from "@/components/public/CoachSection";
 import { PitchDivider } from "@/components/public/PitchDivider";
-import { Benefits, Faq, HowItWorks, Proposals, Schedule } from "@/components/public/TrainingLanding";
+import { Benefits, Faq, Stats, HowItWorks, Proposals, Schedule } from "@/components/public/TrainingLanding";
 import { Testimonials } from "@/components/public/Testimonials";
 import { Ambient } from "@/components/public/Ambient";
 import { SiteFooter } from "@/components/public/SiteFooter";
@@ -22,13 +24,29 @@ async function Catalog() {
   return <TrainingForm catalog={catalog} showPrices={content.showPrices} />;
 }
 
+async function StatsBand() {
+  return <Stats items={(await getPageContent()).stats} />;
+}
+
 async function Ben() {
   const c = await getPageContent();
   return <Benefits title={c.benefitsTitle} items={c.benefits} />;
 }
 
+async function Moments() {
+  const items = await getPublicGallery("trainings");
+  if (items.length === 0) return null;
+  return (
+    <section aria-labelledby="t-gal" className="mb-14">
+      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Galería</p>
+      <h2 id="t-gal" className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">Así se entrena</h2>
+      <MediaGallery items={items} />
+    </section>
+  );
+}
+
 async function Reviews() {
-  return <Testimonials items={await getTestimonials("trainings")} />;
+  return <Testimonials items={await getTestimonials("trainings")} title="Lo que dicen de entrenar acá" placement="trainings" />;
 }
 
 async function Props() {
@@ -76,7 +94,7 @@ export default async function EntrenamientosPage() {
       <Suspense fallback={<SiteHeader name={venue.name} />}><Header name={venue.name} /></Suspense>
       <div className="ambient flex-1">
       <Ambient />
-      <main className="mx-auto w-full max-w-5xl px-5 py-12 sm:py-16">
+      <main id="contenido" className="mx-auto w-full max-w-5xl px-5 py-12 sm:py-16">
         <div className="tr-stage mb-14 mt-16 sm:mt-20">
         <TrainingCuts />
         <div className="tr-card tr-hero glass glass-peek glass-lime p-7 pt-14 sm:p-12 sm:pr-[24rem]">
@@ -91,10 +109,12 @@ export default async function EntrenamientosPage() {
         </div>
         </div>
         <PitchDivider />
+        <Suspense fallback={null}><StatsBand /></Suspense>
         <Suspense fallback={null}><Ben /></Suspense>
         <Suspense fallback={null}><Props /></Suspense>
         <HowItWorks />
         <Suspense fallback={null}><Sessions /></Suspense>
+        <Suspense fallback={null}><Moments /></Suspense>
         <Suspense fallback={null}><Coach /></Suspense>
         <Suspense fallback={null}><Reviews /></Suspense>
         <div id="inscripcion" className="scroll-mt-24">

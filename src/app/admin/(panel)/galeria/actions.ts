@@ -12,17 +12,21 @@ const idSchema = z.string().uuid();
 function refresh() {
   updateTag("gallery"); // la web pública toma los cambios de inmediato
   revalidatePath("/admin/galeria");
+  revalidatePath("/admin/entrenamientos");
 }
 
 // Los nombres de archivo los genera el panel (uuid + extensión permitida); se valida igual en el servidor.
 const pathSchema = z.string().regex(/^[0-9a-f-]{36}\.(mp4|webm|mov|jpg|jpeg|png|webp)$/i, "Archivo inválido.");
 const posterPathSchema = z.string().regex(/^[0-9a-f-]{36}-poster\.jpg$/i, "Portada inválida.");
 
+export type GalleryPlacement = "home" | "trainings";
+
 const addSchema = z.object({
   kind: z.enum(["video", "image"]),
   path: pathSchema,
   posterPath: posterPathSchema.nullable(),
   title: z.string().trim().max(120),
+  placement: z.enum(["home", "trainings"]).default("home"),
 });
 
 /** Registra en la galería un archivo que el navegador ya subió al almacenamiento. */
@@ -35,7 +39,7 @@ export async function addGalleryItem(raw: z.input<typeof addSchema>): Promise<Ac
   const supabase = await createClient();
   const publicUrl = (p: string) => supabase.storage.from(BUCKET).getPublicUrl(p).data.publicUrl;
 
-  const { data: last } = await supabase.from("gallery_items").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+  const { data: last } = await supabase.from("gallery_items").select("sort_order").eq("placement", v.placement).order("sort_order", { ascending: false }).limit(1).maybeSingle();
   const { error } = await supabase.from("gallery_items").insert({
     kind: v.kind,
     url: publicUrl(v.path),
@@ -43,6 +47,7 @@ export async function addGalleryItem(raw: z.input<typeof addSchema>): Promise<Ac
     poster_url: v.posterPath ? publicUrl(v.posterPath) : null,
     poster_storage_path: v.posterPath,
     title: v.title,
+    placement: v.placement,
     sort_order: (last?.sort_order ?? 0) + 1,
     created_by: staff.userId,
   });
@@ -80,7 +85,9 @@ export async function moveGalleryItem(id: string, dir: -1 | 1): Promise<ActionRe
   await requireAdmin();
   if (!idSchema.safeParse(id).success) return { ok: false, error: "Elemento inválido." };
   const supabase = await createClient();
-  const { data: all, error } = await supabase.from("gallery_items").select("id").order("sort_order").order("created_at");
+  const { data: me } = await supabase.from("gallery_items").select("placement").eq("id", id).maybeSingle();
+  if (!me) return { ok: false, error: "El elemento no existe." };
+  const { data: all, error } = await supabase.from("gallery_items").select("id").eq("placement", me.placement).order("sort_order").order("created_at");
   if (error || !all) return { ok: false, error: "No se pudo leer la galería." };
   const ids = all.map((r) => r.id);
   const i = ids.indexOf(id);
