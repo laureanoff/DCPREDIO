@@ -13,13 +13,13 @@ function Stars({ n, base }: { n: number; base: number }) {
 }
 
 /** Opiniones de alumnos y familias. Se cargan en el panel; sin ninguna, no se muestra. */
-export function Testimonials({ items }: { items: Testimonial[] }) {
+export function Testimonials({ items, title = "Lo que dicen de entrenar acá" }: { items: Testimonial[]; title?: string }) {
   if (items.length === 0) return null;
   return (
     <section aria-labelledby="t-tes" className="mb-14">
       <Reveal>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Testimonios</p>
-        <h2 id="t-tes" className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">Lo que dicen de entrenar acá</h2>
+        <h2 id="t-tes" className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">{title}</h2>
         <ul className="info-grid tm-grid">
           {items.map((t, i) => (
             <li key={t.id} style={{ "--i": i } as React.CSSProperties} className="tm-card glass glass-lime glass-lift relative flex flex-col gap-3 overflow-hidden rounded-3xl p-6">

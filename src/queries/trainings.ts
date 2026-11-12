@@ -119,13 +119,15 @@ export async function getPageContent(): Promise<PageContent> {
 
 export type Testimonial = { id: string; author: string; detail: string | null; body: string; rating: number };
 
-/** Testimonios visibles (se cargan en el panel). Sin ninguno, la sección no se muestra. */
-export async function getTestimonials(): Promise<Testimonial[]> {
+/** Testimonios visibles de una sección: «courts» (inicio, quienes reservan) o «trainings». Sin ninguno, la sección no se muestra. */
+export type TestimonialPlacement = "courts" | "trainings";
+
+export async function getTestimonials(placement: TestimonialPlacement): Promise<Testimonial[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("trainings");
 
-  const { data, error } = await createAnonClient().from("training_testimonials").select("id, author, detail, body, rating").eq("is_active", true).order("sort_order").order("created_at", { ascending: false });
+  const { data, error } = await createAnonClient().from("training_testimonials").select("id, author, detail, body, rating").eq("is_active", true).eq("placement", placement).order("sort_order").order("created_at", { ascending: false });
   if (error) {
     console.error("[entrenamientos] testimonios", error.message);
     return [];

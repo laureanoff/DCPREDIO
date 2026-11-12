@@ -8,6 +8,8 @@ import { TodayBadge } from "@/components/public/TodayBadge";
 import { LocationSection } from "@/components/public/LocationSection";
 import { InfoSection } from "@/components/public/InfoSection";
 import { BookingSection, BookingSkeleton } from "@/components/public/BookingSection";
+import { Testimonials } from "@/components/public/Testimonials";
+import { getTestimonials } from "@/queries/trainings";
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { ScrollFx } from "@/components/public/ScrollFx";
 import { FloodlightStage } from "@/components/public/FloodlightStage";
@@ -51,6 +53,14 @@ async function HeaderWithTrainings({ name }: { name: string }) {
   return <SiteHeader name={name} hasTrainings={catalog.length > 0} />;
 }
 
+async function CourtReviews() {
+  return (
+    <div className="mx-auto max-w-5xl px-5">
+      <Testimonials items={await getTestimonials("courts")} title="Lo que dicen quienes juegan acá" />
+    </div>
+  );
+}
+
 export default async function Home() {
   const venue = await getPublicVenue();
 
@@ -75,6 +85,7 @@ export default async function Home() {
           <Ambient />
           <Reveal><InfoSection venue={venue} /></Reveal>
           <Suspense fallback={null}><TrainingsTeaser /></Suspense>
+          <Suspense fallback={null}><CourtReviews /></Suspense>
           <Reveal><LocationSection venue={venue} /></Reveal>
         </div>
       </main>

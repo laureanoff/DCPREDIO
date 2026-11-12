@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { deleteTestimonial, saveTestimonial } from "./training-actions";
 
-export type TestimonialRow = { id: string; author: string; detail: string; body: string; rating: number; isActive: boolean };
+export type Placement = "courts" | "trainings";
+export type TestimonialRow = { id: string; author: string; detail: string; body: string; rating: number; isActive: boolean; placement: Placement };
 
 const field = "h-10 min-w-0 rounded-xl border border-border bg-surface-2 px-3 text-base outline-none transition focus:border-lime focus:ring-2 focus:ring-lime/30";
-type Form = { author: string; detail: string; body: string; rating: number; isActive: boolean };
-const empty = (): Form => ({ author: "", detail: "", body: "", rating: 5, isActive: true });
+type Form = { author: string; detail: string; body: string; rating: number; isActive: boolean; placement: Placement };
+const empty = (placement: Placement): Form => ({ author: "", detail: "", body: "", rating: 5, isActive: true, placement });
 
 function Row({ id, initial, onDone, onDelete }: { id: string | null; initial: Form; onDone?: () => void; onDelete?: () => void }) {
   const router = useRouter();
@@ -21,7 +22,7 @@ function Row({ id, initial, onDone, onDelete }: { id: string | null; initial: Fo
     start(async () => {
       const r = await saveTestimonial(id, f);
       setMsg({ ok: r.ok, text: (r.ok ? r.message : r.error) ?? "" });
-      if (r.ok) { if (!id) setF(empty()); router.refresh(); onDone?.(); }
+      if (r.ok) { if (!id) setF(empty(f.placement)); router.refresh(); onDone?.(); }
     });
   }
   return (
@@ -53,20 +54,29 @@ function Item({ t }: { t: TestimonialRow }) {
   const [, start] = useTransition();
   return (
     <li>
-      <Row id={t.id} initial={{ author: t.author, detail: t.detail, body: t.body, rating: t.rating, isActive: t.isActive }}
+      <Row id={t.id} initial={{ author: t.author, detail: t.detail, body: t.body, rating: t.rating, isActive: t.isActive, placement: t.placement }}
         onDelete={() => { if (confirm(`¿Borrar el testimonio de "${t.author}"?`)) start(async () => { await deleteTestimonial(t.id); router.refresh(); }); }} />
     </li>
   );
 }
 
-export function TestimonialsManager({ items }: { items: TestimonialRow[] }) {
+function Group({ placement, title, hint, items }: { placement: Placement; title: string; hint: string; items: TestimonialRow[] }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">Testimonios</h2>
-      <p className="mb-4 text-sm text-muted">Opiniones reales de alumnos o familias, con sus estrellas. Mientras no haya ninguno visible, la sección no aparece en la web. Cargá solo lo que te hayan dicho de verdad.</p>
+      <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">{title}</h2>
+      <p className="mb-4 text-sm text-muted">{hint} Mientras no haya ninguno visible, la sección no aparece. Cargá solo opiniones reales.</p>
       <ul className="mb-4 flex flex-col gap-3">{items.map((t) => <Item key={t.id} t={t} />)}</ul>
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Agregar uno nuevo</h3>
-      <Row id={null} initial={empty()} />
+      <Row id={null} initial={empty(placement)} />
     </section>
+  );
+}
+
+export function TestimonialsManager({ items }: { items: TestimonialRow[] }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <Group placement="courts" title="Testimonios de la cancha" hint="De quienes juegan reservando la cancha. Se ven en la página de inicio." items={items.filter((t) => t.placement === "courts")} />
+      <Group placement="trainings" title="Testimonios de entrenamientos" hint="De alumnos y familias. Se ven en la página de Entrenamientos." items={items.filter((t) => t.placement === "trainings")} />
+    </div>
   );
 }

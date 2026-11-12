@@ -284,6 +284,7 @@ const tesSchema = z.object({
   body: z.string().trim().min(1, "Escribí el testimonio.").max(500),
   rating: z.number().int().min(1).max(5),
   isActive: z.boolean(),
+  placement: z.enum(["courts", "trainings"]),
 });
 
 export async function saveTestimonial(id: string | null, raw: z.input<typeof tesSchema>): Promise<ActionResult> {
@@ -292,7 +293,7 @@ export async function saveTestimonial(id: string | null, raw: z.input<typeof tes
   if (!p.success) return { ok: false, error: p.error.issues[0].message };
   if (id !== null && !idSchema.safeParse(id).success) return { ok: false, error: "Testimonio inválido." };
   const supabase = await createClient();
-  const row = { author: p.data.author, detail: p.data.detail || null, body: p.data.body, rating: p.data.rating, is_active: p.data.isActive };
+  const row = { author: p.data.author, detail: p.data.detail || null, body: p.data.body, rating: p.data.rating, is_active: p.data.isActive, placement: p.data.placement };
   const { error } = id
     ? await supabase.from("training_testimonials").update(row).eq("id", id)
     : await supabase.from("training_testimonials").insert({ ...row, sort_order: Math.floor(Date.now() / 1000) * -1 });

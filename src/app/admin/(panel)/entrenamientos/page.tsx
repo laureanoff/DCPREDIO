@@ -95,7 +95,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     isAdmin ? supabase.from("training_pack_prices").select("pack_id, billing, price") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y, hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits").maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("training_enrollments").select("activity_name, status, preferred_days, training_students(full_name)").eq("status", "active"),
-    isAdmin ? supabase.from("training_testimonials").select("id, author, detail, body, rating, is_active").order("sort_order").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from("training_testimonials").select("id, author, detail, body, rating, is_active, placement").order("sort_order").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
   ]);
   const sessions: SessionRow[] = (sesRes.data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? "", title: x.title, details: x.details ?? "", isActive: x.is_active }));
   const byDay: Record<number, DayStudent[]> = {};
@@ -103,7 +103,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     const st = Array.isArray(e.training_students) ? e.training_students[0] : e.training_students;
     for (const d of e.preferred_days ?? []) (byDay[d] ??= []).push({ name: st?.full_name ?? "(sin nombre)", activity: e.activity_name, status: e.status });
   }
-  const testimonials: TestimonialRow[] = (tesRes.data ?? []).map((t) => ({ id: t.id, author: t.author, detail: t.detail ?? "", body: t.body, rating: t.rating, isActive: t.is_active }));
+  const testimonials: TestimonialRow[] = (tesRes.data ?? []).map((t) => ({ id: t.id, author: t.author, detail: t.detail ?? "", body: t.body, rating: t.rating, isActive: t.is_active, placement: t.placement === "courts" ? "courts" : "trainings" }));
   const activities: ActivityRow[] = (actRes.data ?? []).map((a) => ({
     id: a.id, name: a.name, description: a.description ?? "", location: a.location ?? "", isActive: a.is_active,
     packs: (packRes.data ?? []).filter((p) => p.activity_id === a.id).map((p) => ({

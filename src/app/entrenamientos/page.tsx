@@ -28,7 +28,7 @@ async function Ben() {
 }
 
 async function Reviews() {
-  return <Testimonials items={await getTestimonials()} />;
+  return <Testimonials items={await getTestimonials("trainings")} />;
 }
 
 async function Props() {

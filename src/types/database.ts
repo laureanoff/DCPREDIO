@@ -220,9 +220,9 @@ export type Database = {
         Relationships: [];
       };
       training_testimonials: {
-        Row: { author: string; body: string; created_at: string; detail: string | null; id: string; is_active: boolean; rating: number; sort_order: number };
-        Insert: { author: string; body: string; created_at?: string; detail?: string | null; id?: string; is_active?: boolean; rating?: number; sort_order?: number };
-        Update: { author?: string; body?: string; detail?: string | null; is_active?: boolean; rating?: number; sort_order?: number };
+        Row: { author: string; body: string; created_at: string; detail: string | null; id: string; is_active: boolean; placement: string; rating: number; sort_order: number };
+        Insert: { author: string; body: string; created_at?: string; detail?: string | null; id?: string; is_active?: boolean; placement?: string; rating?: number; sort_order?: number };
+        Update: { author?: string; body?: string; detail?: string | null; is_active?: boolean; placement?: string; rating?: number; sort_order?: number };
         Relationships: [];
       };
       training_settings: {
