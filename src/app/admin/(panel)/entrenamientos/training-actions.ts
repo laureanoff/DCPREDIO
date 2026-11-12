@@ -277,3 +277,39 @@ export async function savePageContent(raw: z.input<typeof contentSchema>): Promi
   refresh();
   return { ok: true, message: "Listo, ya se ve en la web." };
 }
+
+const tesSchema = z.object({
+  author: z.string().trim().min(1, "Poné el nombre de quien opina.").max(80),
+  detail: z.string().trim().max(80),
+  body: z.string().trim().min(1, "Escribí el testimonio.").max(500),
+  rating: z.number().int().min(1).max(5),
+  isActive: z.boolean(),
+});
+
+export async function saveTestimonial(id: string | null, raw: z.input<typeof tesSchema>): Promise<ActionResult> {
+  await requireAdmin();
+  const p = tesSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  if (id !== null && !idSchema.safeParse(id).success) return { ok: false, error: "Testimonio inválido." };
+  const supabase = await createClient();
+  const row = { author: p.data.author, detail: p.data.detail || null, body: p.data.body, rating: p.data.rating, is_active: p.data.isActive };
+  const { error } = id
+    ? await supabase.from("training_testimonials").update(row).eq("id", id)
+    : await supabase.from("training_testimonials").insert({ ...row, sort_order: Math.floor(Date.now() / 1000) * -1 });
+  if (error) {
+    console.error("[entrenamientos] testimonio", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar el testimonio." };
+  }
+  refresh();
+  return { ok: true, message: id ? "Testimonio guardado." : "Testimonio agregado." };
+}
+
+export async function deleteTestimonial(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Testimonio inválido." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("training_testimonials").delete().eq("id", id);
+  if (error) return { ok: false, error: "No se pudo borrar el testimonio." };
+  refresh();
+  return { ok: true, message: "Testimonio borrado." };
+}

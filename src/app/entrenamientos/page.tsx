@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getPublicVenue } from "@/queries/venue";
-import { getCoach, getPageContent, getTrainingCatalog, getTrainingSessions } from "@/queries/trainings";
+import { getCoach, getPageContent, getTestimonials, getTrainingCatalog, getTrainingSessions } from "@/queries/trainings";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { TrainingCuts } from "@/components/public/TrainingCuts";
 import { CoachSection } from "@/components/public/CoachSection";
 import { PitchDivider } from "@/components/public/PitchDivider";
 import { Benefits, Faq, HowItWorks, Proposals, Schedule } from "@/components/public/TrainingLanding";
+import { Testimonials } from "@/components/public/Testimonials";
 import { Ambient } from "@/components/public/Ambient";
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { TrainingForm } from "./training-form";
@@ -24,6 +25,10 @@ async function Catalog() {
 async function Ben() {
   const c = await getPageContent();
   return <Benefits title={c.benefitsTitle} items={c.benefits} />;
+}
+
+async function Reviews() {
+  return <Testimonials items={await getTestimonials()} />;
 }
 
 async function Props() {
@@ -91,6 +96,7 @@ export default async function EntrenamientosPage() {
         <HowItWorks />
         <Suspense fallback={null}><Sessions /></Suspense>
         <Suspense fallback={null}><Coach /></Suspense>
+        <Suspense fallback={null}><Reviews /></Suspense>
         <div id="inscripcion" className="scroll-mt-24">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Inscripción</p>
           <h2 className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">Elegí tus días y anotate</h2>

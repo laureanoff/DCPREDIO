@@ -219,6 +219,12 @@ export type Database = {
         Update: { activity_id?: string | null; details?: string | null; end_time?: string | null; is_active?: boolean; start_time?: string; title?: string; weekday?: number };
         Relationships: [];
       };
+      training_testimonials: {
+        Row: { author: string; body: string; created_at: string; detail: string | null; id: string; is_active: boolean; rating: number; sort_order: number };
+        Insert: { author: string; body: string; created_at?: string; detail?: string | null; id?: string; is_active?: boolean; rating?: number; sort_order?: number };
+        Update: { author?: string; body?: string; detail?: string | null; is_active?: boolean; rating?: number; sort_order?: number };
+        Relationships: [];
+      };
       training_settings: {
         Row: { benefits: Json; benefits_title: string; hero_tagline: string; hero_text: string; proposals: Json; proposals_title: string; show_prices: boolean; show_schedule: boolean; coach_photo_path: string | null; coach_photo_url: string | null; coach_photo_x: number; coach_photo_y: number; coach_photo_zoom: number; coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
         Insert: { benefits?: Json; benefits_title?: string; hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };

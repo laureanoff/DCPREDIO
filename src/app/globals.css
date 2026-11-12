@@ -529,6 +529,15 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes cutout-in { from { opacity: 0; transform: translate3d(var(--cx, 40px), 36px, 0) scale(.94); filter: blur(14px) drop-shadow(0 22px 28px rgba(0,0,0,.55)); } to { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 22px 28px rgba(0,0,0,.55)); } }
 @keyframes cutout-float { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, -12px, 0) rotate(.6deg); } }
 .cutout-glow { position: absolute; border-radius: 50%; filter: blur(46px); background: radial-gradient(circle, rgba(182, 214, 26, .38), transparent 68%); pointer-events: none; }
+/* Testimonios: tarjetas en grilla (o fila deslizable en el celular), estrellas que aparecen una por una y comilla que flota. */
+.tm-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+@media (max-width: 639px) { .tm-grid { grid-auto-flow: column; grid-auto-columns: 85%; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: .75rem; margin-inline: -1.25rem; padding-inline: 1.25rem; scrollbar-width: none; } .tm-grid > * { scroll-snap-align: center; } .tm-grid::-webkit-scrollbar { display: none; } }
+.tm-star { opacity: 0; transform: scale(0) rotate(-50deg); }
+.is-visible .tm-star { animation: tm-pop .55s cubic-bezier(.3,1.6,.5,1) both; animation-delay: calc(.45s + var(--s, 0) * .11s); }
+@keyframes tm-pop { 0% { opacity: 0; transform: scale(0) rotate(-50deg); } 70% { opacity: 1; transform: scale(1.3) rotate(8deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+.tm-quote { animation: tm-float 6s ease-in-out infinite; }
+@keyframes tm-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(6px) rotate(-5deg); } }
+@media (prefers-reduced-motion: reduce) { .tm-star { opacity: 1 !important; transform: none !important; animation: none !important; } .tm-quote { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .cutout-in, .cutout-float { animation: none !important; } .info-grid > * { transition: none !important; } }
 
 .glass-cell:disabled { box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }

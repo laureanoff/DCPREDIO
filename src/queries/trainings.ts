@@ -116,3 +116,19 @@ export async function getPageContent(): Promise<PageContent> {
   if (error || !data) return DEFAULT_CONTENT;
   return { benefitsTitle: data.benefits_title, benefits: parseBenefits(data.benefits), tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
 }
+
+export type Testimonial = { id: string; author: string; detail: string | null; body: string; rating: number };
+
+/** Testimonios visibles (se cargan en el panel). Sin ninguno, la sección no se muestra. */
+export async function getTestimonials(): Promise<Testimonial[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("trainings");
+
+  const { data, error } = await createAnonClient().from("training_testimonials").select("id, author, detail, body, rating").eq("is_active", true).order("sort_order").order("created_at", { ascending: false });
+  if (error) {
+    console.error("[entrenamientos] testimonios", error.message);
+    return [];
+  }
+  return data ?? [];
+}
