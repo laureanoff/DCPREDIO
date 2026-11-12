@@ -67,3 +67,38 @@ export async function getTrainingSessions(): Promise<PublicSession[]> {
   }
   return (data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? null, title: x.title, details: x.details }));
 }
+
+export type Proposal = { title: string; subtitle: string; text: string; tags: string[] };
+export type PageContent = { tagline: string; text: string; proposalsTitle: string; proposals: Proposal[]; showPrices: boolean; showSchedule: boolean };
+
+export const DEFAULT_CONTENT: PageContent = {
+  tagline: "Entrená. Desarrollá tus capacidades. Evolucioná.",
+  text: "Elegí la actividad y el pack que más te sirva, dejanos tus datos y los días que te quedan cómodos. Nosotros te contactamos para confirmar los horarios.",
+  proposalsTitle: "Propuestas para distintas edades y objetivos",
+  proposals: [],
+  showPrices: false,
+  showSchedule: false,
+};
+
+/** Convierte lo guardado (jsonb) en propuestas válidas, descartando lo que no tenga título. */
+export function parseProposals(raw: unknown): Proposal[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((x) => {
+      const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+      const str = (v: unknown) => (typeof v === "string" ? v : "");
+      return { title: str(o.title).trim(), subtitle: str(o.subtitle).trim(), text: str(o.text).trim(), tags: Array.isArray(o.tags) ? o.tags.filter((t): t is string => typeof t === "string" && t.trim() !== "").map((t) => t.trim()) : [] };
+    })
+    .filter((p) => p.title !== "");
+}
+
+/** Textos de la página y qué se muestra (se editan en el panel, «Textos y profe»). */
+export async function getPageContent(): Promise<PageContent> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("trainings");
+
+  const { data, error } = await createAnonClient().from("training_settings").select("hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule").maybeSingle();
+  if (error || !data) return DEFAULT_CONTENT;
+  return { tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
+}

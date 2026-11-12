@@ -1,6 +1,6 @@
-import { Activity, Dumbbell, HeartPulse, Medal, ShieldCheck, Smile, Users, Zap } from "lucide-react";
+import { Dumbbell, HeartPulse, Medal, ShieldCheck, Smile, Users, Zap } from "lucide-react";
 import { WEEKDAYS } from "@/lib/training";
-import type { PublicSession } from "@/queries/trainings";
+import type { Proposal, PublicSession } from "@/queries/trainings";
 import { Reveal } from "./Reveal";
 
 const BENEFITS = [
@@ -10,11 +10,6 @@ const BENEFITS = [
   { icon: ShieldCheck, title: "Postura y prevención", text: "Movilidad y técnica correcta para moverte mejor y cuidar articulaciones y espalda." },
   { icon: Medal, title: "Confianza y constancia", text: "Objetivos claros y una rutina que se sostiene: ver el progreso motiva a seguir." },
   { icon: Smile, title: "Diversión en grupo", text: "Clases dinámicas, en un ambiente cómodo, donde entrenar es parte de lo que más se disfruta." },
-];
-
-const AUDIENCE = [
-  { icon: Smile, title: "Para chicos", points: ["Juegos y ejercicios que desarrollan coordinación y motricidad", "Hábito de moverse y compartir con otros chicos", "Un espacio cuidado, con seguimiento del profe"] },
-  { icon: Users, title: "Para adultos", points: ["Entrenamiento funcional y personal con tu objetivo en el centro", "Ideal para sumar condición física, fuerza y bienestar", "Días y horarios que se acomodan a tu rutina"] },
 ];
 
 const STEPS = [
@@ -54,24 +49,36 @@ export function Benefits() {
   );
 }
 
-export function Audience() {
+const PROPOSAL_ICONS = [Smile, Medal, Users, Dumbbell];
+
+/** Propuestas por edad/objetivo: se editan en el panel («Textos y profe»). */
+export function Proposals({ title, proposals }: { title: string; proposals: Proposal[] }) {
+  if (proposals.length === 0) return null;
   return (
     <section aria-labelledby="t-aud" className="mb-14">
       <Reveal>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Para quién es</p>
-        <h2 id="t-aud" className={`${H2} mb-5`}>Hay un lugar para cada uno</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {AUDIENCE.map(({ icon: Icon, title, points }) => (
-            <div key={title} className="glass glass-lime rounded-3xl p-6">
-              <div className="mb-3 flex items-center gap-3">
-                <span className="glass-ico"><Icon size={22} aria-hidden /></span>
-                <h3 className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase">{title}</h3>
-              </div>
-              <ul className="flex flex-col gap-2 text-muted">
-                {points.map((p) => <li key={p} className="flex gap-2"><Activity size={16} className="mt-1 shrink-0 text-lime-ink" aria-hidden />{p}</li>)}
-              </ul>
-            </div>
-          ))}
+        <h2 id="t-aud" className={`${H2} mb-5`}>{title}</h2>
+        <div className="info-grid grid gap-3 md:grid-cols-3">
+          {proposals.map((p, i) => {
+            const Icon = PROPOSAL_ICONS[i % PROPOSAL_ICONS.length];
+            return (
+              <article key={`${p.title}-${i}`} style={{ "--i": i } as React.CSSProperties} className="glass glass-lime glass-lift flex flex-col rounded-3xl p-6">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="glass-ico shrink-0"><Icon size={22} aria-hidden /></span>
+                  <span className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-lime-ink/70">{String(i + 1).padStart(2, "0")}</span>
+                </div>
+                <h3 className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase leading-tight">{p.title}</h3>
+                {p.subtitle && <p className="text-sm font-semibold text-lime-ink">{p.subtitle}</p>}
+                {p.text && <p className="mt-2 text-muted">{p.text}</p>}
+                {p.tags.length > 0 && (
+                  <ul className="mt-auto flex flex-wrap gap-2 pt-4 text-xs font-semibold">
+                    {p.tags.map((t) => <li key={t} className="glass rounded-full px-3 py-1">{t}</li>)}
+                  </ul>
+                )}
+              </article>
+            );
+          })}
         </div>
       </Reveal>
     </section>

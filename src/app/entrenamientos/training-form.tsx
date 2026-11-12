@@ -13,7 +13,7 @@ import { checkEnrollmentStatus, enroll, type EnrollmentLive } from "./actions";
 const input = "h-12 w-full rounded-xl glass-input px-3.5 text-base outline-none transition placeholder:text-muted/70 focus:border-lime focus:ring-2 focus:ring-lime/30";
 const label = "flex flex-col gap-1.5 text-sm font-medium";
 
-export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
+export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[]; showPrices: boolean }) {
   const [actId, setActId] = useState(catalog[0]?.id ?? "");
   const act = catalog.find((a) => a.id === actId) ?? catalog[0];
   const [packId, setPackId] = useState<string | null>(null);
@@ -171,17 +171,19 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
                   <span className="block font-[family-name:var(--font-display)] text-xl font-bold uppercase leading-tight">{p.name}</span>
                   {p.description && <span className="mt-1 block text-sm text-muted">{p.description}</span>}
                 </span>
-                <span className="mt-auto border-t border-border pt-3">
-                  <span key={`${p.id}-${shown}`} className="price-swap font-[family-name:var(--font-display)] text-3xl font-extrabold">{formatMoney(p.prices[shown]!)}</span>{" "}
-                  <span className="text-sm text-muted">{BILLING_SUFFIX[shown]}</span>
-                </span>
+                {showPrices && (
+                  <span className="mt-auto border-t border-border pt-3">
+                    <span key={`${p.id}-${shown}`} className="price-swap font-[family-name:var(--font-display)] text-3xl font-extrabold">{formatMoney(p.prices[shown]!)}</span>{" "}
+                    <span className="text-sm text-muted">{BILLING_SUFFIX[shown]}</span>
+                  </span>
+                )}
                 <span className="tr-check" aria-hidden><Check size={15} strokeWidth={3} /></span>
               </button>
             );
           })}
         </div>
 
-        {pack && offered.length > 0 && (
+        {showPrices && pack && offered.length > 0 && (
           <fieldset className="mt-4 step-enter">
             <legend className="mb-2 text-sm font-medium">¿Cómo preferís pagar?</legend>
             <div className="flex flex-wrap gap-2">
@@ -253,7 +255,7 @@ export function TrainingForm({ catalog }: { catalog: PublicActivity[] }) {
           <div data-ready={days.length >= need} className="tr-bar glass glass-lime flex flex-wrap items-center gap-4 rounded-2xl p-4">
             <p className="min-w-0 flex-1 text-sm">
               <strong>{act.name} · {pack.name}</strong>
-              <span key={`${effBilling}-${price}`} className="price-swap block text-muted">{price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : ""}</span>
+              <span key={`${effBilling}-${price}`} className="price-swap block text-muted">{showPrices && price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : "Te pasamos los detalles al confirmar"}</span>
             </p>
             <button type="submit" disabled={pending} className="tr-send cta-sheen relative h-12 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Send size={18} aria-hidden />{pending ? "Enviando…" : "Enviar inscripción"}</span>

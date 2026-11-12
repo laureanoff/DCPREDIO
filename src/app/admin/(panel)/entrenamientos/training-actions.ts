@@ -237,3 +237,36 @@ export async function removeCoachPhoto(): Promise<ActionResult> {
   refresh();
   return { ok: true, message: "Se volvió a la foto por defecto." };
 }
+
+const proposalSchema = z.object({
+  title: z.string().trim().min(1, "Cada propuesta necesita un título.").max(60),
+  subtitle: z.string().trim().max(80),
+  text: z.string().trim().max(400),
+  tags: z.array(z.string().trim().min(1).max(30)).max(6, "Hasta 6 etiquetas por propuesta."),
+});
+const contentSchema = z.object({
+  tagline: z.string().trim().max(140),
+  text: z.string().trim().max(700),
+  proposalsTitle: z.string().trim().min(1, "Poné un título para las propuestas.").max(100),
+  proposals: z.array(proposalSchema).max(8, "Hasta 8 propuestas."),
+  showPrices: z.boolean(),
+  showSchedule: z.boolean(),
+});
+
+/** Textos de la página pública de Entrenamientos y qué se muestra (precios, días y horarios). */
+export async function savePageContent(raw: z.input<typeof contentSchema>): Promise<ActionResult> {
+  await requireAdmin();
+  const p = contentSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("training_settings")
+    .update({ hero_tagline: p.data.tagline, hero_text: p.data.text, proposals_title: p.data.proposalsTitle, proposals: p.data.proposals, show_prices: p.data.showPrices, show_schedule: p.data.showSchedule, updated_at: new Date().toISOString() })
+    .eq("id", true);
+  if (error) {
+    console.error("[entrenamientos] textos", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar." };
+  }
+  refresh();
+  return { ok: true, message: "Listo, ya se ve en la web." };
+}

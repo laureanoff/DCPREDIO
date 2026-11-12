@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getPublicVenue } from "@/queries/venue";
-import { getCoach, getTrainingCatalog, getTrainingSessions } from "@/queries/trainings";
+import { getCoach, getPageContent, getTrainingCatalog, getTrainingSessions } from "@/queries/trainings";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { TrainingCuts } from "@/components/public/TrainingCuts";
 import { CoachSection } from "@/components/public/CoachSection";
 import { PitchDivider } from "@/components/public/PitchDivider";
-import { Audience, Benefits, Faq, HowItWorks, Schedule } from "@/components/public/TrainingLanding";
+import { Benefits, Faq, HowItWorks, Proposals, Schedule } from "@/components/public/TrainingLanding";
 import { Ambient } from "@/components/public/Ambient";
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { TrainingForm } from "./training-form";
@@ -17,8 +17,13 @@ export const metadata: Metadata = {
 };
 
 async function Catalog() {
-  const catalog = await getTrainingCatalog();
-  return <TrainingForm catalog={catalog} />;
+  const [catalog, content] = await Promise.all([getTrainingCatalog(), getPageContent()]);
+  return <TrainingForm catalog={catalog} showPrices={content.showPrices} />;
+}
+
+async function Props() {
+  const c = await getPageContent();
+  return <Proposals title={c.proposalsTitle} proposals={c.proposals} />;
 }
 
 async function Coach() {
@@ -27,7 +32,21 @@ async function Coach() {
 }
 
 async function Sessions() {
-  return <Schedule sessions={await getTrainingSessions()} />;
+  const content = await getPageContent();
+  return content.showSchedule ? <Schedule sessions={await getTrainingSessions()} /> : null;
+}
+
+async function Hero() {
+  const c = await getPageContent();
+  return (
+    <>
+      <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-lime-ink">{c.tagline}</p>
+      <h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-7xl">
+        Entre<span className="title-grass">namientos</span>
+      </h1>
+      <p className="mt-4 max-w-xl whitespace-pre-line text-muted sm:text-lg">{c.text}</p>
+    </>
+  );
 }
 
 async function Header({ name }: { name: string }) {
@@ -47,16 +66,10 @@ export default async function EntrenamientosPage() {
         <TrainingCuts />
         <div className="tr-card tr-hero glass glass-peek glass-lime p-7 pt-14 sm:p-12 sm:pr-[24rem]">
           <span className="tr-clip"><span className="tr-ring" /></span>
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-lime-ink">Clases y entrenamiento personal</p>
-          <h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-7xl">
-            Entre<span className="title-grass">namientos</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-muted sm:text-lg">
-            Elegí la actividad y el pack que más te sirva, dejanos tus datos y los días que te quedan cómodos. Nosotros te contactamos para confirmar los horarios.
-          </p>
-          <a href="#inscripcion" className="cta-sheen relative mt-6 inline-flex h-12 items-center overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">Ver packs e inscribirme</a>
+          <Suspense fallback={<h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-7xl">Entrenamientos</h1>}><Hero /></Suspense>
+          <a href="#inscripcion" className="cta-sheen relative mt-6 inline-flex h-12 items-center overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">Ver propuestas e inscribirme</a>
           <ul className="mt-5 flex flex-wrap gap-2 text-sm">
-            {["Chicos y adultos", "Packs por días a la semana", "Pagás en el predio"].map((t) => (
+            {["Niños, jóvenes y adultos", "Packs por días a la semana", "Pagás en el predio"].map((t) => (
               <li key={t} className="glass rounded-full px-3.5 py-1 font-medium">{t}</li>
             ))}
           </ul>
@@ -64,7 +77,7 @@ export default async function EntrenamientosPage() {
         </div>
         <PitchDivider />
         <Benefits />
-        <Audience />
+        <Suspense fallback={null}><Props /></Suspense>
         <HowItWorks />
         <Suspense fallback={null}><Sessions /></Suspense>
         <Suspense fallback={null}><Coach /></Suspense>

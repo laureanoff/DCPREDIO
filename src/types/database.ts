@@ -220,9 +220,9 @@ export type Database = {
         Relationships: [];
       };
       training_settings: {
-        Row: { coach_photo_path: string | null; coach_photo_url: string | null; coach_photo_x: number; coach_photo_y: number; coach_photo_zoom: number; coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
-        Insert: { coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
-        Update: { coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
+        Row: { hero_tagline: string; hero_text: string; proposals: Json; proposals_title: string; show_prices: boolean; show_schedule: boolean; coach_photo_path: string | null; coach_photo_url: string | null; coach_photo_x: number; coach_photo_y: number; coach_photo_zoom: number; coach_story: string; coach_bio: string; coach_name: string; coach_title: string; id: boolean; show_coach: boolean; updated_at: string };
+        Insert: { hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; id?: boolean; show_coach?: boolean; updated_at?: string };
+        Update: { hero_tagline?: string; hero_text?: string; proposals?: Json; proposals_title?: string; show_prices?: boolean; show_schedule?: boolean; coach_photo_path?: string | null; coach_photo_url?: string | null; coach_photo_x?: number; coach_photo_y?: number; coach_photo_zoom?: number; coach_story?: string; coach_bio?: string; coach_name?: string; coach_title?: string; show_coach?: boolean; updated_at?: string };
         Relationships: [];
       };
       training_enrollments: {

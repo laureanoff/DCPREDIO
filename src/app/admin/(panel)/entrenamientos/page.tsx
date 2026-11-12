@@ -7,8 +7,9 @@ import { getStaff, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { EnrollmentList, type EnrollmentRow } from "./enrollment-list";
 import { Agenda, type DayStudent, type SessionRow } from "./agenda";
-import { CoachEditor, TrainingManager, type ActivityRow } from "./training-manager";
+import { CoachEditor, TrainingManager, type ActivityRow, type ContentRow } from "./training-manager";
 import type { Billing } from "@/lib/training";
+import { parseProposals } from "@/queries/trainings";
 
 export const metadata: Metadata = { title: "Entrenamientos" };
 
@@ -24,7 +25,7 @@ const VIEWS = [
   ["inscripciones", "Inscripciones y alumnos", false],
   ["agenda", "Días y horarios", false],
   ["packs", "Actividades y packs", true],
-  ["web", "Profe y web", true],
+  ["web", "Textos y profe", true],
 ] as const;
 
 async function Content({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string }> }) {
@@ -90,7 +91,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     isAdmin ? supabase.from("training_activities").select("id, name, description, location, is_active").order("sort_order").order("created_at") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_packs").select("id, activity_id, name, description, days_per_week, is_active").order("sort_order").order("days_per_week") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_pack_prices").select("pack_id, billing, price") : Promise.resolve({ data: [] }),
-    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y").maybeSingle() : Promise.resolve({ data: null }),
+    isAdmin ? supabase.from("training_settings").select("coach_name, coach_title, coach_bio, coach_story, show_coach, coach_photo_url, coach_photo_zoom, coach_photo_x, coach_photo_y, hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule").maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("training_enrollments").select("activity_name, status, preferred_days, training_students(full_name)").eq("status", "active"),
   ]);
   const sessions: SessionRow[] = (sesRes.data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? "", title: x.title, details: x.details ?? "", isActive: x.is_active }));
@@ -107,6 +108,12 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     })),
   }));
   const coach = { name: coachRes.data?.coach_name ?? "", title: coachRes.data?.coach_title ?? "", bio: coachRes.data?.coach_bio ?? "", story: coachRes.data?.coach_story ?? "", show: coachRes.data?.show_coach ?? true, photo: coachRes.data?.coach_photo_url ? { url: coachRes.data.coach_photo_url, zoom: Number(coachRes.data.coach_photo_zoom), x: coachRes.data.coach_photo_x, y: coachRes.data.coach_photo_y } : null };
+
+  const content: ContentRow = {
+    tagline: coachRes.data?.hero_tagline ?? "", text: coachRes.data?.hero_text ?? "", proposalsTitle: coachRes.data?.proposals_title ?? "",
+    proposals: parseProposals(coachRes.data?.proposals).map((p) => ({ ...p, tags: p.tags.join(", ") })),
+    showPrices: coachRes.data?.show_prices ?? false, showSchedule: coachRes.data?.show_schedule ?? false,
+  };
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-5">
@@ -126,7 +133,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
 
       {view === "agenda" && <Agenda sessions={sessions} students={byDay} />}
       {view === "packs" && <TrainingManager activities={activities} />}
-      {view === "web" && <CoachEditor coach={coach} />}
+      {view === "web" && <CoachEditor coach={coach} content={content} />}
       {view === "inscripciones" && (<>
       <nav aria-label="Filtrar inscripciones" className="flex flex-wrap gap-2">
         {FILTERS.map(([k, label]) => (

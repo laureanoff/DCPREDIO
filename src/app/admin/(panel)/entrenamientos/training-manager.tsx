@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { BILLING_LABEL, BILLING_ORDER, type Billing } from "@/lib/training";
 import { createClient } from "@/lib/supabase/browser";
 import { CoachPhoto, type CoachPhotoData } from "@/components/public/CoachPhoto";
-import { removeCoachPhoto, saveCoachPhoto, saveCoach, addActivity, addPack, deleteActivity, deletePack, updateActivity, updatePack } from "./training-actions";
+import { removeCoachPhoto, saveCoachPhoto, saveCoach, savePageContent, addActivity, addPack, deleteActivity, deletePack, updateActivity, updatePack } from "./training-actions";
 
 export type PackRow = { id: string; name: string; description: string; daysPerWeek: number; isActive: boolean; prices: Partial<Record<Billing, number>> };
 export type ActivityRow = { id: string; name: string; description: string; location: string; isActive: boolean; packs: PackRow[] };
@@ -118,6 +118,74 @@ function ActivityItem({ a }: { a: ActivityRow }) {
   );
 }
 
+export type ProposalRow = { title: string; subtitle: string; text: string; tags: string };
+export type ContentRow = { tagline: string; text: string; proposalsTitle: string; proposals: ProposalRow[]; showPrices: boolean; showSchedule: boolean };
+
+/** Textos de la página pública: lema, presentación, propuestas por edad y qué se muestra (precios, horarios). */
+export function ContentEditor({ content }: { content: ContentRow }) {
+  const { pending, msg, run } = useRun();
+  const [c, setC] = useState(content);
+  const setP = (i: number, patch: Partial<ProposalRow>) => setC((s) => ({ ...s, proposals: s.proposals.map((p, j) => (j === i ? { ...p, ...patch } : p)) }));
+  const move = (i: number, d: -1 | 1) => setC((s) => {
+    const j = i + d;
+    if (j < 0 || j >= s.proposals.length) return s;
+    const a = [...s.proposals];
+    [a[i], a[j]] = [a[j], a[i]];
+    return { ...s, proposals: a };
+  });
+  const toInput = () => ({
+    tagline: c.tagline, text: c.text, proposalsTitle: c.proposalsTitle, showPrices: c.showPrices, showSchedule: c.showSchedule,
+    proposals: c.proposals.map((p) => ({ title: p.title, subtitle: p.subtitle, text: p.text, tags: p.tags.split(",").map((t) => t.trim()).filter(Boolean) })),
+  });
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-4">
+      <h3 className="mb-1 text-sm font-bold uppercase tracking-wide">Textos de la página de Entrenamientos</h3>
+      <p className="mb-3 text-sm text-muted">Lo que se lee arriba de todo y las propuestas por edad. Se actualiza en la web al guardar.</p>
+      <div className="grid gap-2">
+        <input className={field} placeholder="Lema (ej. Entrená. Desarrollá tus capacidades. Evolucioná.)" value={c.tagline} maxLength={140} onChange={(e) => setC({ ...c, tagline: e.target.value })} aria-label="Lema" />
+        <textarea className={`${field} h-28 py-2`} placeholder="Presentación" value={c.text} maxLength={700} onChange={(e) => setC({ ...c, text: e.target.value })} aria-label="Presentación" />
+        <input className={field} placeholder="Título de la sección de propuestas" value={c.proposalsTitle} maxLength={100} onChange={(e) => setC({ ...c, proposalsTitle: e.target.value })} aria-label="Título de las propuestas" />
+      </div>
+
+      <h4 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Propuestas ({c.proposals.length}/8)</h4>
+      <ul className="flex flex-col gap-3">
+        {c.proposals.map((p, i) => (
+          <li key={i} className="rounded-xl border border-border bg-surface-2/50 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-bold">
+              <span className="text-lime-ink">{String(i + 1).padStart(2, "0")}</span>
+              <span className="ml-auto flex gap-1">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Subir" className="h-9 w-9 rounded-lg border border-border disabled:opacity-40">↑</button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === c.proposals.length - 1} aria-label="Bajar" className="h-9 w-9 rounded-lg border border-border disabled:opacity-40">↓</button>
+                <button type="button" onClick={() => { if (confirm(`¿Quitar la propuesta "${p.title || i + 1}"?`)) setC((s) => ({ ...s, proposals: s.proposals.filter((_, j) => j !== i) })); }} className="h-9 rounded-lg border border-border px-3 text-danger transition hover:border-danger">Quitar</button>
+              </span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input className={field} placeholder="Título (ej. Infantiles)" value={p.title} maxLength={60} onChange={(e) => setP(i, { title: e.target.value })} aria-label="Título" />
+              <input className={field} placeholder="Subtítulo (ej. Nivel Inicial y Primario)" value={p.subtitle} maxLength={80} onChange={(e) => setP(i, { subtitle: e.target.value })} aria-label="Subtítulo" />
+              <textarea className={`${field} h-24 py-2 sm:col-span-2`} placeholder="Descripción" value={p.text} maxLength={400} onChange={(e) => setP(i, { text: e.target.value })} aria-label="Descripción" />
+              <input className={`${field} sm:col-span-2`} placeholder="Etiquetas separadas por coma (ej. Fuerza, Movilidad, Resistencia)" value={p.tags} onChange={(e) => setP(i, { tags: e.target.value })} aria-label="Etiquetas" />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {c.proposals.length < 8 && (
+        <button type="button" onClick={() => setC((s) => ({ ...s, proposals: [...s.proposals, { title: "", subtitle: "", text: "", tags: "" }] }))} className="mt-3 h-10 rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar propuesta</button>
+      )}
+
+      <h4 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Qué se muestra en la web</h4>
+      <div className="flex flex-col gap-2 text-sm">
+        <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5 h-5 w-5 accent-[var(--lime)]" checked={c.showPrices} onChange={(e) => setC({ ...c, showPrices: e.target.checked })} /> <span><strong>Mostrar precios</strong> en los packs y en la inscripción. Apagado: no se ve ningún precio y se los pasás a cada persona al confirmar.</span></label>
+        <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5 h-5 w-5 accent-[var(--lime)]" checked={c.showSchedule} onChange={(e) => setC({ ...c, showSchedule: e.target.checked })} /> <span><strong>Mostrar días y horarios</strong> (sección «Cuándo entrenamos», con lo cargado en «Días y horarios»). Apagado: solo los ves vos acá.</span></label>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button type="button" disabled={pending} onClick={() => run(() => savePageContent(toInput()))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-50">Guardar textos</button>
+        {msg && <span role="status" className={`text-sm ${msg.ok ? "text-lime-ink" : "text-danger"}`}>{msg.text}</span>}
+      </div>
+    </div>
+  );
+}
+
 export type CoachRow = { name: string; title: string; bio: string; story: string; show: boolean; photo: CoachPhotoData };
 
 const PHOTO_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -188,11 +256,12 @@ function PhotoEditor({ initial }: { initial: CoachPhotoData }) {
   );
 }
 
-export function CoachEditor({ coach }: { coach: CoachRow }) {
+export function CoachEditor({ coach, content }: { coach: CoachRow; content: ContentRow }) {
   const { pending, msg, run } = useRun();
   const [c, setC] = useState(coach);
   return (
     <div className="flex flex-col gap-4">
+    <ContentEditor content={content} />
     <PhotoEditor initial={coach.photo} />
     <div className="rounded-2xl border border-border bg-surface p-4">
       <h3 className="mb-2 text-sm font-bold uppercase tracking-wide">Profe y su historia (se muestra en la web, sección «Entrenamientos»)</h3>
