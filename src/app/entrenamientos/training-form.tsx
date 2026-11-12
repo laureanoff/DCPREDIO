@@ -92,11 +92,11 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
           </h2>
           <p className="mx-auto mt-2 max-w-md text-muted">
             {ok ? (
-              <>La inscripción de <strong className="text-foreground">{f.student}</strong> quedó confirmada. Te vamos a escribir por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para pasarte los días y horarios. El pago se hace en el predio.</>
+              <>La inscripción de <strong className="text-foreground">{f.student}</strong> quedó confirmada. Te vamos a escribir por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para pasarte los días, horarios y precio. El pago se hace en el predio.</>
             ) : no ? (
               <>Por ahora no pudimos aceptar la inscripción de <strong className="text-foreground">{f.student}</strong>. Escribinos por WhatsApp al predio y lo vemos juntos.</>
             ) : (
-              <>Recibimos la inscripción de <strong className="text-foreground">{f.student}</strong>. Te vamos a contactar por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para confirmar los días y horarios. El pago se hace en el predio.</>
+              <>Recibimos la inscripción de <strong className="text-foreground">{f.student}</strong>. Te vamos a contactar por WhatsApp al <strong className="text-foreground">{f.phone}</strong> para coordinar los días, horarios y precio. El pago se hace en el predio.</>
             )}
           </p>
           {!ok && !no && (
@@ -183,6 +183,8 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
           })}
         </div>
 
+        {!showPrices && <p className="mt-3 text-sm text-muted">El precio lo coordinamos por WhatsApp después de que completes la inscripción.</p>}
+
         {showPrices && pack && offered.length > 0 && (
           <fieldset className="mt-4 step-enter">
             <legend className="mb-2 text-sm font-medium">¿Cómo preferís pagar?</legend>
@@ -250,12 +252,14 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
             <label>No completar<input tabIndex={-1} autoComplete="off" value={f.website} onChange={set("website")} /></label>
           </div>
 
+          {!showPrices && <p className="rounded-xl glass-soft px-4 py-3 text-sm text-muted"><strong className="text-foreground">¿Y el precio?</strong> Después de enviar el formulario te escribimos por WhatsApp y lo coordinamos con vos.</p>}
+
           {error && <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
           <div data-ready={days.length >= need} className="tr-bar glass glass-lime flex flex-wrap items-center gap-4 rounded-2xl p-4">
             <p className="min-w-0 flex-1 text-sm">
               <strong>{act.name} · {pack.name}</strong>
-              <span key={`${effBilling}-${price}`} className="price-swap block text-muted">{showPrices && price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : "Te pasamos los detalles al confirmar"}</span>
+              <span key={`${effBilling}-${price}`} className="price-swap block text-muted">{showPrices && price !== undefined && effBilling ? `${formatMoney(price)} ${BILLING_SUFFIX[effBilling]}` : "Precio: lo coordinamos por WhatsApp"}</span>
             </p>
             <button type="submit" disabled={pending} className="tr-send cta-sheen relative h-12 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black transition hover:bg-lime-dark disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Send size={18} aria-hidden />{pending ? "Enviando…" : "Enviar inscripción"}</span>

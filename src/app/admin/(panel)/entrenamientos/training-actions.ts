@@ -58,7 +58,7 @@ export async function deleteActivity(id: string): Promise<ActionResult> {
 
 const price = z.number().min(0, "El precio no puede ser negativo.").max(100_000_000).nullable();
 const packSchema = z.object({
-  name: z.string().trim().min(1, "Poné un nombre para el pack.").max(80),
+  name: z.string().trim().min(1, "Poné un nombre para la opción.").max(80),
   description: z.string().trim().max(400),
   daysPerWeek: z.number().int().min(1, "Los días por semana van de 1 a 7.").max(7, "Los días por semana van de 1 a 7."),
   isActive: z.boolean(),
@@ -99,17 +99,17 @@ export async function addPack(activityId: string, raw: PackInput): Promise<Actio
     .single();
   if (error || !data) {
     console.error("[entrenamientos] pack", error?.code, error?.message);
-    return { ok: false, error: "No se pudo agregar el pack." };
+    return { ok: false, error: "No se pudo agregar la opción." };
   }
-  if (!(await savePrices(data.id, p.data.prices))) return { ok: false, error: "El pack se creó pero no se pudieron guardar los precios. Editalo y guardá de nuevo." };
+  if (!(await savePrices(data.id, p.data.prices))) return { ok: false, error: "La opción se creó pero no se pudieron guardar los precios. Editalo y guardá de nuevo." };
   refresh();
-  return { ok: true, message: "Pack agregado." };
+  return { ok: true, message: "Opción agregada." };
 }
 
 export async function updatePack(id: string, raw: PackInput): Promise<ActionResult> {
   await requireAdmin();
   const p = packSchema.safeParse(raw);
-  if (!idSchema.safeParse(id).success || !p.success) return { ok: false, error: p.success ? "Pack inválido." : p.error.issues[0].message };
+  if (!idSchema.safeParse(id).success || !p.success) return { ok: false, error: p.success ? "Opción inválida." : p.error.issues[0].message };
   if (!hasPrice(p.data.prices)) return { ok: false, error: "Cargá al menos un precio (por clase, mensual o trimestral)." };
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -118,20 +118,20 @@ export async function updatePack(id: string, raw: PackInput): Promise<ActionResu
     .eq("id", id)
     .select("id")
     .maybeSingle();
-  if (error || !data) return { ok: false, error: "No se pudo guardar el pack." };
+  if (error || !data) return { ok: false, error: "No se pudo guardar la opción." };
   if (!(await savePrices(id, p.data.prices))) return { ok: false, error: "No se pudieron guardar los precios." };
   refresh();
-  return { ok: true, message: "Pack guardado. Ya se ve en la web." };
+  return { ok: true, message: "Opción guardada. Ya se ve en la web." };
 }
 
 export async function deletePack(id: string): Promise<ActionResult> {
   await requireAdmin();
-  if (!idSchema.safeParse(id).success) return { ok: false, error: "Pack inválido." };
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Opción inválida." };
   const supabase = await createClient();
   const { error } = await supabase.from("training_packs").delete().eq("id", id);
-  if (error) return { ok: false, error: "No se pudo borrar el pack." };
+  if (error) return { ok: false, error: "No se pudo borrar la opción." };
   refresh();
-  return { ok: true, message: "Pack borrado." };
+  return { ok: true, message: "Opción borrada." };
 }
 
 const coachSchema = z.object({

@@ -24,7 +24,7 @@ const FILTERS = [
 const VIEWS = [
   ["inscripciones", "Inscripciones y alumnos", false],
   ["agenda", "Días y horarios", false],
-  ["packs", "Actividades y packs", true],
+  ["packs", "Actividades y opciones", true],
   ["web", "Textos y profe", true],
 ] as const;
 

@@ -42,7 +42,7 @@ function toInput(f: PackForm) {
 function PackFields({ f, setF }: { f: PackForm; setF: (v: PackForm) => void }) {
   return (
     <div className="grid gap-2 sm:grid-cols-2">
-      <input className={field} placeholder="Nombre del pack (ej. Funcional 2 veces)" value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} aria-label="Nombre del pack" />
+      <input className={field} placeholder="Nombre de la opción (ej. 2 veces por semana)" value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} aria-label="Nombre de la opción" />
       <label className="flex items-center gap-2 text-sm">
         Días por semana
         <select className={`${field} w-20`} value={f.days} onChange={(e) => setF({ ...f, days: e.target.value })}>
@@ -52,7 +52,7 @@ function PackFields({ f, setF }: { f: PackForm; setF: (v: PackForm) => void }) {
           <input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Visible
         </label>
       </label>
-      <input className={`${field} sm:col-span-2`} placeholder="Descripción (opcional)" value={f.description} maxLength={400} onChange={(e) => setF({ ...f, description: e.target.value })} aria-label="Descripción del pack" />
+      <input className={`${field} sm:col-span-2`} placeholder="Descripción (opcional)" value={f.description} maxLength={400} onChange={(e) => setF({ ...f, description: e.target.value })} aria-label="Descripción de la opción" />
       {BILLING_ORDER.map((b) => (
         <label key={b} className="flex items-center gap-2 text-sm">
           <span className="w-20 shrink-0">{BILLING_LABEL[b]}</span>
@@ -70,8 +70,8 @@ function PackItem({ pack }: { pack: PackRow }) {
     <li className="rounded-xl border border-border bg-surface-2/50 p-3">
       <PackFields f={f} setF={setF} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button type="button" disabled={pending} onClick={() => run(() => updatePack(pack.id, toInput(f)))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Guardar pack</button>
-        <button type="button" disabled={pending} onClick={() => { if (confirm(`¿Borrar el pack "${pack.name}"? Las inscripciones ya hechas no se pierden.`)) run(() => deletePack(pack.id)); }} className="h-10 rounded-xl border border-border px-4 text-sm text-danger transition hover:border-danger disabled:opacity-60">Borrar</button>
+        <button type="button" disabled={pending} onClick={() => run(() => updatePack(pack.id, toInput(f)))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Guardar opción</button>
+        <button type="button" disabled={pending} onClick={() => { if (confirm(`¿Borrar la opción "${pack.name}"? Las inscripciones ya hechas no se pierden.`)) run(() => deletePack(pack.id)); }} className="h-10 rounded-xl border border-border px-4 text-sm text-danger transition hover:border-danger disabled:opacity-60">Borrar</button>
         {msg && <span role="status" className={`text-xs ${msg.ok ? "text-lime-ink" : "text-danger"}`}>{msg.text}</span>}
       </div>
     </li>
@@ -82,12 +82,12 @@ function NewPack({ activityId }: { activityId: string }) {
   const { pending, msg, run } = useRun();
   const [open, setOpen] = useState(false);
   const [f, setF] = useState(emptyPack());
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className="h-10 self-start rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar pack</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="h-10 self-start rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar opción</button>;
   return (
     <div className="rounded-xl border border-lime/40 p-3">
       <PackFields f={f} setF={setF} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button type="button" disabled={pending || f.name.trim() === ""} onClick={() => run(() => addPack(activityId, toInput(f)), () => { setF(emptyPack()); setOpen(false); })} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Crear pack</button>
+        <button type="button" disabled={pending || f.name.trim() === ""} onClick={() => run(() => addPack(activityId, toInput(f)), () => { setF(emptyPack()); setOpen(false); })} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Crear opción</button>
         <button type="button" onClick={() => setOpen(false)} className="h-10 rounded-xl border border-border px-4 text-sm">Cancelar</button>
         {msg && <span role="status" className={`text-xs ${msg.ok ? "text-lime-ink" : "text-danger"}`}>{msg.text}</span>}
       </div>
@@ -108,10 +108,10 @@ function ActivityItem({ a }: { a: ActivityRow }) {
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5 accent-[var(--lime)]" checked={f.isActive} onChange={(e) => setF({ ...f, isActive: e.target.checked })} /> Visible en la web</label>
         <button type="button" disabled={pending} onClick={() => run(() => updateActivity(a.id, f))} className="h-10 rounded-xl bg-lime px-4 text-sm font-semibold text-black disabled:opacity-60">Guardar actividad</button>
-        <button type="button" disabled={pending} onClick={() => { if (confirm(`¿Borrar "${a.name}" y todos sus packs? Las inscripciones ya hechas no se pierden.`)) run(() => deleteActivity(a.id)); }} className="h-10 rounded-xl border border-border px-4 text-sm text-danger transition hover:border-danger disabled:opacity-60">Borrar actividad</button>
+        <button type="button" disabled={pending} onClick={() => { if (confirm(`¿Borrar "${a.name}" y todas sus opciones? Las inscripciones ya hechas no se pierden.`)) run(() => deleteActivity(a.id)); }} className="h-10 rounded-xl border border-border px-4 text-sm text-danger transition hover:border-danger disabled:opacity-60">Borrar actividad</button>
         {msg && <span role="status" className={`text-xs ${msg.ok ? "text-lime-ink" : "text-danger"}`}>{msg.text}</span>}
       </div>
-      <h3 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Packs</h3>
+      <h3 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Opciones (días por semana)</h3>
       <ul className="mb-3 flex flex-col gap-3">{a.packs.map((p) => <PackItem key={p.id} pack={p} />)}</ul>
       <NewPack activityId={a.id} />
     </li>
@@ -174,7 +174,7 @@ export function ContentEditor({ content }: { content: ContentRow }) {
 
       <h4 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Qué se muestra en la web</h4>
       <div className="flex flex-col gap-2 text-sm">
-        <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5 h-5 w-5 accent-[var(--lime)]" checked={c.showPrices} onChange={(e) => setC({ ...c, showPrices: e.target.checked })} /> <span><strong>Mostrar precios</strong> en los packs y en la inscripción. Apagado: no se ve ningún precio y se los pasás a cada persona al confirmar.</span></label>
+        <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5 h-5 w-5 accent-[var(--lime)]" checked={c.showPrices} onChange={(e) => setC({ ...c, showPrices: e.target.checked })} /> <span><strong>Mostrar precios</strong> en las opciones y en la inscripción. Apagado: no se ve ningún precio y se los pasás a cada persona al confirmar.</span></label>
         <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5 h-5 w-5 accent-[var(--lime)]" checked={c.showSchedule} onChange={(e) => setC({ ...c, showSchedule: e.target.checked })} /> <span><strong>Mostrar días y horarios</strong> (sección «Cuándo entrenamos», con lo cargado en «Días y horarios»). Apagado: solo los ves vos acá.</span></label>
       </div>
 
@@ -288,7 +288,7 @@ export function TrainingManager({ activities }: { activities: ActivityRow[] }) {
     <section className="rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-[family-name:var(--font-display)] text-lg font-bold uppercase">Entrenamientos</h2>
       <p className="mb-4 text-sm text-muted">
-        Actividades y packs que se ofrecen en la web (sección «Entrenamientos»). Cada pack tiene sus días por semana y hasta tres precios: por clase, mensual y trimestral;
+        Actividades y opciones (días por semana) que se ofrecen en la web (sección «Entrenamientos»). Cada opción tiene sus días por semana y hasta tres precios: por clase, mensual y trimestral;
         los que dejes vacíos no se ofrecen. Se aplica al instante.
       </p>
       <ul className="flex flex-col gap-4">{activities.map((a) => <ActivityItem key={a.id} a={a} />)}</ul>

@@ -36,6 +36,11 @@ async function Sessions() {
   return content.showSchedule ? <Schedule sessions={await getTrainingSessions()} /> : null;
 }
 
+async function FaqSection() {
+  const c = await getPageContent();
+  return <Faq showPrices={c.showPrices} />;
+}
+
 async function Hero() {
   const c = await getPageContent();
   return (
@@ -88,7 +93,7 @@ export default async function EntrenamientosPage() {
             <Catalog />
           </Suspense>
         </div>
-        <Faq />
+        <Suspense fallback={null}><FaqSection /></Suspense>
       </main>
       </div>
       <SiteFooter name={venue.name} />

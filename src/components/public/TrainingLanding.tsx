@@ -15,7 +15,7 @@ const BENEFITS = [
 const STEPS = [
   { title: "Elegí tus días", text: "Cuántas veces por semana querés entrenar." },
   { title: "Dejá tus datos", text: "Completás la inscripción online en un minuto y marcás los días que te quedan cómodos." },
-  { title: "Te contactamos", text: "Te escribimos por WhatsApp para confirmar días y horarios." },
+  { title: "Te contactamos", text: "Te escribimos por WhatsApp para coordinar días, horarios y precio." },
   { title: "Entrená y pagá en el predio", text: "Sin pagos online: abonás directamente en el predio." },
 ];
 
@@ -137,14 +137,15 @@ export function Schedule({ sessions }: { sessions: PublicSession[] }) {
   );
 }
 
-export function Faq() {
+export function Faq({ showPrices = false }: { showPrices?: boolean }) {
+  const faq = showPrices ? FAQ : [{ q: "¿Cuánto cuesta?", a: "El precio lo coordinamos con vos por WhatsApp una vez que completes el formulario de inscripción, según la propuesta y los días que elijas." }, ...FAQ];
   return (
     <section aria-labelledby="t-faq" className="mt-16">
       <Reveal>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Preguntas frecuentes</p>
         <h2 id="t-faq" className={`${H2} mb-5`}>Dudas comunes</h2>
         <div className="flex flex-col gap-2">
-          {FAQ.map((f) => (
+          {faq.map((f) => (
             <details key={f.q} className="glass group rounded-2xl px-5 py-4">
               <summary className="cursor-pointer list-none font-semibold marker:hidden">{f.q}</summary>
               <p className="mt-2 text-muted">{f.a}</p>
