@@ -23,11 +23,11 @@ const schema = z.object({
 });
 
 const ERR: Record<string, string> = {
-  DC030: "Ese pack ya no está disponible. Actualizá la página.",
-  DC031: "Esa modalidad de pago ya no está disponible para el pack. Actualizá la página.",
+  DC030: "Esa opción ya no está disponible. Actualizá la página.",
+  DC031: "Esa modalidad de pago ya no está disponible para esa opción. Actualizá la página.",
   DC032: "Revisá los datos ingresados.",
   DC033: "Ya tenés varias solicitudes pendientes. Comunicate con el predio.",
-  DC034: "Elegí al menos tantos días como incluye el pack.",
+  DC034: "Elegí al menos tantos días como incluye la opción.",
 };
 
 export type EnrollResult = { ok: true; id: string } | { ok: false; error: string };

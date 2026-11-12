@@ -13,7 +13,7 @@ const BENEFITS = [
 ];
 
 const STEPS = [
-  { title: "Elegí tu pack", text: "Según cuántos días por semana querés entrenar." },
+  { title: "Elegí tus días", text: "Cuántas veces por semana querés entrenar." },
   { title: "Dejá tus datos", text: "Completás la inscripción online en un minuto y marcás los días que te quedan cómodos." },
   { title: "Te contactamos", text: "Te escribimos por WhatsApp para confirmar días y horarios." },
   { title: "Entrená y pagá en el predio", text: "Sin pagos online: abonás directamente en el predio." },

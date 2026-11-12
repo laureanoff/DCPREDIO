@@ -30,14 +30,14 @@ async function TrainingsTeaser() {
           <h2 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-6xl">
             Entre<span className="title-grass">namientos</span>
           </h2>
-          <p className="mt-4 max-w-xl text-muted sm:text-lg">Para chicos y adultos. Elegí tu pack según los días que quieras entrenar e inscribite online; el pago se hace en el predio.</p>
+          <p className="mt-4 max-w-xl text-muted sm:text-lg">Para chicos y adultos. Elegí cuántos días por semana querés entrenar e inscribite online; el pago se hace en el predio.</p>
           <ul className="mt-5 flex flex-wrap gap-2">
             {catalog.map((a) => (
               <li key={a.id} className="glass rounded-full px-4 py-1.5 text-sm font-medium">{a.name}</li>
             ))}
           </ul>
           <Link href="/entrenamientos" className="cta-sheen relative mt-7 inline-flex h-12 items-center gap-3 overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">
-            <span className="cta-ball" aria-hidden /> Ver packs
+            <span className="cta-ball" aria-hidden /> Ver propuestas
           </Link>
         </div>
         </div>

@@ -38,7 +38,7 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!pack || !effBilling) return setError("Elegí un pack.");
+    if (!pack || !effBilling) return setError("Elegí una opción.");
     if (days.length < need) return setError(`Elegí al menos ${need} ${need === 1 ? "día" : "días"} que te queden cómodos.`);
     start(async () => {
       const r = await enroll({
@@ -119,7 +119,7 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
   return (
     <form ref={top as unknown as React.RefObject<HTMLFormElement>} onSubmit={submit} className="flex flex-col gap-10" noValidate>
       <ol className="tr-steps -mb-4" aria-label="Pasos">
-        {["Actividad", "Pack", "Tus datos", "Días"].map((t, i) => (
+        {["Actividad", "Frecuencia", "Tus datos", "Días"].map((t, i) => (
           <li key={t} data-on={i === 0 || (i === 1 && !!act) || (i >= 2 && !!pack)}>{t}</li>
         ))}
       </ol>
@@ -148,7 +148,7 @@ export function TrainingForm({ catalog, showPrices }: { catalog: PublicActivity[
       </section></Reveal>
 
       <section aria-labelledby="t-pack" className="scroll-mt-24">
-        <h2 id="t-pack" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">2 · Elegí tu pack</h2>
+        <h2 id="t-pack" className="mb-3 font-[family-name:var(--font-display)] text-2xl font-bold uppercase">2 · ¿Cuántos días por semana?</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {act.packs.map((p, i) => {
             const sel = p.id === packId;

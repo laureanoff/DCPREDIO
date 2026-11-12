@@ -73,7 +73,7 @@ export type PageContent = { tagline: string; text: string; proposalsTitle: strin
 
 export const DEFAULT_CONTENT: PageContent = {
   tagline: "Entrená. Desarrollá tus capacidades. Evolucioná.",
-  text: "Elegí la actividad y el pack que más te sirva, dejanos tus datos y los días que te quedan cómodos. Nosotros te contactamos para confirmar los horarios.",
+  text: "Elegí la actividad y cuántos días por semana querés entrenar, dejanos tus datos y los días que te quedan cómodos. Nosotros te contactamos para confirmar los horarios.",
   proposalsTitle: "Propuestas para distintas edades y objetivos",
   proposals: [],
   showPrices: false,

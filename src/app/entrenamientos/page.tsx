@@ -13,7 +13,7 @@ import { TrainingForm } from "./training-form";
 
 export const metadata: Metadata = {
   title: "Entrenamientos",
-  description: "Clases y entrenamientos para chicos y adultos. Elegí tu pack e inscribite online.",
+  description: "Clases y entrenamientos para chicos y adultos. Elegí cuántos días por semana e inscribite online.",
 };
 
 async function Catalog() {
@@ -69,7 +69,7 @@ export default async function EntrenamientosPage() {
           <Suspense fallback={<h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold uppercase leading-none sm:text-7xl">Entrenamientos</h1>}><Hero /></Suspense>
           <a href="#inscripcion" className="cta-sheen relative mt-6 inline-flex h-12 items-center overflow-hidden rounded-xl bg-lime px-7 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-black shadow-[0_14px_34px_-12px_rgba(182,214,26,.8)] transition hover:bg-lime-dark">Ver propuestas e inscribirme</a>
           <ul className="mt-5 flex flex-wrap gap-2 text-sm">
-            {["Niños, jóvenes y adultos", "Packs por días a la semana", "Pagás en el predio"].map((t) => (
+            {["Niños, jóvenes y adultos", "Días por semana a elección", "Pagás en el predio"].map((t) => (
               <li key={t} className="glass rounded-full px-3.5 py-1 font-medium">{t}</li>
             ))}
           </ul>
@@ -83,7 +83,7 @@ export default async function EntrenamientosPage() {
         <Suspense fallback={null}><Coach /></Suspense>
         <div id="inscripcion" className="scroll-mt-24">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Inscripción</p>
-          <h2 className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">Elegí tu pack y anotate</h2>
+          <h2 className="mb-5 font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl">Elegí tus días y anotate</h2>
           <Suspense fallback={<p className="text-muted">Cargando…</p>}>
             <Catalog />
           </Suspense>
