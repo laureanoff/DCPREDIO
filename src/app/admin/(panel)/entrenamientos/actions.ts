@@ -98,3 +98,28 @@ export async function voidTrainingPayment(id: string, reason: string): Promise<A
   refresh();
   return { ok: true, message: "Cobro anulado." };
 }
+
+const attSchema = z.object({
+  enrollmentId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha no es válida."),
+  status: z.enum(["present", "absent", "justified"]).nullable(),
+});
+
+/** Marca la asistencia de un alumno a la clase de un día. status=null borra la marca. */
+export async function setAttendance(raw: z.input<typeof attSchema>): Promise<ActionResult> {
+  await requireStaff();
+  const p = attSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: p.error.issues[0].message };
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Cordoba" }).format(new Date());
+  if (p.data.date > today) return { ok: false, error: "No se puede marcar asistencia de un día que todavía no llegó." };
+  const supabase = await createClient();
+  const { error } = p.data.status
+    ? await supabase.from("training_attendance").upsert({ enrollment_id: p.data.enrollmentId, class_date: p.data.date, status: p.data.status }, { onConflict: "enrollment_id,class_date" })
+    : await supabase.from("training_attendance").delete().eq("enrollment_id", p.data.enrollmentId).eq("class_date", p.data.date);
+  if (error) {
+    console.error("[entrenamientos] asistencia", error.code, error.message);
+    return { ok: false, error: "No se pudo guardar la asistencia." };
+  }
+  refresh();
+  return { ok: true, message: "Guardado." };
+}

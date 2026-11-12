@@ -9,6 +9,9 @@ import { EnrollmentList, type EnrollmentRow } from "./enrollment-list";
 import { GalleryList } from "../galeria/gallery-list";
 import { GalleryUploader } from "../galeria/uploader";
 import { TestimonialsManager, type TestimonialRow } from "./testimonials";
+import { Dues } from "./dues";
+import { Attendance, type AttStudent } from "./attendance";
+import { loadDueRows, todayAR } from "@/queries/training-dues";
 import { Agenda, type DayStudent, type SessionRow } from "./agenda";
 import { CoachEditor, TrainingManager, type ActivityRow, type ContentRow } from "./training-manager";
 import type { Billing } from "@/lib/training";
@@ -26,6 +29,8 @@ const FILTERS = [
 
 const VIEWS = [
   ["inscripciones", "Inscripciones y alumnos", false],
+  ["cuotas", "Cuotas", false],
+  ["asistencia", "Asistencia", false],
   ["agenda", "Días y horarios", false],
   ["packs", "Actividades y opciones", true],
   ["web", "Textos y profe", true],
@@ -33,12 +38,12 @@ const VIEWS = [
   ["fotos", "Fotos y videos", true],
 ] as const;
 
-async function Content({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string }> }) {
+async function Content({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string; fecha?: string }> }) {
   await connection();
   await requireStaff();
   const staff = await getStaff();
   const isAdmin = staff?.role === "admin";
-  const { estado, vista } = await searchParams;
+  const { estado, vista, fecha } = await searchParams;
   const view = VIEWS.find(([k, , adm]) => k === vista && (!adm || isAdmin))?.[0] ?? "inscripciones";
   const filter = FILTERS.some(([k]) => k === estado) ? (estado as string) : "pending";
   const supabase = await createClient();
@@ -101,6 +106,27 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
     isAdmin ? supabase.from("gallery_items").select("id, kind, url, poster_url, title, is_active").eq("placement", "trainings").order("sort_order").order("created_at") : Promise.resolve({ data: [] }),
     isAdmin ? supabase.from("training_testimonials").select("id, author, detail, body, rating, is_active, placement, source").order("sort_order").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
   ]);
+  const today = todayAR();
+  const needDues = view === "cuotas";
+  const needAtt = view === "asistencia";
+  const attDate = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) && fecha <= today ? fecha : today;
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const monthLabel = new Date(`${today}T12:00:00Z`).toLocaleDateString("es-AR", { month: "long", timeZone: "UTC" });
+  const dueRows = needDues || needAtt ? await loadDueRows(supabase) : [];
+  const collectedMonth = needDues
+    ? ((await supabase.from("training_payments").select("amount").eq("is_voided", false).gte("paid_at", `${monthStart}T00:00:00-03:00`)).data ?? []).reduce((t, p) => t + Number(p.amount), 0)
+    : 0;
+  const attMarks: Record<string, "present" | "absent" | "justified"> = {};
+  if (needAtt) {
+    const { data: marks } = await supabase.from("training_attendance").select("enrollment_id, status").eq("class_date", attDate);
+    for (const m of marks ?? []) attMarks[m.enrollment_id] = m.status as "present" | "absent" | "justified";
+  }
+  const preferredById = new Map<string, number[]>();
+  if (needAtt) {
+    const { data: prefs } = await supabase.from("training_enrollments").select("id, preferred_days").eq("status", "active");
+    for (const x of prefs ?? []) preferredById.set(x.id, x.preferred_days ?? []);
+  }
+  const attStudents: AttStudent[] = needAtt ? dueRows.map((r) => ({ id: r.id, name: r.student, activity: r.activity, preferredDays: preferredById.get(r.id) ?? [], presentMonth: r.presentMonth, absentMonth: r.absentMonth })) : [];
   const sessions: SessionRow[] = (sesRes.data ?? []).map((x) => ({ id: x.id, weekday: x.weekday, start: x.start_time.slice(0, 5), end: x.end_time?.slice(0, 5) ?? "", title: x.title, details: x.details ?? "", isActive: x.is_active }));
   const byDay: Record<number, DayStudent[]> = {};
   for (const e of actives.data ?? []) {
@@ -142,6 +168,8 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
         ))}
       </nav>
 
+      {view === "cuotas" && <Dues rows={dueRows} collectedMonth={collectedMonth} monthLabel={monthLabel} />}
+      {view === "asistencia" && <Attendance key={attDate} date={attDate} today={today} students={attStudents} marks={attMarks} />}
       {view === "agenda" && <Agenda sessions={sessions} students={byDay} />}
       {view === "packs" && <TrainingManager activities={activities} />}
       {view === "fotos" && (
@@ -174,7 +202,7 @@ async function Content({ searchParams }: { searchParams: Promise<{ estado?: stri
   );
 }
 
-export default function Page({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string }> }) {
+export default function Page({ searchParams }: { searchParams: Promise<{ estado?: string; vista?: string; fecha?: string }> }) {
   return (
     <Suspense fallback={<PanelLoading />}>
       <Content searchParams={searchParams} />

@@ -201,6 +201,12 @@ export type Database = {
         Update: { price?: number };
         Relationships: [];
       };
+      training_attendance: {
+        Row: { class_date: string; created_at: string; enrollment_id: string; id: string; status: string };
+        Insert: { class_date: string; created_at?: string; enrollment_id: string; id?: string; status: string };
+        Update: { status?: string };
+        Relationships: [{ foreignKeyName: "training_attendance_enrollment_id_fkey"; columns: ["enrollment_id"]; isOneToOne: false; referencedRelation: "training_enrollments"; referencedColumns: ["id"] }];
+      };
       training_payments: {
         Row: { amount: number; concept: string | null; created_at: string; created_by: string | null; enrollment_id: string; id: string; is_voided: boolean; method: Database["public"]["Enums"]["payment_method"]; notes: string | null; paid_at: string; void_reason: string | null; voided_at: string | null };
         Insert: { amount: number; concept?: string | null; created_at?: string; created_by?: string | null; enrollment_id: string; id?: string; is_voided?: boolean; method: Database["public"]["Enums"]["payment_method"]; notes?: string | null; paid_at?: string; void_reason?: string | null; voided_at?: string | null };
