@@ -21,6 +21,11 @@ async function Catalog() {
   return <TrainingForm catalog={catalog} showPrices={content.showPrices} />;
 }
 
+async function Ben() {
+  const c = await getPageContent();
+  return <Benefits title={c.benefitsTitle} items={c.benefits} />;
+}
+
 async function Props() {
   const c = await getPageContent();
   return <Proposals title={c.proposalsTitle} proposals={c.proposals} />;
@@ -81,7 +86,7 @@ export default async function EntrenamientosPage() {
         </div>
         </div>
         <PitchDivider />
-        <Benefits />
+        <Suspense fallback={null}><Ben /></Suspense>
         <Suspense fallback={null}><Props /></Suspense>
         <HowItWorks />
         <Suspense fallback={null}><Sessions /></Suspense>

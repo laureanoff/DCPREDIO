@@ -1,16 +1,7 @@
-import { Dumbbell, HeartPulse, Medal, ShieldCheck, Smile, Users, Zap } from "lucide-react";
+import { Activity, Dumbbell, Flame, HeartPulse, Medal, ShieldCheck, Smile, Target, Timer, Trophy, Users, Zap, type LucideIcon } from "lucide-react";
 import { WEEKDAYS } from "@/lib/training";
-import type { Proposal, PublicSession } from "@/queries/trainings";
+import type { Benefit, Proposal, PublicSession } from "@/queries/trainings";
 import { Reveal } from "./Reveal";
-
-const BENEFITS = [
-  { icon: Dumbbell, title: "Fuerza y estabilidad", text: "Trabajo con el propio cuerpo y con pesas para ganar fuerza de forma progresiva y segura." },
-  { icon: Zap, title: "Coordinación y agilidad", text: "Ejercicios de movimiento, escalera y balón que mejoran reflejos, equilibrio y control del cuerpo." },
-  { icon: HeartPulse, title: "Resistencia", text: "Más energía para el día a día y para rendir mejor cuando te toca jugar al fútbol." },
-  { icon: ShieldCheck, title: "Postura y prevención", text: "Movilidad y técnica correcta para moverte mejor y cuidar articulaciones y espalda." },
-  { icon: Medal, title: "Confianza y constancia", text: "Objetivos claros y una rutina que se sostiene: ver el progreso motiva a seguir." },
-  { icon: Smile, title: "Diversión en grupo", text: "Clases dinámicas, en un ambiente cómodo, donde entrenar es parte de lo que más se disfruta." },
-];
 
 const STEPS = [
   { title: "Elegí tus días", text: "Cuántas veces por semana querés entrenar." },
@@ -29,20 +20,27 @@ const FAQ = [
 
 const H2 = "font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase sm:text-4xl";
 
-export function Benefits() {
+const BENEFIT_ICON_MAP: Record<string, LucideIcon> = { dumbbell: Dumbbell, zap: Zap, heart: HeartPulse, shield: ShieldCheck, medal: Medal, smile: Smile, users: Users, activity: Activity, target: Target, flame: Flame, trophy: Trophy, timer: Timer };
+
+/** «Lo que vas a lograr»: se edita en el panel («Textos y profe»). */
+export function Benefits({ title, items }: { title: string; items: Benefit[] }) {
+  if (items.length === 0) return null;
   return (
     <section aria-labelledby="t-ben" className="mb-14">
       <Reveal>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-ink">Lo que vas a lograr</p>
-        <h2 id="t-ben" className={`${H2} mb-5`}>Entrená mejor, sentite mejor</h2>
+        <h2 id="t-ben" className={`${H2} mb-5`}>{title}</h2>
         <ul className="info-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {BENEFITS.map(({ icon: Icon, title, text }, i) => (
-            <li key={title} style={{ "--i": i } as React.CSSProperties} className="glass glass-lift rounded-3xl p-5">
-              <span className="glass-ico mb-3 inline-flex"><Icon size={22} aria-hidden /></span>
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-bold uppercase">{title}</h3>
-              <p className="mt-1 text-sm text-muted">{text}</p>
-            </li>
-          ))}
+          {items.map(({ icon, title: t, text }, i) => {
+            const Icon = BENEFIT_ICON_MAP[icon] ?? Medal;
+            return (
+              <li key={`${t}-${i}`} style={{ "--i": i } as React.CSSProperties} className="glass glass-lift rounded-3xl p-5">
+                <span className="glass-ico mb-3 inline-flex"><Icon size={22} aria-hidden /></span>
+                <h3 className="font-[family-name:var(--font-display)] text-xl font-bold uppercase">{t}</h3>
+                {text && <p className="mt-1 text-sm text-muted">{text}</p>}
+              </li>
+            );
+          })}
         </ul>
       </Reveal>
     </section>

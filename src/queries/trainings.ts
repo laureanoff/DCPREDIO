@@ -69,9 +69,12 @@ export async function getTrainingSessions(): Promise<PublicSession[]> {
 }
 
 export type Proposal = { title: string; subtitle: string; text: string; tags: string[] };
-export type PageContent = { tagline: string; text: string; proposalsTitle: string; proposals: Proposal[]; showPrices: boolean; showSchedule: boolean };
+export type Benefit = { icon: string; title: string; text: string };
+export type PageContent = { benefitsTitle: string; benefits: Benefit[]; tagline: string; text: string; proposalsTitle: string; proposals: Proposal[]; showPrices: boolean; showSchedule: boolean };
 
 export const DEFAULT_CONTENT: PageContent = {
+  benefitsTitle: "Entrená mejor, sentite mejor",
+  benefits: [],
   tagline: "Entrená. Desarrollá tus capacidades. Evolucioná.",
   text: "Elegí la actividad y cuántos días por semana querés entrenar, dejanos tus datos y los días que te quedan cómodos. Nosotros te contactamos para confirmar los horarios.",
   proposalsTitle: "Propuestas para distintas edades y objetivos",
@@ -92,13 +95,24 @@ export function parseProposals(raw: unknown): Proposal[] {
     .filter((p) => p.title !== "");
 }
 
+export function parseBenefits(raw: unknown): Benefit[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((x) => {
+      const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+      const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+      return { icon: str(o.icon), title: str(o.title), text: str(o.text) };
+    })
+    .filter((b) => b.title !== "");
+}
+
 /** Textos de la página y qué se muestra (se editan en el panel, «Textos y profe»). */
 export async function getPageContent(): Promise<PageContent> {
   "use cache";
   cacheLife("minutes");
   cacheTag("trainings");
 
-  const { data, error } = await createAnonClient().from("training_settings").select("hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule").maybeSingle();
+  const { data, error } = await createAnonClient().from("training_settings").select("hero_tagline, hero_text, proposals_title, proposals, show_prices, show_schedule, benefits_title, benefits").maybeSingle();
   if (error || !data) return DEFAULT_CONTENT;
-  return { tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
+  return { benefitsTitle: data.benefits_title, benefits: parseBenefits(data.benefits), tagline: data.hero_tagline, text: data.hero_text, proposalsTitle: data.proposals_title, proposals: parseProposals(data.proposals), showPrices: data.show_prices, showSchedule: data.show_schedule };
 }

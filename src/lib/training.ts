@@ -17,3 +17,8 @@ export function ageFrom(birth: string | null): number | null {
   if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--;
   return a >= 0 ? a : null;
 }
+
+/** Íconos disponibles para «Lo que vas a lograr» (clave guardada → nombre que se muestra en el panel). */
+export const BENEFIT_ICONS: Record<string, string> = {
+  dumbbell: "Pesas", zap: "Rayo (agilidad)", heart: "Corazón", shield: "Escudo", medal: "Medalla", smile: "Carita", users: "Grupo", activity: "Pulso", target: "Objetivo", flame: "Llama", trophy: "Trofeo", timer: "Reloj",
+};

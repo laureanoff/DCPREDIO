@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BILLING_LABEL, BILLING_ORDER, type Billing } from "@/lib/training";
+import { BENEFIT_ICONS, BILLING_LABEL, BILLING_ORDER, type Billing } from "@/lib/training";
 import { createClient } from "@/lib/supabase/browser";
 import { CoachPhoto, type CoachPhotoData } from "@/components/public/CoachPhoto";
 import { removeCoachPhoto, saveCoachPhoto, saveCoach, savePageContent, addActivity, addPack, deleteActivity, deletePack, updateActivity, updatePack } from "./training-actions";
@@ -119,7 +119,8 @@ function ActivityItem({ a }: { a: ActivityRow }) {
 }
 
 export type ProposalRow = { title: string; subtitle: string; text: string; tags: string };
-export type ContentRow = { tagline: string; text: string; proposalsTitle: string; proposals: ProposalRow[]; showPrices: boolean; showSchedule: boolean };
+export type BenefitRow = { icon: string; title: string; text: string };
+export type ContentRow = { benefitsTitle: string; benefits: BenefitRow[]; tagline: string; text: string; proposalsTitle: string; proposals: ProposalRow[]; showPrices: boolean; showSchedule: boolean };
 
 /** Textos de la página pública: lema, presentación, propuestas por edad y qué se muestra (precios, horarios). */
 export function ContentEditor({ content }: { content: ContentRow }) {
@@ -133,7 +134,16 @@ export function ContentEditor({ content }: { content: ContentRow }) {
     [a[i], a[j]] = [a[j], a[i]];
     return { ...s, proposals: a };
   });
+  const setB = (i: number, patch: Partial<BenefitRow>) => setC((s) => ({ ...s, benefits: s.benefits.map((b, j) => (j === i ? { ...b, ...patch } : b)) }));
+  const moveB = (i: number, d: -1 | 1) => setC((s) => {
+    const j = i + d;
+    if (j < 0 || j >= s.benefits.length) return s;
+    const a = [...s.benefits];
+    [a[i], a[j]] = [a[j], a[i]];
+    return { ...s, benefits: a };
+  });
   const toInput = () => ({
+    benefitsTitle: c.benefitsTitle, benefits: c.benefits,
     tagline: c.tagline, text: c.text, proposalsTitle: c.proposalsTitle, showPrices: c.showPrices, showSchedule: c.showSchedule,
     proposals: c.proposals.map((p) => ({ title: p.title, subtitle: p.subtitle, text: p.text, tags: p.tags.split(",").map((t) => t.trim()).filter(Boolean) })),
   });
@@ -171,6 +181,31 @@ export function ContentEditor({ content }: { content: ContentRow }) {
       {c.proposals.length < 8 && (
         <button type="button" onClick={() => setC((s) => ({ ...s, proposals: [...s.proposals, { title: "", subtitle: "", text: "", tags: "" }] }))} className="mt-3 h-10 rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar propuesta</button>
       )}
+
+      <h4 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-muted">«Lo que vas a lograr» ({c.benefits.length}/12)</h4>
+      <input className={`${field} mb-3 w-full`} placeholder="Título (ej. Entrená mejor, sentite mejor)" value={c.benefitsTitle} maxLength={100} onChange={(e) => setC({ ...c, benefitsTitle: e.target.value })} aria-label="Título de lo que vas a lograr" />
+      <ul className="flex flex-col gap-3">
+        {c.benefits.map((b, i) => (
+          <li key={i} className="rounded-xl border border-border bg-surface-2/50 p-3">
+            <div className="grid gap-2 sm:grid-cols-[10rem_1fr]">
+              <select className={field} value={b.icon} onChange={(e) => setB(i, { icon: e.target.value })} aria-label="Ícono">
+                {Object.entries(BENEFIT_ICONS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+              </select>
+              <input className={field} placeholder="Título (ej. Resistencia)" value={b.title} maxLength={60} onChange={(e) => setB(i, { title: e.target.value })} aria-label="Título del beneficio" />
+              <textarea className={`${field} h-20 py-2 sm:col-span-2`} placeholder="Descripción" value={b.text} maxLength={300} onChange={(e) => setB(i, { text: e.target.value })} aria-label="Descripción del beneficio" />
+            </div>
+            <div className="mt-2 flex gap-1">
+              <button type="button" onClick={() => moveB(i, -1)} disabled={i === 0} aria-label="Subir" className="h-9 w-9 rounded-lg border border-border disabled:opacity-40">↑</button>
+              <button type="button" onClick={() => moveB(i, 1)} disabled={i === c.benefits.length - 1} aria-label="Bajar" className="h-9 w-9 rounded-lg border border-border disabled:opacity-40">↓</button>
+              <button type="button" onClick={() => { if (confirm(`¿Quitar "${b.title || i + 1}"?`)) setC((s) => ({ ...s, benefits: s.benefits.filter((_, j) => j !== i) })); }} className="ml-auto h-9 rounded-lg border border-border px-3 text-sm text-danger transition hover:border-danger">Quitar</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {c.benefits.length < 12 && (
+        <button type="button" onClick={() => setC((s) => ({ ...s, benefits: [...s.benefits, { icon: "medal", title: "", text: "" }] }))} className="mt-3 h-10 rounded-xl border border-border px-4 text-sm font-semibold transition hover:border-lime">+ Agregar beneficio</button>
+      )}
+      <p className="mt-2 text-xs text-muted">Si quitás todos, la sección no se muestra en la web.</p>
 
       <h4 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-muted">Qué se muestra en la web</h4>
       <div className="flex flex-col gap-2 text-sm">
